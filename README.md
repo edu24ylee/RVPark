@@ -10,7 +10,7 @@ Welcome to our project repository! We are Control Alt Elite.
 - Cayden Peterson
   - Introduce Yourself!
 - Christian Martin
-  - Introduce Yourself!
+  - Hi my name is Christian Martin. I work as a service desk technician and salestech manager at Marketstar. I produce music and I am learning to DJ
 - Ian Nicholson
   - Introduce Yourself!
 - Lexus Lindeman
