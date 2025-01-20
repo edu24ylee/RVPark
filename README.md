@@ -19,3 +19,7 @@ Welcome to our project repository! We are Control Alt Elite.
   - Introduce Yourself!
 - Yugene Lee
   - Introduce Yourself!
+- Jake Runyan
+  - I am 23 years old and currently working as vallet at the U of U Hospital. I also
+  voleenteer as a software developer for a minecraft server working in Java. This
+  will be my first C# project but I am confident I can learn quickly.
