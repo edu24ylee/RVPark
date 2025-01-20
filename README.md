@@ -14,7 +14,7 @@ Welcome to our project repository! We are Control Alt Elite.
 - Ian Nicholson
   - Introduce Yourself!
 - Lexus Lindeman
-  - Introduce Yourself!
+  - Back-end developer, also helping with the front end. 
 - Tawny McAleese
   - Introduce Yourself!
 - Yugene Lee
