@@ -21,7 +21,3 @@ Welcome to our project repository! We are Control Alt Elite.
   - Hello, my name is Yugene! I'm 20 and I'm an Air Force intern working with SBOMs. 
   I commonly work in Javascript, but I also know a little C#. This will be my first
   full-stack C# project and I'm excited to learn more and work as a team!
-- Jake Runyan
-  - I am 23 years old and currently working as vallet at the U of U Hospital. I also
-  voleenteer as a software developer for a minecraft server working in Java. This
-  will be my first C# project but I am confident I can learn quickly.
