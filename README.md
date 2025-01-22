@@ -16,6 +16,6 @@ Welcome to our project repository! We are Control Alt Elite.
 - Lexus Lindeman
   - Introduce Yourself!
 - Tawny McAleese
-  - Introduce Yourself!
+  - Hello, my name is Tawny McAleese. I am looking forward to getting to work as a team this semester. My hobbies are reading and spending time with my family. 
 - Yugene Lee
   - Introduce Yourself!
