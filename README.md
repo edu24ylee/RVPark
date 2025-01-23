@@ -12,7 +12,7 @@ Welcome to our project repository! We are Control Alt Elite.
 - Christian Martin
   - Introduce Yourself!
 - Ian Nicholson
-  - Introduce Yourself!
+  - Hi I'm Ian! I love music, the outdoors, and especially skiing. I'm excited to be working on this project
 - Lexus Lindeman
   - Introduce Yourself!
 - Tawny McAleese
