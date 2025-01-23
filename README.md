@@ -8,7 +8,7 @@ Welcome to our project repository! We are Control Alt Elite.
 ## Team Members
 
 - Cayden Peterson
-  - Introduce Yourself!
+  - Hello all! Currently I'm working in software implemntation and have been learning to write scripts in all sorts of different scripting languages. I love playing any sort of games, reading, skiing, and just being outdoors!
 - Christian Martin
   - Introduce Yourself!
 - Ian Nicholson
