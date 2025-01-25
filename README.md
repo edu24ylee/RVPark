@@ -18,4 +18,6 @@ Welcome to our project repository! We are Control Alt Elite.
 - Tawny McAleese
   - Hello, my name is Tawny McAleese. I am looking forward to getting to work as a team this semester. My hobbies are reading and spending time with my family. 
 - Yugene Lee
-  - Introduce Yourself!
+  - Hello, my name is Yugene! I'm 20 and I'm an Air Force intern working with SBOMs. 
+  I commonly work in Javascript, but I also know a little C#. This will be my first
+  full-stack C# project and I'm excited to learn more and work as a team!
