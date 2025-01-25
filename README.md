@@ -10,15 +10,17 @@ Welcome to our project repository! We are Control Alt Elite.
 - Cayden Peterson
   - Introduce Yourself!
 - Christian Martin
-  - Introduce Yourself!
+  - Hi my name is Christian Martin. I work as a service desk technician and salestech manager at Marketstar. I produce music and I am learning to DJ
 - Ian Nicholson
   - Introduce Yourself!
 - Lexus Lindeman
   - Introduce Yourself!
 - Tawny McAleese
-  - Introduce Yourself!
+  - Hello, my name is Tawny McAleese. I am looking forward to getting to work as a team this semester. My hobbies are reading and spending time with my family. 
 - Yugene Lee
-  - Introduce Yourself!
+  - Hello, my name is Yugene! I'm 20 and I'm an Air Force intern working with SBOMs. 
+  I commonly work in Javascript, but I also know a little C#. This will be my first
+  full-stack C# project and I'm excited to learn more and work as a team!
 - Jake Runyan
   - I am 23 years old and currently working as vallet at the U of U Hospital. I also
   voleenteer as a software developer for a minecraft server working in Java. This
