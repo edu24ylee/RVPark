@@ -14,7 +14,7 @@ Welcome to our project repository! We are Control Alt Elite.
 - Ian Nicholson
   - Introduce Yourself!
 - Lexus Lindeman
-  - Introduce Yourself!
+  - Back-end developer, also helping with the front end. 
 - Tawny McAleese
   - Hello, my name is Tawny McAleese. I am looking forward to getting to work as a team this semester. My hobbies are reading and spending time with my family. 
 - Yugene Lee
