@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace ApplicationCore.Models
 {
-    class DELETEME
+    class Reservation
     {
-        // PLACEHOLDER, DELETE THIS FILE
     }
 }
