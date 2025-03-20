@@ -1,28 +1,27 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace RVPark.Pages.Admin.Lots
+namespace RVPark.Pages.Admin.Parks
 {
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
         [BindProperty]
-        public Lot LotObject { get; set; }
+        public Park ParkObject { get; set; }
         public UpsertModel(IUnitOfWork unitofWork) => _unitOfWork = unitofWork;
 
         public IActionResult OnGet(int? id)
         {
-            LotObject = new Lot();
+            ParkObject = new Park();
 
             if (id != 0) // edit
             {
-                LotObject = _unitOfWork.Lot.Get(u => u.Id == id);
+                ParkObject = _unitOfWork.Park.Get(u => u.Id == id);
             }
 
-            if (LotObject == null)
+            if (ParkObject == null)
             {
                 return NotFound();
             }
@@ -34,13 +33,13 @@ namespace RVPark.Pages.Admin.Lots
             {
                 return Page();
             }
-            if (LotObject.Id == 0) //if new
+            if (ParkObject.Id == 0) //if new
             {
-                _unitOfWork.Lot.Add(LotObject);
+                _unitOfWork.Park.Add(ParkObject);
             }
             else //if existing
             {
-                _unitOfWork.Lot.Update(LotObject);
+                _unitOfWork.Park.Update(ParkObject);
             }
             _unitOfWork.Commit();
             return RedirectToPage("./Index");
