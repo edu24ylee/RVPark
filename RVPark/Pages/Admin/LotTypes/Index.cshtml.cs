@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace RVPark.Pages.Admin.Lots
+namespace RVPark.Pages.Admin.LotTypes
 {
     public class IndexModel : PageModel
     {
-        // intentionally left blank
+        public void OnGet()
+        {
+        }
     }
 }

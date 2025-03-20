@@ -9,6 +9,9 @@ public class ApplicationDbContext : IdentityDbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
-         public DbSet<FILLER> FILLER { get; set; }
-}
+    }
+    public DbSet<Park> Park { get; set; }
+    public DbSet<LotType> LotType { get; set; }
+    public DbSet<Lot> Lot { get; set; }
+
 }

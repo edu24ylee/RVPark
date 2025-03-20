@@ -11,21 +11,47 @@ namespace Infrastructure.Data
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _dbContext;
-    }
-    public UnitOfWork(ApplicationDbContext dbContext)
+        public UnitOfWork(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
-        private IGenericRepository<FILLER> _FILLER;
-        public IGenericRepository<FILLLER> Category
+
+        private IGenericRepository<Park> _Park;
+        private IGenericRepository<LotType> _LotType;
+        private IGenericRepository<Lot> _Lot;
+
+        public IGenericRepository<Park> Park
         {
             get
             {
-                if (_FILLLER == null)
+                if (_Park == null)
                 {
-                    _FILLLER = new GenericRepository<FILLLER>(_dbContext);
+                    _Park = new GenericRepository<Park>(_dbContext);
                 }
-                return _FILLLER;
+                return _Park;
+            }
+        }
+        public IGenericRepository<LotType> LotType
+        {
+            get
+            {
+                if (_LotType == null)
+                {
+                    _LotType = new GenericRepository<LotType>(_dbContext);
+                }
+                return _LotType;
+            }
+        }
+
+        public IGenericRepository<Lot> Lot
+        {
+            get
+            {
+                if (_Lot == null)
+                {
+                    _Lot = new GenericRepository<Lot>(_dbContext);
+                }
+                return _Lot;
             }
         }
         public int Commit()
