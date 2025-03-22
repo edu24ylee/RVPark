@@ -20,6 +20,7 @@ namespace Infrastructure.Data
         public DbSet<RV> RV { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Employee> Employee { get; set; }
+        public DbSet<ReservationReport> ReservationReport { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

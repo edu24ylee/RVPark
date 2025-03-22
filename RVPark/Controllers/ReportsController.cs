@@ -1,12 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ApplicationCore.Interfaces;
+using ApplicationCore.Models;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
 {
-    public class ReportsController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReservationReportController : Controller
     {
-        public IActionResult Index()
+        private readonly UnitOfWork _unitOfWork;
+
+        public ReservationReportController(UnitOfWork unitOfWork)
         {
-            return View();
+            _unitOfWork = unitOfWork;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetReport([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (startDate == default || endDate == default || startDate > endDate)
+            {
+                return BadRequest(new { success = false, message = "Invalid date range." });
+            }
+
+            var reservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => r.StartDate >= startDate && r.EndDate <= endDate,
+                includes: "Guest.User,Rv,Lot"
+            );
+
+            var sorted = reservations.OrderBy(r => r.Status).ToList();
+
+            return Ok(new { success = true, data = sorted });
         }
     }
 }
