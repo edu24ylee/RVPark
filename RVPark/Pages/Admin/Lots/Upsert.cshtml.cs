@@ -3,6 +3,7 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Infrastructure.Data;
 
 namespace RVPark.Pages.Admin.Lots
@@ -13,7 +14,7 @@ namespace RVPark.Pages.Admin.Lots
         [BindProperty]
         public Lot LotObject { get; set; }
         public UpsertModel(UnitOfWork unitofWork) => _unitOfWork = unitofWork;
-
+        public IEnumerable<SelectListItem> LotTypeList { get; set; }
         public IActionResult OnGet(int? id)
         {
             LotObject = new Lot();
@@ -27,6 +28,11 @@ namespace RVPark.Pages.Admin.Lots
             {
                 return NotFound();
             }
+
+            var lotTypeList = _unitOfWork.LotType.GetAll();     
+            LotTypeList = lotTypeList.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
+
+
             return Page();
         }
         public IActionResult OnPost()

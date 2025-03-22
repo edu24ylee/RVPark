@@ -29,3 +29,11 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+.nav-item.dropdown .dropdown-menu {
+    z-index: 1050; /* Bootstrap default z-index for dropdowns */
+}
+
+.navbar, .navbar-nav {
+    position: relative;
+    z-index: 1060; /* Ensures the navbar is on top of other content */
+}
