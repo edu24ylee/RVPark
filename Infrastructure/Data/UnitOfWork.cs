@@ -1,6 +1,6 @@
 ﻿using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
-using ApplicationCore.Models.ApplicationCore.Models;
+using ApplicationCore;
 using Infrastructure.Services;
 using System;
 using System.Collections.Generic;

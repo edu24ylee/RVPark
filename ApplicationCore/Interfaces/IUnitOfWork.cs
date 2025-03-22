@@ -1,5 +1,5 @@
 ﻿using ApplicationCore.Models;
-using ApplicationCore.Models.ApplicationCore.Models;
+using ApplicationCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
