@@ -1,4 +1,97 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
 @{
+    ViewData["Title"] = "Create Reservation";
+}
+
+<h2>Reservation</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label asp-for="GuestFirstName"></label>
+        <input asp-for="GuestFirstName" class="form-control" />
+        <span asp-validation-for="GuestFirstName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GuestLastName"></label>
+        <input asp-for="GuestLastName" class="form-control" />
+        <span asp-validation-for="GuestLastName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Trailer Length</label>
+        <select id="LengthDropdown" class="form-control" onchange="toggleCustomLength()">
+            <option value="">-- Select Length --</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+            <option value="35">35</option>
+            <option value="40">40</option>
+            <option value="custom">Custom</option>
+        </select>
+        <input id="CustomLength" name="Length" class="form-control mt-2" type="number" step="0.1" style="display:none;" />
+        <span asp-validation-for="Length" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reservation.StartDate"></label>
+        <input asp-for="Reservation.StartDate" type="date" class="form-control" onchange="calculateDuration()" />
+        <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reservation.EndDate"></label>
+        <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
+        <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reservation.Duration"></label>
+        <input asp-for="Reservation.Duration" class="form-control" readonly />
+        <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reservation.Status"></label>
+        <select asp-for="Reservation.Status" class="form-control">
+            <option value="Active">Active</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Completed">Completed</option>
+        </select>
+        <span asp-validation-for="Reservation.Status" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleCustomLength() {
+            const selected = document.getElementById("LengthDropdown").value;
+            const customInput = document.getElementById("CustomLength");
+            if (selected === "custom") {
+                customInput.style.display = "block";
+                customInput.name = "Length";
+                customInput.value = "";
+            } else {
+                customInput.style.display = "none";
+                if (selected !== "") {
+                    customInput.name = "Length";
+                    customInput.value = selected;
+                }
+            }
+        }
+
+        function calculateDuration() {
+            const start = new Date(document.getElementById("Reservation_StartDate").value);
+            const end = new Date(document.getElementById("Reservation_EndDate").value);
+            if (start && end && end > start) {
+                const duration = (end - start) / (1000 * 3600 * 24);
+                document.getElementById("Reservation_Duration").value = duration;
+            }
+        }
+    </script>
 }

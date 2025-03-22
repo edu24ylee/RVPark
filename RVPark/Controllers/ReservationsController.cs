@@ -16,6 +16,16 @@ namespace RVPark.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var reservations = await _unitOfWork.Reservation.GetAllAsync(
+                includes: "Guest.User,Rv,Lot"
+            );
+
+            return Json(new { data = reservations });
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation([FromBody] Reservation reservation)
         {
@@ -38,6 +48,18 @@ namespace RVPark.Controllers
             _unitOfWork.Reservation.Update(reservation);
             await _unitOfWork.CommitAsync();
             return Json(new { success = true, data = reservation });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id);
+            if (reservation == null)
+                return Json(new { success = false, message = "Reservation not found." });
+
+            _unitOfWork.Reservation.Delete(reservation);
+            await _unitOfWork.CommitAsync();
+            return Json(new { success = true, message = "Reservation deleted successfully." });
         }
 
         [HttpDelete("cancel/{id}")]
