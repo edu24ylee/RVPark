@@ -1,4 +1,38 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.IndexModel
 @{
+    <h2>Reservations</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Guest</th>
+                <th>Lot</th>
+                <th>Duration</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var reservation in Model.Reservations)
+            {
+                <tr>
+                    <td>@($"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}")</td
+                    <td>@reservation.Lot.Location</td>
+                    <td>@reservation.Duration</td>
+                    <td>@reservation.StartDate.ToShortDateString()</td>
+                    <td>@reservation.EndDate.ToShortDateString()</td>
+                    <td>@reservation.Status</td>
+                    <td>
+                        <a asp-page="Upsert" asp-route-id="@reservation.ReservationId">Edit</a> |
+                        <form method="post" asp-page-handler="Cancel" asp-route-id="@reservation.ReservationId" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a asp-page="Upsert" class="btn btn-primary">Create New Reservation</a>
 }
