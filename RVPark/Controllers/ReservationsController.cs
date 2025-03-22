@@ -1,12 +1,71 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ApplicationCore.Interfaces;
+using ApplicationCore.Models;
+using Microsoft.AspNetCore.Mvc;
+using Infrastructure.Data;
 
 namespace RVPark.Controllers
 {
-    public class ReservationsController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReservationController : Controller
     {
-        public IActionResult Index()
+        private readonly UnitOfWork _unitOfWork;
+
+        public ReservationController(UnitOfWork unitOfWork)
         {
-            return View();
+            _unitOfWork = unitOfWork;
+        }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateReservation([FromBody] Reservation reservation)
+        {
+            if (reservation == null)
+                return Json(new { success = false, message = "Invalid reservation data." });
+
+            _unitOfWork.Reservation.Add(reservation);
+            await _unitOfWork.CommitAsync();
+            return Json(new { success = true, data = reservation });
+        }
+
+        [HttpPut("modify/{id}")]
+        public async Task<IActionResult> ModifyReservation(int id, [FromBody] int newDuration)
+        {
+            var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id);
+            if (reservation == null)
+                return Json(new { success = false, message = "Reservation not found." });
+
+            reservation.UpdateDuration(newDuration);
+            _unitOfWork.Reservation.Update(reservation);
+            await _unitOfWork.CommitAsync();
+            return Json(new { success = true, data = reservation });
+        }
+
+        [HttpDelete("cancel/{id}")]
+        public async Task<IActionResult> CancelReservation(int id)
+        {
+            var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id);
+            if (reservation == null)
+                return Json(new { success = false, message = "Reservation not found." });
+
+            reservation.CancelReservation();
+            _unitOfWork.Reservation.Update(reservation);
+            await _unitOfWork.CommitAsync();
+            return Json(new { success = true, message = "Reservation cancelled successfully." });
+        }
+
+        [HttpGet("guest/{guestId}")]
+        public async Task<IActionResult> GetGuestReservations(int guestId)
+        {
+            var reservations = await _unitOfWork.Reservation.GetAllAsync(r => r.GuestId == guestId);
+            return Json(new { success = true, data = reservations });
+        }
+
+        [HttpGet("availability/{lotId}")]
+        public async Task<IActionResult> CheckAvailability(int lotId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var reservations = await _unitOfWork.Reservation.GetAllAsync(r => r.LotId == lotId &&
+                r.StartDate < endDate && r.EndDate > startDate);
+            return Json(new { success = true, available = !reservations.Any() });
         }
     }
 }

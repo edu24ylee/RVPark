@@ -1,5 +1,7 @@
 ﻿using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
+using ApplicationCore.Models.ApplicationCore.Models;
+using Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,12 @@ namespace Infrastructure.Data
         private IGenericRepository<Park> _Park;
         private IGenericRepository<LotType> _LotType;
         private IGenericRepository<Lot> _Lot;
+        private IGenericRepository<Reservation> _Reservation;
+        private IGenericRepository<RV> _RV;
+        private IGenericRepository<Guest> _Guest;
+        private IGenericRepository<User> _User;
+
+
 
         public IGenericRepository<Park> Park
         {
@@ -52,6 +60,50 @@ namespace Infrastructure.Data
                     _Lot = new GenericRepository<Lot>(_dbContext);
                 }
                 return _Lot;
+            }
+        }
+        public IGenericRepository<Reservation> Reservation
+        {
+            get
+            {
+                if (_Reservation == null)
+                {
+                    _Reservation = new GenericRepository<Reservation>(_dbContext);
+                }
+                return _Reservation;
+            }
+        }
+        public IGenericRepository<RV> RV
+        {
+            get
+            {
+                if (_RV == null)
+                {
+                    _RV = new GenericRepository<RV>(_dbContext);
+                }
+                return _RV;
+            }
+        }
+        public IGenericRepository<Guest> Guest
+        {
+            get
+            {
+                if (_Guest == null)
+                {
+                    _Guest = new GenericRepository<Guest>(_dbContext);
+                }
+                return _Guest;
+            }
+        }
+        public IGenericRepository<User> User
+        {
+            get
+            {
+                if (_User == null)
+                {
+                    _User = new GenericRepository<User>(_dbContext);
+                }
+                return _User;
             }
         }
         public int Commit()
