@@ -1,4 +1,86 @@
 ﻿@page
 @model RVPark.Pages.Admin.LotTypes.UpsertModel
-@{
-}
+
+<form method="post" asp-action="./Upsert">
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-50">
+            <!-- Adjust width as needed -->
+            <div class="card-body p-4 text-center">
+                <!-- Validation Summary -->
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <!-- Form Header -->
+                <h2 class="text-primary mb-3">@(Model.LotTypeObject.Id != 0 ? "Update" : "Create") Lot Type</h2>
+                <hr />
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <!-- Name Field -->
+                        <div class="mb-3">
+                            <label asp-for="LotTypeObject.Name" class="form-label fw-bold">Lot Name</label>
+                            <input type="text" id="ParkName" class="form-control text-center" asp-for="LotTypeObject.Name" />
+                            <span class="text-danger" asp-validation-for="LotTypeObject.Name"></span>
+                        </div>
+
+                        <!-- Rate Field (Price) -->
+                        <div class="mb-3">
+                            <label asp-for="LotTypeObject.Rate" class="form-label fw-bold">Rate (Price)</label>
+                            <input type="number" id="ParkRate" class="form-control text-center" asp-for="LotTypeObject.Rate" step="0.01" min="0" placeholder="Enter rate (e.g., 10.99)" />
+                            <span class="text-danger" asp-validation-for="LotTypeObject.Rate"></span>
+                        </div>
+
+                        <!-- Start Date Field -->
+                        <!-- <div class="mb-3">
+                            <!-- <label asp-for="LotTypeObject.StartDate" class="form-label fw-bold">Start Date</label>
+                            <!-- <input type="date" id="StartDay" class="form-control text-center" asp-for="LotTypeObject.StartDate" />
+                            <!-- <span class="text-danger" asp-validation-for="LotTypeObject.StartDate"></span>
+                        <!-- </div>
+
+                        <!-- End Date Field -->
+                        <!-- <div class="mb-3">
+                           <!--  <label asp-for="LotTypeObject.EndDate" class="form-label fw-bold">End Date</label>
+                            <!-- <input type="date" id="EndDay" class="form-control text-center" asp-for="LotTypeObject.EndDate" />
+                            <!-- <span class="text-danger" asp-validation-for="LotTypeObject.EndDate"></span>
+                        <!-- </div>
+
+						<!-- Park Field Need Ro be Added-->
+      
+                        <div class ="form-control text-center">
+
+                            <label asp-for="LotTypeObject.ParkId" class="form-label fw-bold">Park</label>
+
+                            @Html.DropDownListFor(m => m.LotTypeObject.ParkId,
+                                     Model.ParkList,
+                                     " - Please select a park - ",
+                                     new { @class = "form-control", @id = "ddlPark" })
+                                    <span class=" text-center text-danger" asp-validation-for="LotTypeObject.ParkId"></span>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary" onclick="return ValidateInput()">
+                        <i class="fas fa-save"></i> @(Model.LotTypeObject.Id != 0 ? "Update" : "Create")
+                    </button>
+
+                    <a asp-page="./index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back To List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- JS Scripts -->
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>

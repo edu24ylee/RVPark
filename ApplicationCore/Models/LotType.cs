@@ -17,7 +17,11 @@ namespace ApplicationCore.Models
         public string Name { get; set; }
         [Required]
         public double Rate { get; set; }
-
+        [Required]
+       // public DateOnly StartDate { get; set; }
+        //[Required]
+        //public DateOnly EndDate { get; set; }
+        //[Required]
         public int ParkId { get; set; }
         [ForeignKey("ParkId")]
         public virtual Park Park { get; set; }

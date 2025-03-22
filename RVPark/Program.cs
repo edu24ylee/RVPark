@@ -1,3 +1,5 @@
+using ApplicationCore.Interfaces;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Data;
@@ -24,7 +26,6 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 builder.Services.AddRazorPages();
 
-
 builder.Services.AddScoped<UnitOfWork>();
 //builder.Services.AddScoped<DbInitializer>();
 //builder.Services.AddSingleton<IEmailSender, EmailSender>();
@@ -41,6 +42,8 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
