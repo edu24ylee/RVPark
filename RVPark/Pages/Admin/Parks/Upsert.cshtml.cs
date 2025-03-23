@@ -1,5 +1,6 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -7,10 +8,10 @@ namespace RVPark.Pages.Admin.Parks
 {
     public class UpsertModel : PageModel
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly UnitOfWork _unitOfWork;
         [BindProperty]
         public Park ParkObject { get; set; }
-        public UpsertModel(IUnitOfWork unitofWork) => _unitOfWork = unitofWork;
+        public UpsertModel(UnitOfWork unitofWork) => _unitOfWork = unitofWork;
 
         public IActionResult OnGet(int? id)
         {

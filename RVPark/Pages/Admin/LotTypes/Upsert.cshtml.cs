@@ -1,5 +1,6 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,11 +9,11 @@ namespace RVPark.Pages.Admin.LotTypes
 {
     public class UpsertModel : PageModel
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly UnitOfWork _unitOfWork;
         [BindProperty]
         public LotType LotTypeObject { get; set; }
         public IEnumerable<SelectListItem> ParkList { get; set; }
-        public UpsertModel(IUnitOfWork unitofWork) => _unitOfWork = unitofWork;
+        public UpsertModel(UnitOfWork unitofWork) => _unitOfWork = unitofWork;
 
 
         public IActionResult OnGet(int? id)
