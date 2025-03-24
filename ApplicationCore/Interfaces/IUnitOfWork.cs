@@ -18,6 +18,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<RV> RV { get; }
         public IGenericRepository<User> User { get; }
         public IGenericRepository<Employee> Employee { get; }
+        public IGenericRepository<ReservationReport> ReservationReport { get; }
 
         int Commit();
         Task<int> CommitAsync();    

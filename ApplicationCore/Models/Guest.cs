@@ -1,4 +1,4 @@
-﻿using ApplicationCore.Models.ApplicationCore.Models;
+﻿using ApplicationCore.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
