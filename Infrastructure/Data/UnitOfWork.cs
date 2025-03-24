@@ -25,6 +25,7 @@ namespace Infrastructure.Data
         private IGenericRepository<RV> _RV;
         private IGenericRepository<Guest> _Guest;
         private IGenericRepository<User> _User;
+        private IGenericRepository<Employee> _Employee;
 
 
 
@@ -104,6 +105,17 @@ namespace Infrastructure.Data
                     _User = new GenericRepository<User>(_dbContext);
                 }
                 return _User;
+            }
+        }
+        public IGenericRepository<Employee> Employee
+        {
+            get
+            {
+                if (_Employee == null)
+                {
+                    _Employee = new GenericRepository<Employee>(_dbContext);
+                }
+                return _Employee;
             }
         }
         public int Commit()

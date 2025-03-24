@@ -31,17 +31,6 @@ namespace ApplicationCore.Models
                 UserID = user.UserID;
                 Role = role;
             }
-
-            public Employee() { }
-
-            public void UpdateEmployeeAccess(int empID, int roleID)
-            {
-                if (empID == EmployeeID)
-                {
-                    Role = roleID;
-                }
-            }
         }
     }
-
 }
