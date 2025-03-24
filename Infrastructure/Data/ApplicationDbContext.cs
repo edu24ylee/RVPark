@@ -1,5 +1,4 @@
 ﻿using ApplicationCore.Models;
-using ApplicationCore.Models.ApplicationCore.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

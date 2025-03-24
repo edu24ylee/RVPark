@@ -9,7 +9,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Utilities;
-using ApplicationCore.Models.ApplicationCore.Models;
+using ApplicationCore.Models;
 
 namespace Infrastructure
 {
