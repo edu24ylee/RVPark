@@ -37,28 +37,40 @@ namespace RVPark.Pages.Admin.Employees
             }
         }
 
-        public async Task<IActionResult> OnPostLockUnlock(int id)
+        public async Task<IActionResult> OnPostLockUnlockAsync(int id)
         {
             var employee = _unitOfWork.Employee.Get(e => e.EmployeeID == id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
             var user = await _userManager.FindByIdAsync(employee.UserID.ToString());
-            if (user.LockoutEnd == null) // unlocked
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (user.LockoutEnd == null || user.LockoutEnd <= DateTime.Now) // unlocked
             {
                 user.LockoutEnd = DateTime.Now.AddYears(100);
                 user.LockoutEnabled = true;
             }
-            else if (user.LockoutEnd > DateTime.Now) // unlock
+            else // locked
             {
                 user.LockoutEnd = DateTime.Now;
                 user.LockoutEnabled = false;
             }
-            else
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
             {
-                user.LockoutEnd = DateTime.Now.AddYears(100);
-                user.LockoutEnabled = true;
+                ModelState.AddModelError(string.Empty, "Unable to update user lockout status.");
+                return Page();
             }
-            await _userManager.UpdateAsync(user);
+
             await _unitOfWork.CommitAsync();
-            return RedirectToPage();
+            return RedirectToPage(new { success = true, message = "User lockout status updated successfully" });
         }
     }
 }
