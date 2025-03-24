@@ -1,27 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ApplicationCore.Models;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class EmployeesController : Controller
     {
-        public IActionResult Index()
+        private readonly UnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _hostingEnv;
+
+        public EmployeesController(UnitOfWork unitOfWork, IWebHostEnvironment hostingEnv)
         {
-            return View();
+            _unitOfWork = unitOfWork;
+            _hostingEnv = hostingEnv;
         }
 
-        public IActionResult Create()
+        [HttpGet]
+        public IActionResult Get()
         {
-            return View();
+            return Json(new { data = _unitOfWork.Employee.GetAll(null, null, "User") });
         }
 
-        public IActionResult Edit(int id)
-        {
-            return View();
-        }
-
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            return View();
+            var objFromDb = _unitOfWork.Employee.Get(e => e.EmployeeID == id);
+            if (objFromDb == null)
+            {
+                return Json(new { success = false, message = "Error while deleting" });
+            }
+            _unitOfWork.Employee.Delete(objFromDb);
+            _unitOfWork.Commit();
+            return Json(new { success = true, message = "Delete successful" });
         }
     }
 }
