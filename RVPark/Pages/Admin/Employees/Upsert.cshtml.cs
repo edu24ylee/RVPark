@@ -22,7 +22,7 @@ namespace RVPark.Pages.Admin.Employees
         {
             if (id == null)
             {
-                Employee = new Employee();
+                Employee = new Employee(new User(), 0);
             }
             else
             {
