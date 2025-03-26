@@ -17,6 +17,8 @@ namespace ApplicationCore.Models
         [ForeignKey("UserID")]
         public virtual User User { get; set; }
 
+        public Employee() { }
+
         public Employee(User user, int role)
         {
             User = user;
