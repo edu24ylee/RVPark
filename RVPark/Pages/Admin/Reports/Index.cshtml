@@ -3,26 +3,27 @@
 @{
     ViewData["Title"] = "Reports Index";
 }
+<div class="container my-4">
+    <h2>Reports</h2>
 
-<h2>Reports</h2>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Reservation Reports</h5>
-                <p class="card-text">Generate reports on guest reservations within a specific date range.</p>
-                <a asp-page="/Admin/Reports/ReservationReports" class="btn btn-primary">View Reservation Report</a>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Reservation Reports</h5>
+                    <p class="card-text">Generate reports on guest reservations within a specific date range.</p>
+                    <a asp-page="/Admin/Reports/ReservationReports" class="btn btn-primary">View Reservation Report</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Financial Reports</h5>
-                <p class="card-text">Coming soon: summary of collected and projected revenue.</p>
-                <button class="btn btn-secondary" disabled>View Financial Report</button>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Financial Reports</h5>
+                    <p class="card-text">Coming soon: summary of collected and projected revenue.</p>
+                    <button class="btn btn-secondary" disabled>View Financial Report</button>
+                </div>
             </div>
         </div>
     </div>

@@ -3,56 +3,67 @@
 @{
     ViewData["Title"] = "Reservation Report";
 }
+<div class="container my-4">
 
-<h2>Reservation Report</h2>
+    <h2>Reservation Report</h2>
 
-<form method="get">
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <label asp-for="StartDate" class="form-label">Start Date</label>
-            <input asp-for="StartDate" type="date" class="form-control" />
+    <form method="get">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label asp-for="StartDate" class="form-label">Start Date</label>
+                <input asp-for="StartDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="EndDate" class="form-label">End Date</label>
+                <input asp-for="EndDate" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Generate Report</button>
+            </div>
         </div>
-        <div class="col-md-4">
-            <label asp-for="EndDate" class="form-label">End Date</label>
-            <input asp-for="EndDate" type="date" class="form-control" />
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary">Generate Report</button>
-        </div>
-    </div>
-</form>
+    </form>
 
-@if (Model.ReportGenerated)
-{
-    <h4 class="mt-4">Results</h4>
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Guest</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Lot</th>
-                <th>Status</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Duration (Days)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var reservation in Model.Reservations)
-            {
+    @if (Model.ReportGenerated)
+    {
+        <h4 class="mt-4">Results</h4>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
                 <tr>
-                    <td>@($"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}")</td>
-                    <td>@reservation.Guest.User.Email</td>
-                    <td>@reservation.Guest.User.Phone</td>
-                    <td>@reservation.Lot.Location</td>
-                    <td>@reservation.Status</td>
-                    <td>@reservation.StartDate.ToShortDateString()</td>
-                    <td>@reservation.EndDate.ToShortDateString()</td>
-                    <td>@reservation.Duration</td>
+                    <th>Guest</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Lot</th>
+                    <th>Status</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Duration (Days)</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-}
+            </thead>
+            <tbody>
+                @foreach (var reservation in Model.Reservations)
+                {
+                    <tr>
+                        <td>@($"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}")</td>
+                        <td>@reservation.Guest.User.Email</td>
+                        <td>@reservation.Guest.User.Phone</td>
+                        <td>@reservation.Lot.Location</td>
+                        <td>@reservation.Status</td>
+                        <td>@reservation.StartDate.ToShortDateString()</td>
+                        <td>@reservation.EndDate.ToShortDateString()</td>
+                        <td>@reservation.Duration</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 
+</div>
+
+<!-- JS Scripts -->
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
