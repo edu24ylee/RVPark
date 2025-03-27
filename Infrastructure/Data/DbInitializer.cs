@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ApplicationCore.Models;
 using ApplicationCore.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Utilities;
-using ApplicationCore.Models;
 
 namespace Infrastructure
 {
@@ -39,22 +35,18 @@ namespace Infrastructure
             }
             catch (Exception)
             {
-                
             }
 
             if (_db.Park.Any())
             {
-                return; 
+                return;
             }
 
-            // Create roles
-            //_roleManager.CreateAsync(new IdentityRole(SD.AdminRole)).GetAwaiter().GetResult();
-            //_roleManager.CreateAsync(new IdentityRole(SD.ManagerRole)).GetAwaiter().GetResult();
-            //_roleManager.CreateAsync(new IdentityRole(SD.GuestRole)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(SD.AdminRole)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(SD.ManagerRole)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(SD.GuestRole)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(SD.MaintenanceRole)).GetAwaiter().GetResult();
 
-            
-
-            // Seed Parks
             var parks = new Park[]
             {
                 new Park { Name = "Sunset Valley RV Park", Address = "123 Sunset Blvd", City = "Mesa", State = "AZ", Zipcode = "85201" },
@@ -63,7 +55,6 @@ namespace Infrastructure
             _db.Park.AddRange(parks);
             _db.SaveChanges();
 
-            // Seed LotTypes
             var lotTypes = new LotType[]
             {
                 new LotType { Name = "Standard", Rate = 30.00, ParkId = parks[0].Id },
@@ -72,7 +63,6 @@ namespace Infrastructure
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            // Seed Lots
             var lots = new Lot[]
             {
                 new Lot { Location = "A1", Length = 30, Width = 10, HeightLimit = 12, IsAvailable = true, Description = "Shaded near restroom", LotTypeId = lotTypes[0].Id },
@@ -81,7 +71,6 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            // Seed Guests
             var guestUser = new User
             {
                 Email = "guest1@example.com",
@@ -102,7 +91,6 @@ namespace Infrastructure
             _db.Guest.Add(guest);
             _db.SaveChanges();
 
-            // Seed RVs
             var rv = new RV
             {
                 GuestID = guest.GuestID,
@@ -113,6 +101,72 @@ namespace Infrastructure
                 Description = "Sleeps 4"
             };
             _db.RV.Add(rv);
+            _db.SaveChanges();
+
+            var reservation = new Reservation
+            {
+                GuestId = guest.GuestID,
+                RvId = rv.RvID,
+                LotId = lots[0].Id,
+                Duration = 5,
+                StartDate = DateTime.UtcNow.Date,
+                EndDate = DateTime.UtcNow.Date.AddDays(5),
+                Status = SD.StatusActive
+            };
+            _db.Reservation.Add(reservation);
+            _db.SaveChanges();
+
+            var report = new ReservationReport
+            {
+                GuestName = guestUser.FirstName + " " + guestUser.LastName,
+                Email = guestUser.Email,
+                Phone = guestUser.Phone,
+                RVMake = rv.Make,
+                RVModel = rv.Model,
+                LicensePlate = rv.LicensePlate,
+                TrailerLength = rv.Length,
+                LotLocation = lots[0].Location,
+                StartDate = reservation.StartDate,
+                EndDate = reservation.EndDate,
+                Duration = reservation.Duration,
+                Status = reservation.Status,
+                TotalPaid = (decimal)(reservation.Duration * lotTypes[0].Rate)
+            };
+            _db.ReservationReport.Add(report);
+            _db.SaveChanges();
+
+            var employeeUser = new User
+            {
+                Email = "employee1@rvpark.com",
+                Password = "employee123",
+                FirstName = "John",
+                LastName = "Smith",
+                Phone = "8015551234",
+                IsActive = true
+            };
+            _db.User.Add(employeeUser);
+            _db.SaveChanges();
+
+            var employee = new Employee(employeeUser, 1);
+            _db.Employee.Add(employee);
+            _db.SaveChanges();
+
+            var feeTypes = new List<FeeType>
+            {
+                new FeeType { FeeTypeName = "Late Fee" },
+                new FeeType { FeeTypeName = "Cleaning Fee" },
+                new FeeType { FeeTypeName = "Pet Fee" }
+            };
+            _db.FeeType.AddRange(feeTypes);
+            _db.SaveChanges();
+
+            var fees = new List<Fee>
+            {
+                new Fee { FeeTypeId = feeTypes[0].Id, FeeTotal = 25.00m },
+                new Fee { FeeTypeId = feeTypes[1].Id, FeeTotal = 50.00m },
+                new Fee { FeeTypeId = feeTypes[2].Id, FeeTotal = 15.00m }
+            };
+            _db.Fee.AddRange(fees);
             _db.SaveChanges();
         }
     }

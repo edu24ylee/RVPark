@@ -20,6 +20,8 @@ namespace Infrastructure.Data
         public DbSet<User> User { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<ReservationReport> ReservationReport { get; set; }
+        public DbSet<Fee> Fee { get; set; }
+        public DbSet<FeeType> FeeType { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

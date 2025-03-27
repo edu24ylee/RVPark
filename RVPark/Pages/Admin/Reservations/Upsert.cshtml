@@ -1,7 +1,7 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
 @{
-    ViewData["Title"] = "Create Reservation";
+    ViewData["Title"] = "Create/Edit Reservation";
 }
 
 <h2>Reservation</h2>
@@ -91,7 +91,13 @@
             if (start && end && end > start) {
                 const duration = (end - start) / (1000 * 3600 * 24);
                 document.getElementById("Reservation_Duration").value = duration;
+            } else {
+                document.getElementById("Reservation_Duration").value = 0;
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            calculateDuration();
+        });
     </script>
 }

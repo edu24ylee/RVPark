@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using System.ComponentModel.DataAnnotations;
@@ -28,12 +27,24 @@ namespace RVPark.Pages.Admin.Reservations
         [BindProperty]
         public Reservation Reservation { get; set; } = new();
 
-        public List<SelectListItem> LotOptions { get; set; } = new();
-
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id != null)
-                Reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id, includes: "Guest.User,Rv,Lot") ?? new Reservation();
+            {
+                Reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id, includes: "Guest.User,Rv,Lot")
+                    ?? new Reservation();
+            }
+            else
+            {
+                var today = DateTime.UtcNow.Date;
+                Reservation = new Reservation
+                {
+                    StartDate = today,
+                    EndDate = today.AddDays(1),
+                    Duration = 1,
+                    Status = "Active"
+                };
+            }
 
             return Page();
         }
@@ -41,9 +52,7 @@ namespace RVPark.Pages.Admin.Reservations
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             var user = new User
             {
@@ -53,6 +62,7 @@ namespace RVPark.Pages.Admin.Reservations
                 Phone = "000-000-0000",
                 IsActive = true
             };
+
             var guest = new Guest { User = user, DodId = 0 };
             _unitOfWork.Guest.Add(guest);
             await _unitOfWork.CommitAsync();
@@ -73,6 +83,12 @@ namespace RVPark.Pages.Admin.Reservations
             Reservation.RvId = rv.RvID;
             Reservation.Duration = (Reservation.EndDate - Reservation.StartDate).Days;
 
+            if (Reservation.Duration <= 0)
+            {
+                ModelState.AddModelError("", "End date must be after start date.");
+                return Page();
+            }
+
             var lots = await _unitOfWork.Lot.GetAllAsync();
             var selectedLot = lots
                 .Where(l => l.IsAvailable && l.Length >= rv.Length)
@@ -87,13 +103,22 @@ namespace RVPark.Pages.Admin.Reservations
 
             Reservation.LotId = selectedLot.Id;
 
-            if (Reservation.ReservationId == 0)
-                _unitOfWork.Reservation.Add(Reservation);
-            else
-                _unitOfWork.Reservation.Update(Reservation);
+            try
+            {
+                if (Reservation.ReservationId == 0)
+                    _unitOfWork.Reservation.Add(Reservation);
+                else
+                    _unitOfWork.Reservation.Update(Reservation);
 
-            _unitOfWork.Commit();
-            return RedirectToPage("./Index");
+                await _unitOfWork.CommitAsync();
+                TempData["Success"] = "Reservation saved successfully!";
+                return RedirectToPage("./Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error saving reservation: {ex.Message}");
+                return Page();
+            }
         }
     }
 }
