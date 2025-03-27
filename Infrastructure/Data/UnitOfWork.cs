@@ -27,7 +27,9 @@ namespace Infrastructure.Data
         private IGenericRepository<User> _User;
         private IGenericRepository<Employee> _Employee;
         private IGenericRepository<ReservationReport> _ReservationReport;
-
+        private IGenericRepository<Fee> _Fee;
+        private IGenericRepository<FeeType> _FeeType;
+        private IGenericRepository<Policy> _Policy;
 
 
         public IGenericRepository<Park> Park
@@ -128,6 +130,39 @@ namespace Infrastructure.Data
                     _ReservationReport = new GenericRepository<ReservationReport>(_dbContext);
                 }
                 return _ReservationReport;
+            }
+        }
+        public IGenericRepository<Fee> Fee
+        {
+            get
+            {
+                if (_Fee == null)
+                {
+                    _Fee = new GenericRepository<Fee>(_dbContext);
+                }
+                return _Fee;
+            }
+        }
+        public IGenericRepository<FeeType> FeeType
+        {
+            get
+            {
+                if (_FeeType == null)
+                {
+                    _FeeType = new GenericRepository<FeeType>(_dbContext);
+                }
+                return _FeeType;
+            }
+        }
+        public IGenericRepository<Policy> Policy
+        {
+            get
+            {
+                if (_Policy == null)
+                {
+                    _Policy = new GenericRepository<Policy>(_dbContext);
+                }
+                return _Policy;
             }
         }
         public int Commit()
