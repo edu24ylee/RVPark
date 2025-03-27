@@ -43,7 +43,7 @@ namespace ApplicationCore.Models
 
         public string OverrideReason { get; set; }
         public DateTime? CancellationDate { get; set; }
-        public string CancellationReason { get; set; }
+        public string? CancellationReason { get; set; }
 
         public decimal CalculateTotal(decimal ratePerDay)
         {

@@ -1,7 +1,7 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
 @{
-    ViewData["Title"] = "Create/Edit Reservation";
+    ViewData["Title"] = "Create Reservation";
 }
 
 <h2>Reservation</h2>
@@ -20,7 +20,7 @@
     </div>
 
     <div class="form-group">
-        <label>Trailer Length</label>
+        <label for="LengthDropdown">Trailer Length</label>
         <select id="LengthDropdown" class="form-control" onchange="toggleCustomLength()">
             <option value="">-- Select Length --</option>
             <option value="20">20</option>
@@ -30,7 +30,8 @@
             <option value="40">40</option>
             <option value="custom">Custom</option>
         </select>
-        <input id="CustomLength" name="Length" class="form-control mt-2" type="number" step="0.1" style="display:none;" />
+        <input id="CustomLength" class="form-control mt-2" type="number" step="0.1" placeholder="Enter custom length" style="display:none;" />
+        <input asp-for="Length" id="LengthHidden" type="hidden" />
         <span asp-validation-for="Length" class="text-danger"></span>
     </div>
 
@@ -66,38 +67,59 @@
     <a asp-page="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        function toggleCustomLength() {
-            const selected = document.getElementById("LengthDropdown").value;
+        // Initialize custom trailer length and date fields
+        document.addEventListener("DOMContentLoaded", function () {
+            const today = new Date().toISOString().split('T')[0];
+            const startInput = document.getElementById("Reservation_StartDate");
+            const endInput = document.getElementById("Reservation_EndDate");
+
+            if (!startInput.value) startInput.value = today;
+            if (!endInput.value) endInput.value = today;
+
+            const dropdown = document.getElementById("LengthDropdown");
             const customInput = document.getElementById("CustomLength");
-            if (selected === "custom") {
+            const hiddenInput = document.getElementById("LengthHidden");
+
+            if (![...dropdown.options].some(opt => opt.value === hiddenInput.value)) {
+                dropdown.value = "custom";
                 customInput.style.display = "block";
-                customInput.name = "Length";
-                customInput.value = "";
+                customInput.value = hiddenInput.value;
+            }
+
+            customInput.addEventListener("input", function () {
+                hiddenInput.value = this.value;
+            });
+
+            toggleCustomLength();
+            calculateDuration();
+        });
+
+        function toggleCustomLength() {
+            const dropdown = document.getElementById("LengthDropdown");
+            const customInput = document.getElementById("CustomLength");
+            const hiddenInput = document.getElementById("LengthHidden");
+
+            if (dropdown.value === "custom") {
+                customInput.style.display = "block";
+                hiddenInput.value = customInput.value || "";
             } else {
                 customInput.style.display = "none";
-                if (selected !== "") {
-                    customInput.name = "Length";
-                    customInput.value = selected;
-                }
+                hiddenInput.value = dropdown.value;
             }
         }
 
         function calculateDuration() {
             const start = new Date(document.getElementById("Reservation_StartDate").value);
             const end = new Date(document.getElementById("Reservation_EndDate").value);
+
             if (start && end && end > start) {
                 const duration = (end - start) / (1000 * 3600 * 24);
                 document.getElementById("Reservation_Duration").value = duration;
-            } else {
-                document.getElementById("Reservation_Duration").value = 0;
             }
         }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            calculateDuration();
-        });
     </script>
 }

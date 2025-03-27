@@ -27,7 +27,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<UnitOfWork>();
-//builder.Services.AddScoped<DbInitializer>();
+builder.Services.AddScoped<DbInitializer>();
 //builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
 var app = builder.Build();
@@ -55,13 +55,13 @@ app.MapRazorPages();
 app.MapControllers();
 
 
-//SeedDatabase();
+SeedDatabase();
 
-/*void SeedDatabase()
+void SeedDatabase()
 {
     using var scope = app.Services.CreateScope();
     var initializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
     initializer.Initialize();
-}*/
+}
 
 app.Run();
