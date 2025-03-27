@@ -28,8 +28,16 @@
     {
         <script>
             toastr.success("@TempData["Success"]");
+
+            // Wait a moment for page to render, then reload the DataTable
+            $(document).ready(function () {
+                if ($.fn.dataTable.isDataTable('#DT_load')) {
+                    $('#DT_load').DataTable().ajax.reload(null, false); // false = retain paging
+                }
+            });
         </script>
     }
+
 
     <script>
         var dataTable;
@@ -41,9 +49,10 @@
         function loadList() {
             dataTable = $('#DT_load').DataTable({
                 "ajax": {
-                    "url": "/api/reservation",
+                    "url": "/api/reservation?_=" + new Date().getTime(), // Bust cache
                     "type": "GET",
-                    "datatype": "json"
+                    "datatype": "json",
+                    "cache": false
                 },
                 "columns": [
                     { data: "guest.user.firstName", width: "15%" },

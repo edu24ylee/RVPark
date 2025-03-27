@@ -17,11 +17,7 @@ namespace RVPark.Pages.Admin.Reservations
 
         public List<string> StatusOptions { get; } = new()
         {
-            "Active",
-            "Cancelled",
-            "Confirmed",
-            "Completed",
-            "Pending"
+            "Active", "Cancelled", "Confirmed", "Completed", "Pending"
         };
 
         [BindProperty, Required(ErrorMessage = "First name is required.")]
@@ -62,8 +58,21 @@ namespace RVPark.Pages.Admin.Reservations
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
-                return Page();
+
+            foreach(var kvp in ModelState)
+{
+                var attemptedValue = kvp.Value?.AttemptedValue ?? "null";
+                Console.WriteLine($">>> Field: {kvp.Key}, Attempted Value: {attemptedValue}");
+
+                foreach (var error in kvp.Value.Errors)
+                {
+                    Console.WriteLine($"    Error: {error.ErrorMessage}");
+                }
+            }
+
+
+
+            Console.WriteLine(">>> Model state is VALID. Proceeding...");
 
             var user = new User
             {
@@ -71,8 +80,8 @@ namespace RVPark.Pages.Admin.Reservations
                 LastName = GuestLastName,
                 Email = "placeholder@email.com",
                 Phone = "000-000-0000",
-                IsActive = true
-            };
+                IsActive = true            };
+
 
             var guest = new Guest { User = user, DodId = 0 };
             _unitOfWork.Guest.Add(guest);
@@ -122,6 +131,7 @@ namespace RVPark.Pages.Admin.Reservations
                     _unitOfWork.Reservation.Update(Reservation);
 
                 await _unitOfWork.CommitAsync();
+                Console.WriteLine(">>> Reservation saved!");
                 TempData["Success"] = "Reservation saved successfully!";
                 return RedirectToPage("./Index");
             }

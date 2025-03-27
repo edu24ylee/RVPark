@@ -31,7 +31,7 @@
             <option value="custom">Custom</option>
         </select>
         <input id="CustomLength" class="form-control mt-2" type="number" step="0.1" placeholder="Enter custom length" style="display:none;" />
-        <input asp-for="Length" id="LengthHidden" type="hidden" />
+        <input asp-for="Length" id="LengthHidden" name="Length" type="hidden" />
         <span asp-validation-for="Length" class="text-danger"></span>
     </div>
 

@@ -127,8 +127,7 @@ namespace Infrastructure
                     FirstName = characterNames[i].FirstName,
                     LastName = characterNames[i].LastName,
                     Phone = $"555-000{i + 1}",
-                    IsActive = true,
-                    Password = "guestpass"
+                    IsActive = true
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
