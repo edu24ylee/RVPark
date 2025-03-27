@@ -55,10 +55,8 @@
 
     <div class="form-group">
         <label asp-for="Reservation.Status"></label>
-        <select asp-for="Reservation.Status" class="form-control">
-            <option value="Active">Active</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Completed">Completed</option>
+        <select asp-for="Reservation.Status" class="form-control" asp-items="@(new SelectList(Model.StatusOptions))">
+            <option value="">-- Select Status --</option>
         </select>
         <span asp-validation-for="Reservation.Status" class="text-danger"></span>
     </div>
@@ -67,11 +65,9 @@
     <a asp-page="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Initialize custom trailer length and date fields
         document.addEventListener("DOMContentLoaded", function () {
             const today = new Date().toISOString().split('T')[0];
             const startInput = document.getElementById("Reservation_StartDate");

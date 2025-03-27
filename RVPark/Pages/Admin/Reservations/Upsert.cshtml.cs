@@ -15,6 +15,15 @@ namespace RVPark.Pages.Admin.Reservations
             _unitOfWork = unitOfWork;
         }
 
+        public List<string> StatusOptions { get; } = new()
+        {
+            "Active",
+            "Cancelled",
+            "Confirmed",
+            "Completed",
+            "Pending"
+        };
+
         [BindProperty, Required(ErrorMessage = "First name is required.")]
         public string GuestFirstName { get; set; } = string.Empty;
 
@@ -31,8 +40,10 @@ namespace RVPark.Pages.Admin.Reservations
         {
             if (id != null)
             {
-                Reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id, includes: "Guest.User,Rv,Lot")
-                    ?? new Reservation();
+                Reservation = await _unitOfWork.Reservation.GetAsync(
+                    r => r.ReservationId == id,
+                    includes: "Guest.User,Rv,Lot"
+                ) ?? new Reservation();
             }
             else
             {

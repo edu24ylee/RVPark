@@ -59,50 +59,124 @@ namespace Infrastructure
                 State = "NV",
                 Zipcode = "89191"
             };
-
             _db.Park.Add(park);
             _db.SaveChanges();
 
-            var lotType = new LotType
+            var lotTypes = new List<LotType>
             {
-                Name = "Standard",
-                Rate = 40.00,
-                ParkId = park.Id
+                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
+                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id },
+                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id }
             };
-
-            _db.LotType.Add(lotType);
+            _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            _db.Lot.Add(new Lot
+            var lot = new Lot
             {
-                LotTypeId = lotType.Id,
+                LotTypeId = lotTypes.First().Id,
                 Description = "Pull-through lot near the entrance",
                 Length = 35,
                 Width = 20,
                 HeightLimit = 14,
                 Location = "A1",
                 IsAvailable = true
-            });
-
+            };
+            _db.Lot.Add(lot);
             _db.SaveChanges();
 
-            var feeType = new FeeType
+            var feeTypes = new List<FeeType>
             {
-                FeeTypeName = "Late Check-Out Fee"
+                new FeeType { FeeTypeName = "Cleaning Fee" },
+                new FeeType { FeeTypeName = "Late Check-Out Fee" },
+                new FeeType { FeeTypeName = "Pet Fee" },
+                new FeeType { FeeTypeName = "Extra Vehicle Fee" },
+                new FeeType { FeeTypeName = "Reservation Change Fee" },
+                new FeeType { FeeTypeName = "Damage Fee" },
+                new FeeType { FeeTypeName = "Key Replacement Fee" }
+            };
+            _db.FeeType.AddRange(feeTypes);
+            _db.SaveChanges();
+
+            var fees = new List<Fee>
+            {
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Cleaning Fee").Id, FeeTotal = 30.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Late Check-Out Fee").Id, FeeTotal = 20.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Pet Fee").Id, FeeTotal = 10.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Extra Vehicle Fee").Id, FeeTotal = 5.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Reservation Change Fee").Id, FeeTotal = 15.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Damage Fee").Id, FeeTotal = 100.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Key Replacement Fee").Id, FeeTotal = 25.00M }
+            };
+            _db.Fee.AddRange(fees);
+            _db.SaveChanges();
+
+            var characterNames = new (string FirstName, string LastName)[]
+            {
+                ("Sheldon", "Cooper"),
+                ("Leonard", "Hofstadter"),
+                ("Penny", "Teller"),
+                ("Howard", "Wolowitz"),
+                ("Raj", "Koothrappali")
             };
 
-            _db.FeeType.Add(feeType);
-            _db.SaveChanges();
-
-
-            var fee = new Fee
+            for (int i = 0; i < characterNames.Length; i++)
             {
-                FeeTypeId = feeType.Id,
-                FeeTotal = 25.00M
-            };
+                var user = new User
+                {
+                    Email = $"guest{i + 1}@email.com",
+                    FirstName = characterNames[i].FirstName,
+                    LastName = characterNames[i].LastName,
+                    Phone = $"555-000{i + 1}",
+                    IsActive = true,
+                    Password = "guestpass"
+                };
+                _db.User.Add(user);
+                _db.SaveChanges();
 
-            _db.Fee.Add(fee);
-            _db.SaveChanges();
+                var guest = new Guest
+                {
+                    DodId = 2000 + i,
+                    UserID = user.UserID
+                };
+                _db.Guest.Add(guest);
+                _db.SaveChanges();
+
+                var rv = new RV
+                {
+                    GuestID = guest.GuestID,
+                    Description = $"RV Model {i + 1}",
+                    Length = 30 + i,
+                    Make = "Winnebago",
+                    Model = $"Model-{i + 1}",
+                    LicensePlate = $"RV-00{i + 1}"
+                };
+                _db.RV.Add(rv);
+                _db.SaveChanges();
+
+                var reservation = new Reservation
+                {
+                    StartDate = DateTime.Today.AddDays(-i * 2),
+                    EndDate = DateTime.Today.AddDays(i + 3),
+                    Duration = (i + 3) + i * 2,
+                    Status = i switch
+                    {
+                        0 => "Pending",
+                        1 => "Confirmed",
+                        2 => "Confirmed",
+                        3 => "Active",
+                        4 => "Cancelled",
+                        _ => "Pending"
+                    },
+                    GuestId = guest.GuestID,
+                    LotId = lot.Id,
+                    RvId = rv.RvID,
+                    OverrideReason = "None",
+                    CancellationDate = i == 4 ? DateTime.Today.AddDays(-1) : null,
+                    CancellationReason = i == 4 ? "Emergency" : null
+                };
+                _db.Reservation.Add(reservation);
+                _db.SaveChanges();
+            }
         }
     }
 }
