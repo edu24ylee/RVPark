@@ -30,6 +30,7 @@ namespace Infrastructure.Data
         private IGenericRepository<Fee> _Fee;
         private IGenericRepository<FeeType> _FeeType;
         private IGenericRepository<Policy> _Policy;
+        private IGenericRepository<FinancialReport> _FinancialReport;
 
 
         public IGenericRepository<Park> Park
@@ -165,6 +166,17 @@ namespace Infrastructure.Data
                 return _Policy;
             }
         }
+        public IGenericRepository<FinancialReport> FinancialReport
+        {
+            get
+            {
+                if (_FinancialReport == null)
+                {
+                    _FinancialReport = new GenericRepository<FinancialReport>(_dbContext);
+                }
+                return _FinancialReport;
+            }
+        }   
         public int Commit()
         {
             return _dbContext.SaveChanges();

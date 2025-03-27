@@ -49,7 +49,7 @@
         function loadList() {
             dataTable = $('#DT_load').DataTable({
                 "ajax": {
-                    "url": "/api/reservation?_=" + new Date().getTime(), // Bust cache
+                    "url": "/api/reservation?_=" + new Date().getTime(),
                     "type": "GET",
                     "datatype": "json",
                     "cache": false
