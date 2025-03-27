@@ -70,7 +70,7 @@ namespace RVPark.Controllers
             {
                 return NotFound(new { success = false, message = "Fee not found." });
             }
-            _unitOfWork.Fee.Remove(fee);
+            _unitOfWork.Fee.Delete(fee);
             await _unitOfWork.CommitAsync();
             return Json(new { success = true, message = "Fee deleted successfully." });
         }
