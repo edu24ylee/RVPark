@@ -82,8 +82,8 @@ namespace RVPark.Pages.Admin.Lots
                     }
 
                     var fullpath = uploads + fileName + extension;
-                    
-                    using var fileStream = System.IO.File.Create(fullpath)
+
+                    using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
 
                     LotObject.Image = @"\Images\lots\" + fileName + extension;
