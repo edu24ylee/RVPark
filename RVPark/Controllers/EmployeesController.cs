@@ -36,5 +36,20 @@ namespace RVPark.Controllers
             _unitOfWork.Commit();
             return Json(new { success = true, message = "Delete successful" });
         }
+
+        [HttpDelete("HardDelete/{id}")]
+        public IActionResult HardDelete(int id)
+        {
+            var employee = _unitOfWork.Employee.Get(e => e.EmployeeID == id, includes: "User");
+            if (employee == null)
+            {
+                return Json(new { success = false, message = "Employee not found" });
+            }
+
+            _unitOfWork.Employee.Delete(employee);
+            _unitOfWork.Commit();
+
+            return Json(new { success = true, message = "Employee deleted but User preserved" });
+        }
     }
 }
