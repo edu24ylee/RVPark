@@ -1,38 +1,134 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.IndexModel
 @{
-    <h2>Reservations</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Guest</th>
-                <th>Lot</th>
-                <th>Duration</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var reservation in Model.Reservations)
-            {
-                <tr>
-                    <td>@($"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}")</td
-                    <td>@reservation.Lot.Location</td>
-                    <td>@reservation.Duration</td>
-                    <td>@reservation.StartDate.ToShortDateString()</td>
-                    <td>@reservation.EndDate.ToShortDateString()</td>
-                    <td>@reservation.Status</td>
-                    <td>
-                        <a asp-page="Upsert" asp-route-id="@reservation.ReservationId">Edit</a> |
-                        <form method="post" asp-page-handler="Cancel" asp-route-id="@reservation.ReservationId" style="display:inline;">
-                            <button type="submit" class="btn btn-danger">Cancel</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <a asp-page="Upsert" class="btn btn-primary">Create New Reservation</a>
+    ViewData["Title"] = "Reservations";
 }
+
+<h2>Reservation List</h2>
+
+<a class="btn btn-primary mb-3" asp-page="Upsert">Create New Reservation</a>
+
+<table id="DT_load" class="table table-bordered table-striped w-100">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>License Plate</th>
+            <th>Lot</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+</table>
+
+@section Scripts {
+    @if (TempData["Success"] != null)
+    {
+        <script>
+            toastr.success("@TempData["Success"]");
+
+            // Wait a moment for page to render, then reload the DataTable
+            $(document).ready(function () {
+                if ($.fn.dataTable.isDataTable('#DT_load')) {
+                    $('#DT_load').DataTable().ajax.reload(null, false); // false = retain paging
+                }
+            });
+        </script>
+    }
+
+
+    <script>
+        var dataTable;
+
+        $(document).ready(function () {
+            loadList();
+        });
+
+        function loadList() {
+            dataTable = $('#DT_load').DataTable({
+                "ajax": {
+                    "url": "/api/reservation?_=" + new Date().getTime(),
+                    "type": "GET",
+                    "datatype": "json",
+                    "cache": false
+                },
+                "columns": [
+                    { data: "guest.user.firstName", width: "15%" },
+                    { data: "guest.user.lastName", width: "15%" },
+                    { data: "rv.licensePlate", width: "15%" },
+                    { data: "lot.location", width: "10%" },
+                    {
+                        data: "startDate",
+                        render: function (data) {
+                            return new Date(data).toLocaleDateString();
+                        },
+                        width: "10%"
+                    },
+                    {
+                        data: "endDate",
+                        render: function (data) {
+                            return new Date(data).toLocaleDateString();
+                        },
+                        width: "10%"
+                    },
+                    { data: "status", width: "10%" },
+                    {
+                        data: "reservationId",
+                        width: "15%",
+                        render: function (data) {
+                            return `<div class="text-center">
+                                <a href="/Admin/Reservations/Upsert?id=${data}" class="btn btn-success text-white" style="width:100px;">
+                                    <i class="far fa-edit"></i> Edit
+                                </a>
+                                <a onClick="Delete('/api/reservation/${data}')" class="btn btn-danger text-white" style="width:100px;">
+                                    <i class="far fa-trash-alt"></i> Delete
+                                </a>
+                            </div>`;
+                        }
+                    }
+                ],
+                "language": {
+                    "emptyTable": "No reservations found."
+                },
+                "width": "100%"
+            });
+        }
+
+        function Delete(url) {
+            swal({
+                title: "Are you sure you want to delete?",
+                text: "You will not be able to restore this reservation!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true
+            }).then((willDelete) => {
+                if (willDelete) {
+                    $.ajax({
+                        type: 'DELETE',
+                        url: url,
+                        success: function (data) {
+                            if (data.success) {
+                                toastr.success(data.message);
+                                $('#DT_load').DataTable().ajax.reload();
+                            } else {
+                                toastr.error(data.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            toastr.error("Error: " + xhr.responseText);
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>

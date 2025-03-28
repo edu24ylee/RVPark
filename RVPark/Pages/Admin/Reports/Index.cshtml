@@ -17,14 +17,20 @@
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Financial Reports</h5>
-                    <p class="card-text">Coming soon: summary of collected and projected revenue.</p>
-                    <button class="btn btn-secondary" disabled>View Financial Report</button>
-                </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Financial Reports</h5>
+                <p class="card-text">View summary of collected and anticipated revenue within a date range.</p>
+                <a asp-page="/Admin/Reports/FinancialReports" class="btn btn-success">View Financial Report</a>
             </div>
         </div>
     </div>
 </div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
