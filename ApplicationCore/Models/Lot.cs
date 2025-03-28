@@ -26,6 +26,6 @@ namespace ApplicationCore.Models
         public int LotTypeId { get; set; }
         [ForeignKey("LotTypeId")]
         public virtual LotType LotType { get; set; }
-
+        public string Image { get; set; }
     }
 }
