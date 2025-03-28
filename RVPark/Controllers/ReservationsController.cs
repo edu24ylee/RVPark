@@ -23,7 +23,30 @@ namespace RVPark.Controllers
                 includes: "Guest.User,Rv,Lot"
             );
 
-            return Json(new { data = reservations });
+            var result = reservations.Select(r => new {
+                reservationId = r.ReservationId,
+                guest = new
+                {
+                    user = new
+                    {
+                        firstName = r.Guest?.User?.FirstName ?? "N/A",
+                        lastName = r.Guest?.User?.LastName ?? "N/A"
+                    }
+                },
+                rv = new
+                {
+                    licensePlate = r.Rv?.LicensePlate ?? "N/A"
+                },
+                lot = new
+                {
+                    location = r.Lot?.Location ?? "N/A"
+                },
+                startDate = r.StartDate,
+                endDate = r.EndDate,
+                status = r.Status
+            });
+
+            return Json(new { data = result });
         }
 
         [HttpPost("create")]

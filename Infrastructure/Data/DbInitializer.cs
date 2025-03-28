@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ApplicationCore.Models;
 using ApplicationCore.Interfaces;
 using Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Infrastructure.Utilities;
-using ApplicationCore.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure
 {
@@ -37,83 +30,152 @@ namespace Infrastructure
                     _db.Database.Migrate();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                
+                Console.WriteLine("Migration failed: " + ex.Message);
             }
 
             if (_db.Park.Any())
+                return;
+
+            _roleManager.CreateAsync(new IdentityRole("Admin")).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole("Manager")).GetAwaiter().GetResult();
+
+            var adminUser = new IdentityUser
             {
-                return; 
-            }
-
-            // Create roles
-            //_roleManager.CreateAsync(new IdentityRole(SD.AdminRole)).GetAwaiter().GetResult();
-            //_roleManager.CreateAsync(new IdentityRole(SD.ManagerRole)).GetAwaiter().GetResult();
-            //_roleManager.CreateAsync(new IdentityRole(SD.GuestRole)).GetAwaiter().GetResult();
-
-            
-
-            // Seed Parks
-            var parks = new Park[]
-            {
-                new Park { Name = "Sunset Valley RV Park", Address = "123 Sunset Blvd", City = "Mesa", State = "AZ", Zipcode = "85201" },
-                new Park { Name = "Mountain View Campgrounds", Address = "456 Hilltop Dr", City = "Provo", State = "UT", Zipcode = "84604" }
+                UserName = "admin@rvpark.com",
+                Email = "admin@rvpark.com",
+                EmailConfirmed = true
             };
-            _db.Park.AddRange(parks);
+
+            _userManager.CreateAsync(adminUser, "Password123!").GetAwaiter().GetResult();
+            _userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+
+            var park = new Park
+            {
+                Name = "Desert Eagle Nellis AFB",
+                Address = "4707 Duffer Dr",
+                City = "Las Vegas",
+                State = "NV",
+                Zipcode = "89191"
+            };
+            _db.Park.Add(park);
             _db.SaveChanges();
 
-            // Seed LotTypes
-            var lotTypes = new LotType[]
+            var lotTypes = new List<LotType>
             {
-                new LotType { Name = "Standard", Rate = 30.00, ParkId = parks[0].Id },
-                new LotType { Name = "Premium", Rate = 45.00, ParkId = parks[0].Id }
+                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
+                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id },
+                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            // Seed Lots
-            var lots = new Lot[]
+            var lot = new Lot
             {
-                new Lot { Location = "A1", Length = 30, Width = 10, HeightLimit = 12, IsAvailable = true, Description = "Shaded near restroom", LotTypeId = lotTypes[0].Id },
-                new Lot { Location = "B2", Length = 45, Width = 12, HeightLimit = 14, IsAvailable = true, Description = "Sunny, next to office", LotTypeId = lotTypes[1].Id }
+                LotTypeId = lotTypes.First().Id,
+                Description = "Pull-through lot near the entrance",
+                Length = 35,
+                Width = 20,
+                HeightLimit = 14,
+                Location = "A1",
+                IsAvailable = true
             };
-            _db.Lot.AddRange(lots);
+            _db.Lot.Add(lot);
             _db.SaveChanges();
 
-            // Seed Guests
-            var guestUser = new User
+            var feeTypes = new List<FeeType>
             {
-                Email = "guest1@example.com",
-                Password = "password123",
-                FirstName = "Jane",
-                LastName = "Doe",
-                Phone = "8015556789",
-                IsActive = true
+                new FeeType { FeeTypeName = "Cleaning Fee" },
+                new FeeType { FeeTypeName = "Late Check-Out Fee" },
+                new FeeType { FeeTypeName = "Pet Fee" },
+                new FeeType { FeeTypeName = "Extra Vehicle Fee" },
+                new FeeType { FeeTypeName = "Reservation Change Fee" },
+                new FeeType { FeeTypeName = "Damage Fee" },
+                new FeeType { FeeTypeName = "Key Replacement Fee" }
             };
-            _db.User.Add(guestUser);
+            _db.FeeType.AddRange(feeTypes);
             _db.SaveChanges();
 
-            var guest = new Guest
+            var fees = new List<Fee>
             {
-                UserID = guestUser.UserID,
-                DodId = 123456
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Cleaning Fee").Id, FeeTotal = 30.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Late Check-Out Fee").Id, FeeTotal = 20.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Pet Fee").Id, FeeTotal = 10.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Extra Vehicle Fee").Id, FeeTotal = 5.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Reservation Change Fee").Id, FeeTotal = 15.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Damage Fee").Id, FeeTotal = 100.00M },
+                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Key Replacement Fee").Id, FeeTotal = 25.00M }
             };
-            _db.Guest.Add(guest);
+            _db.Fee.AddRange(fees);
             _db.SaveChanges();
 
-            // Seed RVs
-            var rv = new RV
+            var characterNames = new (string FirstName, string LastName)[]
             {
-                GuestID = guest.GuestID,
-                LicensePlate = "RV123",
-                Length = 30,
-                Make = "Winnebago",
-                Model = "Adventurer",
-                Description = "Sleeps 4"
+                ("Sheldon", "Cooper"),
+                ("Leonard", "Hofstadter"),
+                ("Penny", "Teller"),
+                ("Howard", "Wolowitz"),
+                ("Raj", "Koothrappali")
             };
-            _db.RV.Add(rv);
-            _db.SaveChanges();
+
+            for (int i = 0; i < characterNames.Length; i++)
+            {
+                var user = new User
+                {
+                    Email = $"guest{i + 1}@email.com",
+                    FirstName = characterNames[i].FirstName,
+                    LastName = characterNames[i].LastName,
+                    Phone = $"555-000{i + 1}",
+                    IsActive = true
+                };
+                _db.User.Add(user);
+                _db.SaveChanges();
+
+                var guest = new Guest
+                {
+                    DodId = 2000 + i,
+                    UserID = user.UserID
+                };
+                _db.Guest.Add(guest);
+                _db.SaveChanges();
+
+                var rv = new RV
+                {
+                    GuestID = guest.GuestID,
+                    Description = $"RV Model {i + 1}",
+                    Length = 30 + i,
+                    Make = "Winnebago",
+                    Model = $"Model-{i + 1}",
+                    LicensePlate = $"RV-00{i + 1}"
+                };
+                _db.RV.Add(rv);
+                _db.SaveChanges();
+
+                var reservation = new Reservation
+                {
+                    StartDate = DateTime.Today.AddDays(-i * 2),
+                    EndDate = DateTime.Today.AddDays(i + 3),
+                    Duration = (i + 3) + i * 2,
+                    Status = i switch
+                    {
+                        0 => "Pending",
+                        1 => "Confirmed",
+                        2 => "Confirmed",
+                        3 => "Active",
+                        4 => "Cancelled",
+                        _ => "Pending"
+                    },
+                    GuestId = guest.GuestID,
+                    LotId = lot.Id,
+                    RvId = rv.RvID,
+                    OverrideReason = "None",
+                    CancellationDate = i == 4 ? DateTime.Today.AddDays(-1) : null,
+                    CancellationReason = i == 4 ? "Emergency" : null
+                };
+                _db.Reservation.Add(reservation);
+                _db.SaveChanges();
+            }
         }
     }
 }

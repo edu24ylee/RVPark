@@ -1,7 +1,9 @@
-﻿using ApplicationCore.Interfaces;
-using ApplicationCore.Models;
+﻿using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RVPark.Controllers
 {
@@ -26,7 +28,7 @@ namespace RVPark.Controllers
 
             var reservations = await _unitOfWork.Reservation.GetAllAsync(
                 r => r.StartDate >= startDate && r.EndDate <= endDate,
-                includes: "Guest.User,Rv,Lot"
+                includes: "Guest.User,Rv,Lot.LotType"
             );
 
             var sorted = reservations.OrderBy(r => r.Status).ToList();

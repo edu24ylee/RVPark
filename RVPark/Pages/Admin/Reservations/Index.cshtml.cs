@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Pages.Admin.Reservations
 {
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class IndexModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;

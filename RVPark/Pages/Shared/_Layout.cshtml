@@ -11,10 +11,6 @@
     <link rel="stylesheet" href="~/lib/fontawesome/css/all.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
-
-
-
-
 </head>
 <body>
     <header>
@@ -22,22 +18,17 @@
             <div class="container d-flex flex-column position-relative">
                 <!-- First Row -->
                 <div class="w-100 d-flex align-items-center position-relative">
-                    <!-- Left Logo -->
                     <a class="navbar-brand text position-absolute top-50 translate-middle-y start-0 ms-3" asp-page="/Index">
                         <img src="/Images/FakeLogo.png" alt="Left Logo" style="height: 70px; width: auto; max-width: 100%;" />
                     </a>
 
-         
-
-                    <!-- Social media icons -->
                     <ul class="navbar-nav flex-row ms-auto">
                         <li class="nav-item me-3">
-                            <a class="nav-link" href="#"><i class="fab fa-facebook-f "></i></a>
+                            <a class="nav-link" href="#"><i class="fab fa-facebook-f"></i></a>
                         </li>
                         <li class="nav-item me-3">
                             <a class="nav-link" href="#"><i class="fab fa-instagram"></i></a>
                         </li>
-                        <!-- User Icon -->
                         <li class="nav-item me-3 dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user"></i>
@@ -52,21 +43,22 @@
                     </ul>
                 </div>
 
-                <!-- Second Row-->
+                <!-- Second Row -->
                 <div class="w-100 text-bg-primar mt-4 d-flex align-items-center position-relative">
-                    <!-- Dropdown for smaller screens -->
+                    <!-- Mobile Dropdown -->
                     <div class="dropdown d-lg-none ms-auto">
                         <button class="btn btn-light dropdown-toggle" type="button" id="navbarDropdownSecondRow" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px 10px; font-size: 2rem;">
                             <i class="fas fa-bars"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSecondRow">
-                            <!--Adendam 1 -->
                             <li class="nav-item dropdown">
-                                <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Addendum 1</a>
+                                <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="/Admin/Parks/Index">Parks</a>
                                     <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
                                     <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
+                                    <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
+                                    <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
                                 </div>
                             </li>
                             <li><a class="dropdown-item" href="#">Add here</a></li>
@@ -82,15 +74,16 @@
                         </ul>
                     </div>
 
-                    <!-- Home Links (Centered) for larger screens -->
+                    <!-- Desktop Centered Navigation -->
                     <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
-                        <!--Adendam 1 -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Addendum 1</a>
+                            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="/Admin/Parks/Index">Parks</a>
                                 <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
                                 <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
+                                <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
+                                <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
                             </div>
                         </li>
                         <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
@@ -98,18 +91,14 @@
                         <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
                     </ul>
 
-                    <!-- Search Bar (Right) for larger screens -->
+                    <!-- Desktop Search Bar -->
                     <form class="d-flex ms-auto d-none d-lg-flex" role="search">
                         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" style="width: 250px;">
                         <button class="btn btn-light" type="submit">Search</button>
                     </form>
                 </div>
-                <!-- Second Row End -->
             </div>
         </nav>
-
-
-
     </header>
 
     <div class="container-fluid p-0">
@@ -118,15 +107,10 @@
 
     <footer class="py-3 my-4 border-top">
         <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between position-relative">
-            <!-- Left: Company Info -->
             <p class="mb-2 mb-md-0 text-body-secondary text-center text-md-start">© 2024 Control Alt Elite, Inc</p>
-
-            <!-- Center: Logo -->
             <a href="/" class="position-absolute start-50 translate-middle-x d-flex align-items-center justify-content-center">
                 <img src="/Images/Logo.png" class="bi me-2" width="150" height="150" style="max-width: 100%; height: auto;" />
             </a>
-
-            <!-- Right: Navigation Links -->
             <ul class="nav flex-column flex-sm-row text-center text-md-end">
                 <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
                 <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
@@ -137,7 +121,6 @@
         </div>
     </footer>
 
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -146,8 +129,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

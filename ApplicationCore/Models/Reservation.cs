@@ -41,9 +41,9 @@ namespace ApplicationCore.Models
         [Required]
         public string Status { get; set; }
 
-        public string OverrideReason { get; set; }
+        public string? OverrideReason { get; set; }
         public DateTime? CancellationDate { get; set; }
-        public string CancellationReason { get; set; }
+        public string? CancellationReason { get; set; }
 
         public decimal CalculateTotal(decimal ratePerDay)
         {

@@ -20,6 +20,9 @@ namespace Infrastructure.Data
         public DbSet<User> User { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<ReservationReport> ReservationReport { get; set; }
+        public DbSet<Fee> Fee { get; set; }
+        public DbSet<FeeType> FeeType { get; set; }
+        public DbSet<FinancialReport> FinancialReport { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,6 +51,8 @@ namespace Infrastructure.Data
                 .WithMany(g => g.RVs)
                 .HasForeignKey(rv => rv.GuestID)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FinancialReport>().HasNoKey();
         }
     }
 }
