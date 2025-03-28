@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace RVPark.Pages.Admin.Fees
+namespace RVPark.Pages.Admin.FeeTypes
 {
     public class IndexModel : PageModel
     {
-        //left blank
+        // intentionally left blank
     }
 }
