@@ -13,9 +13,9 @@ namespace ApplicationCore.Models
         [EmailAddress]
         public string Email { get; set; }
 
-
         [Required]
         public string FirstName { get; set; }
+
         [Required]
         public string LastName { get; set; }
 
@@ -24,9 +24,13 @@ namespace ApplicationCore.Models
 
         public bool IsActive { get; set; }
 
+        public DateTime? LockOutEnd { get; set; }
+
         public virtual Guest Guest { get; set; }
         public virtual Employee Employee { get; set; }
 
+        [NotMapped]
+        public string FullName => $"{FirstName} {LastName}";
 
         public Guest GetGuest()
         {
