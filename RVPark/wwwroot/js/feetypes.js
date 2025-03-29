@@ -7,20 +7,19 @@ $(document).ready(function () {
 function loadList() {
     dataTable = $('#DT_load').DataTable({
         "ajax": {
-            "url": "/api/fees",
+            "url": "/api/feetype",
             "type": "GET",
             "datatype": "json"
         },
         "columns": [
-            { data: "feeType", width: "50%" },
-            { data: "feeTotal", width: "20%" },
+            { data: "feeTypeName", width: "70%" },
             {
                 data: "id", width: "30%",
                 "render": function (data) {
                     return `<div class="text-center">
-                            <a href="/Admin/Fees/Upsert?id=${data}"
+                            <a href="/Admin/FeeTypes/Upsert?id=${data}"
                             class ="btn btn-success text-white style="cursor:pointer; width=100px;"> <i class="far fa-edit"></i>Edit</a>
-                            <a onClick=Delete('/api/fees/'+${data})
+                            <a onClick=Delete('/api/feetype/'+${data})
                             class ="btn btn-danger text-white style="cursor:pointer; width=100px;"> <i class="far fa-trash-alt"></i>Delete</a>
                     </div>`;
                 }
