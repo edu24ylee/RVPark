@@ -14,34 +14,34 @@ function loadList() {
         "columns": [
             { data: "id", width: "10%" },
             { data: "feeType.feeTypeName", width: "30%" },
-            {
-                data: "triggeringPolicy.policyName",
+            { 
+                data: "triggeringPolicy.policyName", 
                 width: "30%",
                 "render": function (data) {
                     return data ? data : "N/A";
                 }
             },
-            {
-                data: "feeTotal",
-                width: "15%",
-                "render": $.fn.dataTable.render.number(',', '.', 2, '$')
+            { 
+                data: "feeTotal", 
+                width: "15%", 
+                "render": $.fn.dataTable.render.number( ',', '.', 2, '$' )
             },
             {
-                data: "id",
+                data: "id", 
                 width: "15%",
                 "render": function (data) {
                     return `<div class="text-center">
-                                <a href="/Admin/Fees/Upsert?id=${data}" 
-                                   class="btn btn-success text-white" 
-                                   style="cursor:pointer; width:100px;">
-                                    <i class="far fa-edit"></i> Edit
-                                </a>
-                                <a onClick="Delete('/api/fees/' + ${data})" 
-                                   class="btn btn-danger text-white" 
-                                   style="cursor:pointer; width:100px;">
-                                    <i class="far fa-trash-alt"></i> Delete
-                                </a>
-                            </div>`;
+                    <a href="/Admin/Fees/Upsert?id=${data}"
+                       class="btn btn-custom-blue" 
+                       style="cursor:pointer; width:100px;"> 
+                       <i class="far fa-edit"></i>Edit
+                    </a>
+                    <a onClick=Delete('/api/fees/${data}')
+                       class="btn btn-custom-grey" 
+                       style="cursor:pointer; width:100px;"> 
+                       <i class="far fa-trash-alt"></i>Delete
+                    </a>
+                </div>`;
                 }
             }
         ],
