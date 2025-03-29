@@ -28,7 +28,7 @@
             @foreach (var employee in Model.Employees)
             {
                 <tr>
-                    <td>@employee.User.FullName</td>
+                    <td>@employee.User.FirstName @employee.User.LastName</td>
                     <td>@employee.User.Email</td>
                     <td>@employee.User.Phone</td>
                     <td>
