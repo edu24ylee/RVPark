@@ -9,41 +9,38 @@ namespace ApplicationCore.Models
         [Key]
         public int ReservationId { get; set; }
 
-
-        [Required]
-        public int GuestId { get; set; }
+        public int? GuestId { get; set; }
 
         [ForeignKey("GuestId")]
-        public Guest Guest { get; set; }
-
-        [Required]
-        public int RvId { get; set; }
+        public Guest Guest { get; set; } = null;
+        public int? RvId { get; set; }
 
         [ForeignKey("RvId")]
-        public RV Rv { get; set; }
+        public RV Rv { get; set; } = null;
 
-
-        [Required]
-        public int LotId { get; set; }
+        public int? LotId { get; set; }
 
         [ForeignKey("LotId")]
-        public Lot Lot { get; set; }
-
-        [Required]
+        public Lot Lot { get; set; } = null;
         public int Duration { get; set; }
 
-        [Required]
         public DateTime StartDate { get; set; }
 
-        [Required]
         public DateTime EndDate { get; set; }
 
-        [Required]
-        public string Status { get; set; }
+        public string Status { get; set; } = null;
 
         public string? OverrideReason { get; set; }
         public DateTime? CancellationDate { get; set; }
         public string? CancellationReason { get; set; }
+
+        public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)
+        {
+            var newDuration = (newEndDate - newStartDate).Days;
+            var newTotal = newDuration * ratePerDay;
+            var currentTotal = Duration * ratePerDay;
+            return newTotal - currentTotal;
+        }
 
         public decimal CalculateTotal(decimal ratePerDay)
         {

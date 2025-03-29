@@ -116,7 +116,6 @@ namespace RVPark.Controllers
                 l.Location,
                 l.Length,
                 l.Width,
-                l.HeightLimit,
                 l.IsAvailable,
                 l.Description,
                 LotType = new { l.LotType?.Name }
@@ -138,7 +137,6 @@ namespace RVPark.Controllers
                     l.Location,
                     l.Length,
                     l.Width,
-                    l.HeightLimit,
                     l.IsAvailable,
                     l.Description,
                     lotType = new { name = l.LotType.Name },

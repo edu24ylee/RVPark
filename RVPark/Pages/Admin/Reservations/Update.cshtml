@@ -20,31 +20,46 @@
                         <div class="col-md-10">
 
                             <h5 class="fw-bold">Guest Name</h5>
-                            <p>@Model.Reservation.Guest.User.FirstName @Model.Reservation.Guest.User.LastName</p>
+                            @if (Model.Reservation?.Guest?.User != null)
+                            {
+                                <p>@Model.Reservation.Guest.User.FirstName @Model.Reservation.Guest.User.LastName</p>
+                            }
+                            else
+                            {
+                                <p class="text-warning">Guest name not available</p>
+                            }
 
                             <h5 class="fw-bold">Trailer Length</h5>
-                            <p>@Model.Reservation.Rv.Length ft</p>
+                            @if (Model.Reservation?.Rv != null)
+                            {
+                                <p>@Model.Reservation.Rv.Length ft</p>
+                            }
+                            else
+                            {
+                                <p class="text-warning">RV information not available</p>
+                            }
 
                             <div class="mb-3">
                                 <label asp-for="Reservation.StartDate" class="form-label fw-bold">Start Date</label>
-                                <input asp-for="Reservation.StartDate" type="date" class="form-control text-center" onchange="updateLots()" />
+                                <input asp-for="Reservation.StartDate" type="date" class="form-control text-center" onchange="updateDuration()" />
                                 <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Reservation.EndDate" class="form-label fw-bold">End Date</label>
-                                <input asp-for="Reservation.EndDate" type="date" class="form-control text-center" onchange="updateLots()" />
+                                <input asp-for="Reservation.EndDate" type="date" class="form-control text-center" onchange="updateDuration()" />
                                 <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration</label>
                                 <input asp-for="Reservation.Duration" class="form-control text-center" readonly />
+                                <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Reservation.LotId" class="form-label fw-bold">Lot</label>
-                                <select asp-for="Reservation.LotId" asp-items="Model.AvailableLots" class="form-control text-center"></select>
+                                <select asp-for="Reservation.LotId" asp-items="Model.AvailableLots ?? new SelectList(Enumerable.Empty<SelectListItem>())" class="form-control text-center"></select>
                                 <span asp-validation-for="Reservation.LotId" class="text-danger"></span>
                             </div>
 
@@ -59,6 +74,7 @@
                                        value="@Model.BalanceDifference.ToString("+0.00;-0.00")" readonly />
                             </div>
 
+                            <!-- Hidden fields -->
                             <input type="hidden" asp-for="Reservation.ReservationId" />
                             <input type="hidden" asp-for="Reservation.GuestId" />
                             <input type="hidden" asp-for="Reservation.RvId" />
@@ -94,22 +110,22 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        function updateLots() {
-            const start = document.querySelector('[name="Reservation.StartDate"]').value;
-            const end = document.querySelector('[name="Reservation.EndDate"]').value;
-
-            const startDate = new Date(start);
-            const endDate = new Date(end);
+        function updateDuration() {
+            const startInput = document.querySelector('[name="Reservation.StartDate"]');
+            const endInput = document.querySelector('[name="Reservation.EndDate"]');
             const durationInput = document.querySelector('[name="Reservation.Duration"]');
 
-            if (start && end && endDate > startDate) {
-                const diff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
-                durationInput.value = diff;
-            } else {
-                durationInput.value = '';
-            }
+            if (startInput && endInput && durationInput) {
+                const startDate = new Date(startInput.value);
+                const endDate = new Date(endInput.value);
 
- 
+                if (startDate && endDate && endDate > startDate) {
+                    const diff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+                    durationInput.value = diff;
+                } else {
+                    durationInput.value = "";
+                }
+            }
         }
     </script>
 }

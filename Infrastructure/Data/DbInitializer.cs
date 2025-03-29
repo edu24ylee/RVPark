@@ -61,7 +61,7 @@ namespace Infrastructure
             };
             _db.Park.Add(park);
             _db.SaveChanges();
-
+            // Seed LotTypes
             var lotTypes = new List<LotType>
             {
                 new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
@@ -71,45 +71,29 @@ namespace Infrastructure
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            var lot = new Lot
+            // Seed Lots (15 total, 5 per LotType)
+            var lots = new List<Lot>();
+            int lotCounter = 1;
+            foreach (var lt in lotTypes)
             {
-                LotTypeId = lotTypes.First().Id,
-                Description = "Pull-through lot near the entrance",
-                Length = 35,
-                Width = 20,
-                HeightLimit = 14,
-                Location = "A1",
-                IsAvailable = true
-            };
-            _db.Lot.Add(lot);
+                for (int i = 1; i <= 5; i++)
+                {
+                    var lot = new Lot
+                    {
+                        LotTypeId = lt.Id,
+                        Description = $"{lt.Name} Lot {i}",
+                        Length = new[] { 30.0, 35.0, 40.0 }[new Random().Next(0, 3)],
+                        Width = 20,
+                        Location = $"{lt.Name[0]}{i}",
+                        IsAvailable = true
+                    };
+                    lots.Add(lot);
+                }
+            }
+            _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            var feeTypes = new List<FeeType>
-            {
-                new FeeType { FeeTypeName = "Cleaning Fee" },
-                new FeeType { FeeTypeName = "Late Check-Out Fee" },
-                new FeeType { FeeTypeName = "Pet Fee" },
-                new FeeType { FeeTypeName = "Extra Vehicle Fee" },
-                new FeeType { FeeTypeName = "Reservation Change Fee" },
-                new FeeType { FeeTypeName = "Damage Fee" },
-                new FeeType { FeeTypeName = "Key Replacement Fee" }
-            };
-            _db.FeeType.AddRange(feeTypes);
-            _db.SaveChanges();
-
-            var fees = new List<Fee>
-            {
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Cleaning Fee").Id, FeeTotal = 30.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Late Check-Out Fee").Id, FeeTotal = 20.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Pet Fee").Id, FeeTotal = 10.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Extra Vehicle Fee").Id, FeeTotal = 5.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Reservation Change Fee").Id, FeeTotal = 15.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Damage Fee").Id, FeeTotal = 100.00M },
-                new Fee { FeeTypeId = feeTypes.First(f => f.FeeTypeName == "Key Replacement Fee").Id, FeeTotal = 25.00M }
-            };
-            _db.Fee.AddRange(fees);
-            _db.SaveChanges();
-
+            // Seed Users, Guests, RVs, and Reservations with variety
             var characterNames = new (string FirstName, string LastName)[]
             {
                 ("Sheldon", "Cooper"),
@@ -117,15 +101,21 @@ namespace Infrastructure
                 ("Penny", "Teller"),
                 ("Howard", "Wolowitz"),
                 ("Raj", "Koothrappali")
-            };
+                        };
+
+            var statuses = new[] { "Pending", "Confirmed", "Active", "Cancelled", "Completed" };
+            var rand = new Random();
+            var today = DateTime.Today;
 
             for (int i = 0; i < characterNames.Length; i++)
             {
+                var (first, last) = characterNames[i];
+
                 var user = new User
                 {
                     Email = $"guest{i + 1}@email.com",
-                    FirstName = characterNames[i].FirstName,
-                    LastName = characterNames[i].LastName,
+                    FirstName = first,
+                    LastName = last,
                     Phone = $"555-000{i + 1}",
                     IsActive = true
                 };
@@ -152,30 +142,34 @@ namespace Infrastructure
                 _db.RV.Add(rv);
                 _db.SaveChanges();
 
-                var reservation = new Reservation
+                // Add 3 reservations per guest
+                for (int j = 0; j < 3; j++)
                 {
-                    StartDate = DateTime.Today.AddDays(-i * 2),
-                    EndDate = DateTime.Today.AddDays(i + 3),
-                    Duration = (i + 3) + i * 2,
-                    Status = i switch
+                    var startOffset = rand.Next(-20, 10);
+                    var duration = rand.Next(2, 7);
+                    var startDate = today.AddDays(startOffset);
+                    var endDate = startDate.AddDays(duration);
+                    var status = statuses[rand.Next(statuses.Length)];
+                    var lot = lots[rand.Next(lots.Count)];
+
+                    var reservation = new Reservation
                     {
-                        0 => "Pending",
-                        1 => "Confirmed",
-                        2 => "Confirmed",
-                        3 => "Active",
-                        4 => "Cancelled",
-                        _ => "Pending"
-                    },
-                    GuestId = guest.GuestID,
-                    LotId = lot.Id,
-                    RvId = rv.RvID,
-                    OverrideReason = "None",
-                    CancellationDate = i == 4 ? DateTime.Today.AddDays(-1) : null,
-                    CancellationReason = i == 4 ? "Emergency" : null
-                };
-                _db.Reservation.Add(reservation);
-                _db.SaveChanges();
+                        StartDate = startDate,
+                        EndDate = endDate,
+                        Duration = duration,
+                        Status = status,
+                        GuestId = guest.GuestID,
+                        LotId = lot.Id,
+                        RvId = rv.RvID,
+                        OverrideReason = "Seeded for testing",
+                        CancellationDate = status == "Cancelled" ? endDate.AddDays(-1) : null,
+                        CancellationReason = status == "Cancelled" ? "No longer needed" : null
+                    };
+                    _db.Reservation.Add(reservation);
+                    _db.SaveChanges();
+                }
             }
+
         }
     }
 }

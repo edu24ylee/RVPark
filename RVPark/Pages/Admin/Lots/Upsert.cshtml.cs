@@ -1,5 +1,6 @@
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Magnum.FileSystem;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,7 +17,7 @@ namespace RVPark.Pages.Admin.Lots
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
-        
+
         [BindProperty]
         public Lot LotObject { get; set; } = new();
 
@@ -24,6 +25,8 @@ namespace RVPark.Pages.Admin.Lots
         public int ParkId { get; set; }
 
         public IEnumerable<SelectListItem> LotTypeList { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> AvailableLots { get; set; } = new List<SelectListItem>();
+
 
         public IActionResult OnGet(int? id, int? parkId)
         {
@@ -65,7 +68,7 @@ namespace RVPark.Pages.Admin.Lots
         {
             string webRootPath = _webHostEnvironment.WebRootPath;
             var files = HttpContext.Request.Form.Files;
-            
+
             if (!ModelState.IsValid)
             {
                 // Repopulate LotTypeList if validation fails
@@ -79,8 +82,6 @@ namespace RVPark.Pages.Admin.Lots
                 return Page();
             }
 
-            var webRootPath = _webHostEnvironment.WebRootPath;
-            var files = HttpContext.Request.Form.Files;
 
             if (LotObject.Id == 0)
             {
@@ -90,8 +91,7 @@ namespace RVPark.Pages.Admin.Lots
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(webRootPath, @"Images\lots\");
                     var extension = Path.GetExtension(files[0].FileName);
-                    var fullpath = uploads + filename + extension;
-
+                    var fullpath = Path.Combine(uploads, fileName + extension);
                     using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
 
@@ -114,7 +114,7 @@ namespace RVPark.Pages.Admin.Lots
                     var extension = Path.GetExtension(files[0].FileName);
                     var imagePath = Path.Combine(webRootPath, objFromDb.Image.TrimStart('\\'));
 
-                    if(System.IO.File.Exists(imagePath))
+                    if (System.IO.File.Exists(imagePath))
                     {
                         System.IO.File.Delete(imagePath);
                     }

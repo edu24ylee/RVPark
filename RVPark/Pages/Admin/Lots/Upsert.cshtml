@@ -1,109 +1,92 @@
 ﻿@page
-@model RVPark.Pages.Admin.Reservations.UpsertModel
+@model RVPark.Pages.Admin.Lots.UpsertModel
 
 <form method="post" enctype="multipart/form-data">
-    <div class="container d-flex justify-content-center mt-4">
-        <div class="card shadow-sm w-75">
-            <div class="card-body p-4">
+    <input type="hidden" asp-for="ParkId" />
+
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-50">
+            <div class="card-body p-4 text-center">
+
+                <!-- Validation Summary -->
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                <h2 class="text-primary text-center">
-                    @(Model.Reservation.ReservationId != 0 ? "Update" : "Create") Reservation
-                </h2>
+                <!-- Form Header -->
+                <h2 class="text-primary mb-3">@(Model.LotObject.Id != 0 ? "Update" : "Create") Lot</h2>
                 <hr />
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5 class="fw-bold">Guest Information</h5>
-                        <div class="mb-3">
-                            <label asp-for="GuestFirstName" class="form-label">First Name</label>
-                            <input asp-for="GuestFirstName" class="form-control" />
-                            <span asp-validation-for="GuestFirstName" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="GuestLastName" class="form-label">Last Name</label>
-                            <input asp-for="GuestLastName" class="form-control" />
-                            <span asp-validation-for="GuestLastName" class="text-danger"></span>
-                        </div>
-                    </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
 
-                    <div class="col-md-6">
-                        <h5 class="fw-bold">Trailer & Lot Information</h5>
+                        <!-- Lot Type -->
                         <div class="mb-3">
-                            <label asp-for="Length" class="form-label">Trailer Length (ft)</label>
-                            <input asp-for="Length" type="number" step="0.1" class="form-control" />
-                            <span asp-validation-for="Length" class="text-danger"></span>
+                            <label asp-for="LotObject.LotTypeId" class="form-label fw-bold">Lot Type</label>
+                            @Html.DropDownListFor(m => m.LotObject.LotTypeId,
+                                     Model.LotTypeList,
+                                     " - Please select a lot type - ",
+                                     new { @class = "form-control" })
+                            <span class="text-danger" asp-validation-for="LotObject.LotTypeId"></span>
                         </div>
 
+                        <!-- Location -->
                         <div class="mb-3">
-                            <label asp-for="Reservation.LotId" class="form-label">Lot</label>
-                            <select asp-for="Reservation.LotId" asp-items="Model.AvailableLots" class="form-control">
-                                <option value="">-- Select Lot --</option>
+                            <label asp-for="LotObject.Location" class="form-label fw-bold">Location</label>
+                            <input asp-for="LotObject.Location" class="form-control text-center" />
+                            <span class="text-danger" asp-validation-for="LotObject.Location"></span>
+                        </div>
+
+                        <!-- Width -->
+                        <div class="mb-3">
+                            <label asp-for="LotObject.Width" class="form-label fw-bold">Width</label>
+                            <input asp-for="LotObject.Width" class="form-control text-center" />
+                            <span class="text-danger" asp-validation-for="LotObject.Width"></span>
+                        </div>
+
+                        <!-- Length -->
+                        <div class="mb-3">
+                            <label asp-for="LotObject.Length" class="form-label fw-bold">Length</label>
+                            <input asp-for="LotObject.Length" class="form-control text-center" />
+                            <span class="text-danger" asp-validation-for="LotObject.Length"></span>
+                        </div>
+
+                       
+                        <!-- Is Available -->
+                        <div class="mb-3">
+                            <label asp-for="LotObject.IsAvailable" class="form-label fw-bold">Available</label>
+                            <select asp-for="LotObject.IsAvailable" class="form-control text-center">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
                             </select>
-                            <span asp-validation-for="Reservation.LotId" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <h5 class="fw-bold">Reservation Dates & Status</h5>
-                        <div class="mb-3">
-                            <label asp-for="Reservation.StartDate" class="form-label">Start Date</label>
-                            <input asp-for="Reservation.StartDate" type="date" class="form-control" onchange="calculateDuration()" />
+                            <span class="text-danger" asp-validation-for="LotObject.IsAvailable"></span>
                         </div>
 
+                        <!-- Description -->
                         <div class="mb-3">
-                            <label asp-for="Reservation.EndDate" class="form-label">End Date</label>
-                            <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
+                            <label asp-for="LotObject.Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="LotObject.Description" class="form-control" style="height: 200px;"></textarea>
+                            <span class="text-danger" asp-validation-for="LotObject.Description"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Reservation.Duration" class="form-label">Duration (Days)</label>
-                            <input asp-for="Reservation.Duration" class="form-control" readonly />
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Reservation.Status" class="form-label">Status</label>
-                            <select asp-for="Reservation.Status" class="form-control" asp-items="@(new SelectList(Model.StatusOptions))">
-                                <option value="">-- Select Status --</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
-                <div class="text-center mt-4">
+                <!-- Buttons -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> @(Model.Reservation.ReservationId != 0 ? "Update" : "Create")
+                        <i class="fas fa-save"></i> @(Model.LotObject.Id != 0 ? "Update" : "Create")
                     </button>
-                    <a asp-page="./Index" class="btn btn-secondary ms-2">
-                        <i class="fas fa-arrow-left"></i> Back to List
+                    <a asp-page="./Index" asp-route-SelectedParkId="@Model.ParkId" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back To List
                     </a>
                 </div>
+
             </div>
         </div>
     </div>
 </form>
 
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        function calculateDuration() {
-            const start = new Date($("#Reservation_StartDate").val());
-            const end = new Date($("#Reservation_EndDate").val());
-            if (start && end && end > start) {
-                const duration = (end - start) / (1000 * 3600 * 24);
-                $("#Reservation_Duration").val(duration);
-            }
-        }
-
-        $(document).ready(function() {
-            calculateDuration();
-        });
-    </script>
-}
-
-    </script>
-    <script src="~/js/reservation.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/tinymce/js/tinymce/tinymce.min.js"></script>

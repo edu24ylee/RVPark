@@ -18,12 +18,6 @@ namespace ApplicationCore.Models
         [Required]
         public double Width { get; set; }
 
-        public int HeightLimit { get; set; }
-
-        [NotMapped]
-        public bool HasHeightLimit => HeightLimit > 0;
-
-
         [Required]
         public bool IsAvailable { get; set; }
 

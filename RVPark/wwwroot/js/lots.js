@@ -12,24 +12,6 @@
         });
     }
 
-    const heightLimitGroup = $('#HeightLimitGroup');
-    const hasHeightLimit = $('#HasHeightLimit');
-    const heightLimitInput = $('#LotObject_HeightLimit');
-
-    function toggleHeightLimit() {
-        if (hasHeightLimit.val() === 'true') {
-            heightLimitGroup.show();
-            heightLimitInput.prop('disabled', false);
-        } else {
-            heightLimitGroup.hide();
-            heightLimitInput.val('0').prop('disabled', true);
-        }
-    }
-
-
-    toggleHeightLimit();
-
-    hasHeightLimit.on('change', toggleHeightLimit);
 });
 
 
@@ -48,7 +30,6 @@ function loadList(parkId) {
             { data: "location", width: "10%" },
             { data: "width", width: "10%" },
             { data: "length", width: "10%" },
-            { data: "heightLimit", width: "10%" },
             {
                 data: "isAvailable",
                 render: data => data ? "Yes" : "No",

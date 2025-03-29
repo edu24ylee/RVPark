@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250329145105_Feetypecorrection")]
-    partial class Feetypecorrection
+    [Migration("20250329190226_RemovedHightlimitfrommodel")]
+    partial class RemovedHightlimitfrommodel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

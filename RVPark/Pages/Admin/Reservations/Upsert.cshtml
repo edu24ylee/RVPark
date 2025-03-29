@@ -1,130 +1,100 @@
-﻿
-@page
+﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
-@{
-    ViewData["Title"] = "Create Reservation";
-}
 
+<form method="post" enctype="multipart/form-data">
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-50">
+            <div class="card-body p-4 text-center">
 
-<h2>Reservation</h2>
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-<form method="post">
-    <div class="form-group">
-        <label asp-for="GuestFirstName"></label>
-        <input asp-for="GuestFirstName" class="form-control" />
-        <span asp-validation-for="GuestFirstName" class="text-danger"></span>
+                <h2 class="text-primary mb-3">
+                    @(Model.Reservation.ReservationId != 0 ? "Edit" : "Create") Reservation
+                </h2>
+                <hr />
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+
+                        <h4 class="fw-bold">Guest Information</h4>
+
+                        <div class="mb-3">
+                            <label asp-for="GuestFirstName" class="form-label fw-bold">First Name</label>
+                            <input asp-for="GuestFirstName" class="form-control text-center" />
+                            <span class="text-danger" asp-validation-for="GuestFirstName"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GuestLastName" class="form-label fw-bold">Last Name</label>
+                            <input asp-for="GuestLastName" class="form-control text-center" />
+                            <span class="text-danger" asp-validation-for="GuestLastName"></span>
+                        </div>
+
+                        <h4 class="fw-bold">Trailer Information</h4>
+
+                        <div class="mb-3">
+                            <label asp-for="Length" class="form-label fw-bold">Trailer Length</label>
+                            <select asp-for="Length" class="form-control text-center">
+                                <option value="">-- Select Length --</option>
+                                <option value="20">20 ft</option>
+                                <option value="25">25 ft</option>
+                                <option value="30">30 ft</option>
+                                <option value="35">35 ft</option>
+                                <option value="40">40 ft</option>
+                            </select>
+                            <span class="text-danger" asp-validation-for="Length"></span>
+                        </div>
+
+                        <h4 class="fw-bold">Reservation Dates</h4>
+
+                        <div class="mb-3">
+                            <label asp-for="Reservation.StartDate" class="form-label fw-bold">Start Date</label>
+                            <input asp-for="Reservation.StartDate" type="date" class="form-control text-center" onchange="calculateDuration()" />
+                            <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Reservation.EndDate" class="form-label fw-bold">End Date</label>
+                            <input asp-for="Reservation.EndDate" type="date" class="form-control text-center" onchange="calculateDuration()" />
+                            <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration (Days)</label>
+                            <input asp-for="Reservation.Duration" class="form-control text-center" readonly />
+                            <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Reservation.Status" class="form-label fw-bold">Status</label>
+                            <select asp-for="Reservation.Status" class="form-control text-center" asp-items="@(new SelectList(Model.StatusOptions))">
+                                <option value="">-- Select Status --</option>
+                            </select>
+                            <span asp-validation-for="Reservation.Status" class="text-danger"></span>
+                        </div>
+
+                        <!-- Hidden fields to support model validation -->
+                        <input type="hidden" asp-for="Reservation.GuestId" />
+                        <input type="hidden" asp-for="Reservation.RvId" />
+                        <input type="hidden" asp-for="Reservation.LotId" />
+
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> @(Model.Reservation.ReservationId != 0 ? "Update" : "Create")
+                    </button>
+                    <a asp-page="./Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back To List
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label asp-for="GuestLastName"></label>
-        <input asp-for="GuestLastName" class="form-control" />
-        <span asp-validation-for="GuestLastName" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label for="LengthDropdown">Trailer Length</label>
-        <select id="LengthDropdown" class="form-control" onchange="toggleCustomLength()">
-            <option value="">-- Select Length --</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="30">30</option>
-            <option value="35">35</option>
-            <option value="40">40</option>
-            <option value="custom">Custom</option>
-        </select>
-        <input id="CustomLength" class="form-control mt-2" type="number" step="0.1" placeholder="Enter custom length" style="display:none;" />
-        <input asp-for="Length" id="LengthHidden" name="Length" type="hidden" />
-        <span asp-validation-for="Length" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Reservation.StartDate"></label>
-        <input asp-for="Reservation.StartDate" type="date" class="form-control" onchange="calculateDuration()" />
-        <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Reservation.EndDate"></label>
-        <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
-        <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Reservation.Duration"></label>
-        <input asp-for="Reservation.Duration" class="form-control" readonly />
-        <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Reservation.Status"></label>
-        <select asp-for="Reservation.Status" class="form-control" asp-items="@(new SelectList(Model.StatusOptions))">
-            <option value="">-- Select Status --</option>
-        </select>
-        <span asp-validation-for="Reservation.Status" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const today = new Date().toISOString().split('T')[0];
-            const startInput = document.getElementById("Reservation_StartDate");
-            const endInput = document.getElementById("Reservation_EndDate");
-
-            if (!startInput.value) startInput.value = today;
-            if (!endInput.value) endInput.value = today;
-
-            const dropdown = document.getElementById("LengthDropdown");
-            const customInput = document.getElementById("CustomLength");
-            const hiddenInput = document.getElementById("LengthHidden");
-
-            if (![...dropdown.options].some(opt => opt.value === hiddenInput.value)) {
-                dropdown.value = "custom";
-                customInput.style.display = "block";
-                customInput.value = hiddenInput.value;
-            }
-
-            customInput.addEventListener("input", function () {
-                hiddenInput.value = this.value;
-            });
-
-            toggleCustomLength();
-            calculateDuration();
-        });
-
-        function toggleCustomLength() {
-            const dropdown = document.getElementById("LengthDropdown");
-            const customInput = document.getElementById("CustomLength");
-            const hiddenInput = document.getElementById("LengthHidden");
-
-            if (dropdown.value === "custom") {
-                customInput.style.display = "block";
-                hiddenInput.value = customInput.value || "";
-            } else {
-                customInput.style.display = "none";
-                hiddenInput.value = dropdown.value;
-            }
-        }
- 
-        function calculateDuration() {
-            const start = new Date(document.getElementById("Reservation_StartDate").value);
-            const end = new Date(document.getElementById("Reservation_EndDate").value);
-
-            if (start && end && end > start) {
-                const duration = (end - start) / (1000 * 3600 * 24);
-                document.getElementById("Reservation_Duration").value = duration;
-            }
-        }
-    </script>
 }
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
