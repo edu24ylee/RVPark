@@ -79,9 +79,6 @@ namespace RVPark.Pages.Admin.Lots
                 return Page();
             }
 
-            var webRootPath = _webHostEnvironment.WebRootPath;
-            var files = HttpContext.Request.Form.Files;
-
             if (LotObject.Id == 0)
             {
                 // Handle image upload
@@ -90,7 +87,7 @@ namespace RVPark.Pages.Admin.Lots
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(webRootPath, @"Images\lots\");
                     var extension = Path.GetExtension(files[0].FileName);
-                    var fullpath = uploads + filename + extension;
+                    var fullpath = uploads + fileName + extension;
 
                     using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
