@@ -82,6 +82,9 @@ namespace RVPark.Pages.Admin.Lots
                 return Page();
             }
 
+            var files = HttpContext.Request.Form.Files;
+
+            var files = HttpContext.Request.Form.Files;
 
             if (LotObject.Id == 0)
             {
@@ -89,9 +92,10 @@ namespace RVPark.Pages.Admin.Lots
                 if (files.Count > 0)
                 {
                     string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(webRootPath, @"Images\lots\");
-                    var extension = Path.GetExtension(files[0].FileName);
-                    var fullpath = Path.Combine(uploads, fileName + extension);
+                    var fullpath = uploads + fileName + extension;
+
+                    var fullpath = uploads + fileName + extension;
+
                     using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
 

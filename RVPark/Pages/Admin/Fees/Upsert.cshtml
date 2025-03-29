@@ -2,3 +2,58 @@
 @model RVPark.Pages.Admin.Fees.UpsertModel
 @{
 }
+<form method="post" asp-action="Upsert">
+    <div class="container">
+        <div class="row px-2 mx-2 border">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="col-12 px-3" style="border-bottom: 1px solid #325d88">
+                <h2 class="text-primary">@(Model.FeeObject.Id != 0 ? "Update" : "Create") Fee</h2>
+            </div>
+            <div class="col-8 pt-3">
+                <div class="form-group row">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.FeeTypeId"></label>
+                    </div>
+                    <div class="col-9">
+                        <select class="form-control" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList"></select>
+                        <span class="text-danger" asp-validation-for="FeeObject.FeeTypeId"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.TriggeringPolicyId"></label>
+                    </div>
+                    <div class="col-9">
+                        <select class="form-control" asp-for="FeeObject.TriggeringPolicyId" asp-items="Model.PolicyList"></select>
+                        <span class="text-danger" asp-validation-for="FeeObject.TriggeringPolicyId"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.FeeTotal"></label>
+                    </div>
+                    <div class="col-9">
+                        <input class="form-control" asp-for="FeeObject.FeeTotal" />
+                        <span class="text-danger" asp-validation-for="FeeObject.FeeTotal"></span>
+                    </div>
+                </div>
+                @if (Model.FeeObject.Id != 0)
+                {
+                    <input type="hidden" asp-for="FeeObject.Id" />
+                }
+                <div class="form-group row">
+                    <div class="col-9 offset-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary form-control">@(Model.FeeObject.Id != 0 ? "Update" : "Create")</button>
+                            </div>
+                            <div class="col-6">
+                                <a asp-page="./Index" class="btn btn-success form-control">Back to List</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

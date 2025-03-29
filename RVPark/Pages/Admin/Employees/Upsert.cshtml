@@ -1,4 +1,51 @@
-﻿@page
-@model RVPark.Pages.Admin.Employees.UpsertModel
+﻿@model RVPark.Pages.Admin.Employees.UpsertModel
 @{
 }
+<div class="container">
+    <form class="form" method="post">
+        <div class="row">
+            <input type="hidden" value="@Model.Employee.EmployeeID" asp-for="@Model.Employee.EmployeeID" />
+            @* <input type="hidden" value="@Model.OldRoles.ToList()" asp-for="@Model.OldRoles" /> *@
+            <div class="form-group col-md-6">
+                <label asp-for="@Model.Employee.User.FirstName">First Name</label>
+                <input class="form-control" asp-for="@Model.Employee.User.FirstName" value="@Model.Employee.User.FirstName" />
+            </div>
+            <div class="form-group col-md-6">
+                <label asp-for="@Model.Employee.User.LastName">Last Name</label>
+                <input class="form-control" asp-for="@Model.Employee.User.LastName" value="@Model.Employee.User.LastName" /> 
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label asp-for="@Model.Employee.User.Email">Email</label>
+                <input class="form-control" asp-for="@Model.Employee.User.Email" value="@Model.Employee.User.Email" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label asp-for="@Model.Employee.User.Phone">Phone Number</label>
+                <input class="form-control" asp-for="@Model.Employee.User.Phone" value="@Model.Employee.User.Phone" />
+            </div>
+        </div>
+        @*  @{
+            foreach (var r in Model.AllRoles)
+            {
+                <div class="form-check">
+                    @{
+                        if (Model.UserRoles.Contains(r))
+                        {
+                            <input class="form-check-input" name="roles" type="checkbox" id="@r" value="@r" checked>
+                            <label class="form-check-label">@r</label>
+                        }
+                        else
+                        {
+                            <input class="form-check-input" name="roles" type="checkbox" id="@r" value="@r">
+                            <label class="form-check-label">@r</label>
+                        }
+                    }
+                </div>
+            }
+        } *@
+        <button type="submit">Update</button>
+    </form>
+</div>
