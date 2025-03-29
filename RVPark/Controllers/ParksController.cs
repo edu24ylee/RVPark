@@ -1,6 +1,5 @@
 ﻿using ApplicationCore.Models;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
@@ -26,7 +25,7 @@ namespace RVPark.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetParkById(int id)
         {
-            var park = await _unitOfWork.Park.GetAsync(l => l.Id == id);
+            var park = await _unitOfWork.Park.GetAsync(p => p.Id == id);
             if (park == null)
             {
                 return NotFound(new { success = false, message = "Park not found." });
@@ -68,7 +67,7 @@ namespace RVPark.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePark(int id)
         {
-            var park = await _unitOfWork.Park.GetAsync(l => l.Id == id);
+            var park = await _unitOfWork.Park.GetAsync(p => p.Id == id);
             if (park == null)
             {
                 return NotFound(new { success = false, message = "Park not found." });

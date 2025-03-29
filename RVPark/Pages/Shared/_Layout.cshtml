@@ -16,6 +16,7 @@
     <header>
         <nav class="navbar navbar-expand-lg bg-body m-lg-3 position-relative">
             <div class="container d-flex flex-column position-relative">
+
                 <!-- First Row -->
                 <div class="w-100 d-flex align-items-center position-relative">
                     <a class="navbar-brand text position-absolute top-50 translate-middle-y start-0 ms-3" asp-page="/Index">
@@ -31,14 +32,13 @@
                         </li>
                         <li class="nav-item me-3 dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown" style="position: absolute;">
-                                <li><a class="dropdown-item" href="#">Action</a></li>
-                                <li><a class="dropdown-item" href="#">Another action</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">Something else here</a></li>
-                            </ul>
+                                <i class="fas fa-user"></i></a>
+                                <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" aria-labelledby="navbarDropdown" style="position: absolute;">
+                                    <li><a class="dropdown-item" href="#">Action</a></li>
+                                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                </ul>
                         </li>
                     </ul>
                 </div>
@@ -50,7 +50,7 @@
                         <button class="btn btn-light dropdown-toggle" type="button" id="navbarDropdownSecondRow" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px 10px; font-size: 2rem;">
                             <i class="fas fa-bars"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSecondRow">
+                        <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" aria-labelledby="navbarDropdownSecondRow">
                             <li class="nav-item dropdown">
                                 <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
                                 <div class="dropdown-menu">
@@ -59,6 +59,9 @@
                                     <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
                                     <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
                                     <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
+                                    <a class="dropdown-item" href="/Admin/Fees">Fees</a>
+                                    <a class="dropdown-item" href="/Admin/FeeTypes">FeeTypes</a>
+                                    <a class="dropdown-item" href="/Admin/Image">Image</a>
                                 </div>
                             </li>
                             <li><a class="dropdown-item" href="#">Add here</a></li>
@@ -74,16 +77,19 @@
                         </ul>
                     </div>
 
-                    <!-- Desktop Centered Navigation -->
+                    <!-- Desktop Navigation -->
                     <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
                         <li class="nav-item dropdown">
                             <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
-                            <div class="dropdown-menu">
+                            <div class="dropdown-menu scrollable-dropdown">
                                 <a class="dropdown-item" href="/Admin/Parks/Index">Parks</a>
                                 <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
                                 <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
                                 <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
                                 <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
+                                <a class="dropdown-item" href="/Admin/Fees">Fees</a>
+                                <a class="dropdown-item" href="/Admin/FeeTypes">FeeTypes</a>
+                                <a class="dropdown-item" href="/Admin/Image">Image</a>
                             </div>
                         </li>
                         <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
@@ -91,7 +97,7 @@
                         <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
                     </ul>
 
-                    <!-- Desktop Search Bar -->
+                    <!-- Desktop Search -->
                     <form class="d-flex ms-auto d-none d-lg-flex" role="search">
                         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" style="width: 250px;">
                         <button class="btn btn-light" type="submit">Search</button>

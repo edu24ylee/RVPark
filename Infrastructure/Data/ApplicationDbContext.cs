@@ -53,6 +53,17 @@ namespace Infrastructure.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FinancialReport>().HasNoKey();
+            modelBuilder.Entity<Fee>()
+                .Property(f => f.FeeTotal)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<FinancialReport>()
+                .Property(fr => fr.AnticipatedRevenue)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<FinancialReport>()
+                .Property(fr => fr.CollectedRevenue)
+                .HasColumnType("decimal(18,2)");
         }
     }
 }

@@ -1,59 +1,63 @@
-using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace RVPark.Pages.Admin.LotTypes
 {
     public class UpsertModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;
-        [BindProperty]
-        public LotType LotTypeObject { get; set; }
-        public IEnumerable<SelectListItem> ParkList { get; set; }
-        public UpsertModel(UnitOfWork unitofWork) => _unitOfWork = unitofWork;
 
-
-        public IActionResult OnGet(int? id)
+        public UpsertModel(UnitOfWork unitOfWork)
         {
-            LotTypeObject = new LotType();
+            _unitOfWork = unitOfWork;
+        }
 
-            if (id != 0) // edit
+        [BindProperty]
+        public LotType LotTypeObject { get; set; } = new();
+
+        public async Task<IActionResult> OnGetAsync(int? id, int? parkId)
+        {
+            if (id == null || id == 0)
             {
+                if (parkId == null) return NotFound();
 
-                LotTypeObject = _unitOfWork.LotType.Get(u => u.Id == id);
-
-        
+                LotTypeObject = new LotType
+                {
+                    ParkId = parkId.Value
+                };
             }
-
-            if (LotTypeObject == null)
+            else
             {
-                return NotFound();
-            }
+                var lotTypeFromDb = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
+                if (lotTypeFromDb == null) return NotFound();
 
-            var parkList = _unitOfWork.Park.GetAll();
-            ParkList = parkList.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name });
+                LotTypeObject = lotTypeFromDb;
+            }
 
             return Page();
         }
-        public IActionResult OnPost()
+
+
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
-            if (LotTypeObject.Id == 0) //if new
+
+            if (LotTypeObject.Id == 0)
             {
                 _unitOfWork.LotType.Add(LotTypeObject);
             }
-            else //if existing
+            else
             {
                 _unitOfWork.LotType.Update(LotTypeObject);
             }
-            _unitOfWork.Commit();
-            return RedirectToPage("./Index");
+
+            await _unitOfWork.CommitAsync();
+            return RedirectToPage("./Index", new { SelectedParkId = LotTypeObject.ParkId });
         }
     }
 }

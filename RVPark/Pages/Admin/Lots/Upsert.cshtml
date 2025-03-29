@@ -1,111 +1,111 @@
 ﻿@page
 @model RVPark.Pages.Admin.Lots.UpsertModel
 
+<form method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="ParkId" />
 
-<form method="post" asp-action="./Upsert">
     <div class="container mt-4 d-flex justify-content-center">
         <div class="card shadow-sm w-50">
-            <!-- Adjust width as needed -->
             <div class="card-body p-4 text-center">
+
                 <!-- Validation Summary -->
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
                 <!-- Form Header -->
-                <h2 class="text-primary mb-3">@(Model.LotObject.Id != 0 ? "Update" : "Create") Park</h2>
+                <h2 class="text-primary mb-3">@(Model.LotObject.Id != 0 ? "Update" : "Create") Lot</h2>
                 <hr />
 
                 <div class="row justify-content-center">
                     <div class="col-md-8">
-                        <!-- Lot Type-->
-                        <div class="form-control text-center">
 
+                        <!-- Lot Type -->
+                        <div class="mb-3">
                             <label asp-for="LotObject.LotTypeId" class="form-label fw-bold">Lot Type</label>
-
                             @Html.DropDownListFor(m => m.LotObject.LotTypeId,
                                      Model.LotTypeList,
                                      " - Please select a lot type - ",
-                                     new { @class = "form-control", @id = "ddlLotType" })
-                            <span class=" text-center text-danger" asp-validation-for="LotObject.LotTypeId"></span>
+                                     new { @class = "form-control" })
+                            <span class="text-danger" asp-validation-for="LotObject.LotTypeId"></span>
                         </div>
 
-
-                        <!-- Lot Location -->
+                        <!-- Location -->
                         <div class="mb-3">
                             <label asp-for="LotObject.Location" class="form-label fw-bold">Location</label>
-                            <input type="text" id="Location" class="form-control text-center" asp-for="LotObject.Location" />
+                            <input asp-for="LotObject.Location" class="form-control text-center" />
                             <span class="text-danger" asp-validation-for="LotObject.Location"></span>
                         </div>
 
-                        <!-- Lot Width -->
+                        <!-- Width -->
                         <div class="mb-3">
                             <label asp-for="LotObject.Width" class="form-label fw-bold">Width</label>
-                            <input type="text" id="Width" class="form-control text-center" asp-for="LotObject.Width" />
+                            <input asp-for="LotObject.Width" class="form-control text-center" />
                             <span class="text-danger" asp-validation-for="LotObject.Width"></span>
                         </div>
 
-                        <!-- Lot Length -->
+                        <!-- Length -->
                         <div class="mb-3">
                             <label asp-for="LotObject.Length" class="form-label fw-bold">Length</label>
-                            <input type="text" id="Length" class="form-control text-center" asp-for="LotObject.Length" />
+                            <input asp-for="LotObject.Length" class="form-control text-center" />
                             <span class="text-danger" asp-validation-for="LotObject.Length"></span>
                         </div>
 
-                        <!-- Lot HeightLimit (optional) -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.HeightLimit" class="form-label fw-bold">Height Limit</label>
-                            <input type="text" id="HeightLimit" class="form-control text-center" asp-for="LotObject.HeightLimit" />
-                            <span class="text-danger" asp-validation-for="LotObject.HeightLimit"></span>
+                        <div class="form-group">
+                            <label class="form-label fw-bold">Height Limit</label>
+                            <div class="radio-inline-group">
+                                <div>
+                                    <input type="radio" id="HasHeightLimit_Yes" name="HasHeightLimit" value="true" />
+                                    <label for="HasHeightLimit_Yes">Yes</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="HasHeightLimit_No" name="HasHeightLimit" value="false" />
+                                    <label for="HasHeightLimit_No">No</label>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Lot Available -->
+                        <!-- Is Available -->
                         <div class="mb-3">
                             <label asp-for="LotObject.IsAvailable" class="form-label fw-bold">Available</label>
-                            <input type="text" id="IsAvailable" class="form-control text-center" asp-for="LotObject.IsAvailable" />
+                            <select asp-for="LotObject.IsAvailable" class="form-control text-center">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
                             <span class="text-danger" asp-validation-for="LotObject.IsAvailable"></span>
                         </div>
 
-                        <!-- Lot Description (Optinal) Need To be Added -->
+                        <!-- Description -->
                         <div class="mb-3">
-                            <label asp-for="LotObject.Description" class="form-label fw-bold" ></label>
-                            <textarea id="txtDesc" class="form-control" style="height:200px;" asp-for="LotObject.Description "></textarea>
+                            <label asp-for="LotObject.Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="LotObject.Description" class="form-control" style="height: 200px;"></textarea>
                             <span class="text-danger" asp-validation-for="LotObject.Description"></span>
                         </div>
 
                     </div>
                 </div>
 
-
                 <!-- Buttons -->
                 <div class="d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary" onclick="return ValidateInput()">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> @(Model.LotObject.Id != 0 ? "Update" : "Create")
                     </button>
-
-                    <a asp-page="./index" class="btn btn-secondary">
+                    <a asp-page="./Index" asp-route-SelectedParkId="@Model.ParkId" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Back To List
                     </a>
                 </div>
+
             </div>
         </div>
     </div>
 </form>
 
-@section Scripts {
-	<script>
-		tinymce.init({
-			selector: 'textarea',
-			plugins: 'lists',
-			menubar: "file edit format"
-		});
-        </script>
-}
 
-<!-- JS Scripts -->
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/lib/tinymce/js/tinymce/tinymce.min.js"></script>
-<script src="~/js/site.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/tinymce/js/tinymce/tinymce.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+}
