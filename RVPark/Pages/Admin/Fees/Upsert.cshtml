@@ -2,3 +2,49 @@
 @model RVPark.Pages.Admin.Fees.UpsertModel
 @{
 }
+<form method="post" asp-action="Upsert">
+    <div class="container">
+        <div class="row px-2 mx-2 border">
+            <div asp-asp-validation-summary="All" class="text-danger"></div>
+            <div class="col-12 px-3" style="border-bottom: 1px solid #325d88">
+                <h2 class="text-primary">@(Model.FeeObject.Id != 0 ? "Update" : "Create") Category</h2>
+            </div>
+            <div class="col-8 pt-3">
+                <div class="form-group row">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.Name"></label>
+                    </div>
+                    <div class="col-9">
+                        <input class="form-control" asp-for="FeeObject.Name" />
+                        <span class="text-danger" asp-asp-validation-for="FeeObject.Name"></span>
+                    </div>
+                    @if (Model.FeeObject.Id != 0)
+                    {
+                        <input type="hidden" asp-for="FeeObject.Id" />
+                    }
+                </div>
+                <div class="form-group row">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.DisplayOrder"></label>
+                    </div>
+                    <div class="col-9">
+                        <input class="form-control" asp-for="FeeObject.DisplayOrder" />
+                        <span class="text-danger" asp-asp-validation-for="FeeObject.DisplayOrder"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-9 offset-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary form-control">@(Model.FeeObject.Id != 0 ? "Update" : "Create")</button>
+                            </div>
+                            <div class="col-6">
+                                <a asp-page="./Index" class="btn btn-success from-control">Back to List</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

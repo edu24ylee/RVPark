@@ -31,9 +31,9 @@
                 foreach (var user in Model.Employees)
                 {
                     <tr>
-                        <td><!--atuser.FullName-->Full Name </td>
-                        <td><!--atuser.Email-->Email</td>
-                        <td><!--atuser.PhoneNumber-->Phone Number</td>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@user.PhoneNumber</td>
                         <td>
                             @{
                                 if (Model.EmployeeRoles[user.EmployeeID].Count() == 1)
@@ -59,7 +59,7 @@
                         <td>
                             <form method="post">
                                 @{
-                                    if (/*user.LockOutEnd > DateTime.Now*/true)
+                                    if (user.LockOutEnd > DateTime.Now)
                                     {
                                         <button type="submit" class="btn btn-outline-warning" asp-page-handler="lockUnlock" asp-route-id="@user.EmployeeID"><i class="fas fa-lock-open"></i> Unlock</button>
                                     }
@@ -96,6 +96,3 @@
         window.onload = alertFunc();
     </script>
 }
-
-
-
