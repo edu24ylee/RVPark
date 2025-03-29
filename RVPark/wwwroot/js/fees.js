@@ -12,26 +12,45 @@ function loadList() {
             "datatype": "json"
         },
         "columns": [
-            { data: "feeType", width: "50%" },
-            { data: "feeTotal", width: "20%" },
+            { data: "id", width: "10%" },
+            { data: "feeType.feeTypeName", width: "30%" },
             {
-                data: "id", width: "30%",
+                data: "triggeringPolicy.policyName",
+                width: "30%",
+                "render": function (data) {
+                    return data ? data : "N/A";
+                }
+            },
+            {
+                data: "feeTotal",
+                width: "15%",
+                "render": $.fn.dataTable.render.number(',', '.', 2, '$')
+            },
+            {
+                data: "id",
+                width: "15%",
                 "render": function (data) {
                     return `<div class="text-center">
-                            <a href="/Admin/Fees/Upsert?id=${data}"
-                            class ="btn btn-success text-white style="cursor:pointer; width=100px;"> <i class="far fa-edit"></i>Edit</a>
-                            <a onClick=Delete('/api/fees/'+${data})
-                            class ="btn btn-danger text-white style="cursor:pointer; width=100px;"> <i class="far fa-trash-alt"></i>Delete</a>
-                    </div>`;
+                                <a href="/Admin/Fees/Upsert?id=${data}" 
+                                   class="btn btn-success text-white" 
+                                   style="cursor:pointer; width:100px;">
+                                    <i class="far fa-edit"></i> Edit
+                                </a>
+                                <a onClick="Delete('/api/fees/' + ${data})" 
+                                   class="btn btn-danger text-white" 
+                                   style="cursor:pointer; width:100px;">
+                                    <i class="far fa-trash-alt"></i> Delete
+                                </a>
+                            </div>`;
                 }
             }
         ],
         "language": {
-            "emptyTable": "no data found."
+            "emptyTable": "No data found."
         },
         "width": "100%"
     });
-};
+}
 
 function Delete(url) {
     swal({
@@ -49,12 +68,11 @@ function Delete(url) {
                     if (data.success) {
                         toastr.success(data.message);
                         dataTable.ajax.reload();
-                    }
-                    else {
+                    } else {
                         toastr.error(data.message);
                     }
                 }
             });
         }
-    })
+    });
 }
