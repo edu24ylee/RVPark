@@ -35,7 +35,6 @@ namespace ApplicationCore.Models
         [ForeignKey("LotTypeId")]
         [ValidateNever]
         public virtual LotType LotType { get; set; } = null!;
-
         public string? Image { get; set; }
     }
 }

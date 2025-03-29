@@ -16,7 +16,7 @@ namespace RVPark.Pages.Admin.Lots
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
-
+        
         [BindProperty]
         public Lot LotObject { get; set; } = new();
 
@@ -63,6 +63,9 @@ namespace RVPark.Pages.Admin.Lots
 
         public IActionResult OnPost()
         {
+            string webRootPath = _webHostEnvironment.WebRootPath;
+            var files = HttpContext.Request.Form.Files;
+            
             if (!ModelState.IsValid)
             {
                 // Repopulate LotTypeList if validation fails
@@ -75,7 +78,6 @@ namespace RVPark.Pages.Admin.Lots
 
                 return Page();
             }
-            if (LotObject.Id == 0) //if new
 
             var webRootPath = _webHostEnvironment.WebRootPath;
             var files = HttpContext.Request.Form.Files;
@@ -88,8 +90,9 @@ namespace RVPark.Pages.Admin.Lots
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(webRootPath, @"Images\lots\");
                     var extension = Path.GetExtension(files[0].FileName);
+                    var fullpath = uploads + filename + extension;
 
-                    using var fileStream = System.IO.File.Create(Path.Combine(uploads, fileName + extension));
+                    using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
 
                     LotObject.Image = @"\Images\lots\" + fileName + extension;
@@ -97,12 +100,10 @@ namespace RVPark.Pages.Admin.Lots
 
                 _unitOfWork.Lot.Add(LotObject);
             }
-            else //if existing
+
+            else //If item already exists
             {
-                _unitOfWork.Lot.Update(LotObject);
-            else
-            {
-                var objFromDb = _unitOfWork.Lot.Get(u => u.Id == LotObject.Id);
+                var objFromDb = _unitOfWork.Lot.Get(u => u.Id == LotObject.Id, true);
                 if (objFromDb == null)
                     return NotFound();
 
@@ -111,12 +112,16 @@ namespace RVPark.Pages.Admin.Lots
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(webRootPath, @"Images\lots\");
                     var extension = Path.GetExtension(files[0].FileName);
-                    var oldPath = Path.Combine(webRootPath, objFromDb.Image.TrimStart('\\'));
+                    var imagePath = Path.Combine(webRootPath, objFromDb.Image.TrimStart('\\'));
 
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
+                    if(System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
 
-                    using var fileStream = System.IO.File.Create(Path.Combine(uploads, fileName + extension));
+                    var fullpath = uploads + fileName + extension;
+
+                    using var fileStream = System.IO.File.Create(fullpath);
                     files[0].CopyTo(fileStream);
 
                     LotObject.Image = @"\Images\lots\" + fileName + extension;

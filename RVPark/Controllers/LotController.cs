@@ -12,6 +12,7 @@ namespace RVPark.Controllers
     public class LotController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _hostingEnv;
 
         public LotController(UnitOfWork unitOfWork)
         {
@@ -88,6 +89,14 @@ namespace RVPark.Controllers
             if (lot == null)
             {
                 return NotFound(new { success = false, message = "Lot not found." });
+            }
+            if(lot.Image != null)
+            {
+                var imgPath = Path.Combine(_hostingEnv.WebRootPath, lot.Image.TrimStart('\\'));
+                if(System.IO.File.Exists(imgPath))
+                {
+                    System.IO.File.Delete(imgPath);
+                }
             }
 
             _unitOfWork.Lot.Delete(lot);
