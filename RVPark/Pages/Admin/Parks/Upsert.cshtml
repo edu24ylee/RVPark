@@ -1,48 +1,43 @@
 ﻿@page
 @model RVPark.Pages.Admin.Parks.UpsertModel
 
-<form method="post" asp-action="./Upsert">
+<form method="post">
+    <!-- Fixed: Removed asp-action -->
     <div class="container mt-4 d-flex justify-content-center">
         <div class="card shadow-sm w-50">
-            <!-- Adjust width as needed -->
             <div class="card-body p-4 text-center">
-                <!-- Validation Summary -->
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                <!-- Form Header -->
                 <h2 class="text-primary mb-3">@(Model.ParkObject.Id != 0 ? "Update" : "Create") Park</h2>
                 <hr />
 
-                
                 <div class="row justify-content-center">
                     <div class="col-md-8">
-                        <!-- Name Fields -->
+                        <!-- Name -->
                         <div class="mb-3">
                             <label asp-for="ParkObject.Name" class="form-label fw-bold"></label>
                             <input type="text" id="ParkName" class="form-control text-center" asp-for="ParkObject.Name" />
                             <span class="text-danger" asp-validation-for="ParkObject.Name"></span>
                         </div>
 
-
-                        <!-- Adress Fields -->
+                        <!-- Address -->
                         <div class="mb-3">
                             <label asp-for="ParkObject.Address" class="form-label fw-bold"></label>
-                            <input type="text" id="ParkAdress" class="form-control text-center" asp-for="ParkObject.Address" />
+                            <input type="text" id="ParkAddress" class="form-control text-center" asp-for="ParkObject.Address" />
                             <span class="text-danger" asp-validation-for="ParkObject.Address"></span>
                         </div>
 
-
-                        <!-- City Field -->
+                        <!-- City -->
                         <div class="mb-3">
                             <label asp-for="ParkObject.City" class="form-label fw-bold">City</label>
                             <input type="text" id="ParkCity" class="form-control text-center" asp-for="ParkObject.City" placeholder="Enter City" />
                             <span class="text-danger" asp-validation-for="ParkObject.City"></span>
                         </div>
 
-                        <!-- State Field (Dropdown) -->
+                        <!-- State -->
                         <div class="mb-3">
                             <label asp-for="ParkObject.State" class="form-label fw-bold">State</label>
-                            <select id="ParkState" class="form-control text-center" asp-for="ParkObject.State" id="SelectedState">
+                            <select id="ParkState" class="form-control text-center" asp-for="ParkObject.State">
                                 <option value="">Select a State</option>
                                 <option value="AL">Alabama</option>
                                 <option value="AK">Alaska</option>
@@ -98,24 +93,22 @@
                             <span class="text-danger" asp-validation-for="ParkObject.State"></span>
                         </div>
 
-                        <!-- Zipcode Field -->
+                        <!-- Zipcode -->
                         <div class="mb-3">
                             <label asp-for="ParkObject.Zipcode" class="form-label fw-bold">Zipcode</label>
                             <input type="text" id="ParkZipcode" class="form-control text-center" asp-for="ParkObject.Zipcode" pattern="\d{5}" maxlength="5" placeholder="Enter 5-digit Zipcode" />
                             <span class="text-danger" asp-validation-for="ParkObject.Zipcode"></span>
                         </div>
-
                     </div>
                 </div>
 
                 @if (Model.ParkObject.Id != 0)
                 {
-                    <input type="hidden" asp-for="ParkObject.Id">
+                    <input type="hidden" asp-for="ParkObject.Id" />
                 }
 
-                <!-- Buttons -->
                 <div class="d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary" onclick="ValidateInput()">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> @(Model.ParkObject.Id != 0 ? "Update" : "Create")
                     </button>
 
@@ -128,12 +121,13 @@
     </div>
 </form>
 
-<!-- JS Scripts -->
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js"></script>
-<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+}
 

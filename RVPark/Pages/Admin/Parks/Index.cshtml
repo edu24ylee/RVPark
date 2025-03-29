@@ -1,46 +1,36 @@
 ﻿@page
 @model RVPark.Pages.Admin.Parks.IndexModel
 @{
-    ViewData["Title"] = "Parks";
+    ViewData["Title"] = "Manage Parks";
 }
-<div class="container my-4">
 
-    <!-- image Section -->
-    <div class="position-relative mb-4">
-        <img src="/Images/TempPhoto.jpg" class="img-fluid w-100 rounded shadow" style="max-height: 350px; object-fit: cover;" alt="Parks Banner">
+<div class="container">
+    <h2 class="text-center">Parks</h2>
+    <div class="mb-3">
+        <a asp-page="Upsert" class="btn btn-primary">Create New Park</a>
     </div>
-
-    <!-- Park Section -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center py-3">
-                <h2 class="text-primary mb-0">Parks List</h2>
-                <a asp-page="Upsert" asp-route-id="0" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create New
-                </a>
-            </div>
-
-            <div class="table-responsive">
-                <table id="DT_load" class="table table-striped table-hover table-bordered align-middle">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Name</th>
-                            <th>Address</th>
-                            <th>City</th>
-                            <th>State</th>
-                            <th>Zip Code</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-        </div>
-    </div>
+    <table id="DT_load" class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zipcode</th>
+                <th></th>
+            </tr>
+        </thead>
+    </table>
 </div>
 
-<!-- JS Scripts -->
+@section Scripts {
+    <script src="~/js/park.js"></script>
+}
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js"></script>
+<script src="~/js/parks.js"></script>
 <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>

@@ -1,6 +1,5 @@
 ﻿using ApplicationCore.Models;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
@@ -17,66 +16,50 @@ namespace RVPark.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllLotTypes()
+        public async Task<IActionResult> GetAll()
         {
-            var lotTypes = await _unitOfWork.LotType.GetAllAsync();
-            return Json(new { success = true, data = lotTypes });
-        }
+            var lotTypes = await _unitOfWork.LotType.GetAllAsync(includes: "Park");
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLotTypeById(int id)
-        {
-            var lotType = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
-            if (lotType == null)
+            var result = lotTypes.Select(l => new
             {
-                return NotFound(new { success = false, message = "LotType not found." });
-            }
-            return Json(new { success = true, data = lotType });
-        }
+                id = l.Id,
+                name = l.Name,
+                rate = l.Rate,
+                parkName = l.Park?.Name ?? "N/A"
+            });
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLotType([FromBody] LotType lotType)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
-
-            _unitOfWork.LotType.Add(lotType);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = lotType });
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLotType(int id, [FromBody] LotType lotType)
-        {
-            if (id != lotType.Id)
-            {
-                return BadRequest(new { success = false, message = "LotType ID mismatch." });
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
-
-            _unitOfWork.LotType.Update(lotType);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = lotType });
+            return Json(new { data = result });
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLotType(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var lotType = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
             if (lotType == null)
             {
-                return NotFound(new { success = false, message = "LotType not found." });
+                return Json(new { success = false, message = "Lot type not found." });
             }
 
             _unitOfWork.LotType.Delete(lotType);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "LotType deleted successfully." });
+            return Json(new { success = true, message = "Lot type deleted successfully." });
+        }
+
+        [HttpGet("GetByPark/{parkId}")]
+        public async Task<IActionResult> GetByPark(int parkId)
+        {
+            var lotTypes = await _unitOfWork.LotType.GetAllAsync(
+                l => l.ParkId == parkId,
+                orderBy: null,
+                includes: "Park"); 
+            var result = lotTypes.Select(l => new
+            {
+                id = l.Id,
+                name = l.Name,
+                rate = l.Rate
+            });
+
+            return Json(new { data = result });
         }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ApplicationCore.Models
 {
@@ -14,14 +9,20 @@ namespace ApplicationCore.Models
 
         [Required]
         [Display(Name = "Park Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+
         [Required]
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
+
         [Required]
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
+
         [Required]
-        public string State { get; set; }
+        public string State { get; set; } = string.Empty;
+
         [Required]
-        public string Zipcode { get; set; }
+        public string Zipcode { get; set; } = string.Empty;
+
+        public virtual ICollection<LotType> LotTypes { get; set; } = new List<LotType>();
     }
 }
