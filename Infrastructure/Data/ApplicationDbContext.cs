@@ -15,6 +15,7 @@ namespace Infrastructure.Data
         public DbSet<LotType> LotType { get; set; }
         public DbSet<Lot> Lot { get; set; }
         public DbSet<Reservation> Reservation { get; set; }
+        public DbSet<ReservationUpdateModel> ReservationUpdateModel { get; set; }
         public DbSet<Guest> Guest { get; set; }
         public DbSet<RV> RV { get; set; }
         public DbSet<User> User { get; set; }
@@ -64,6 +65,8 @@ namespace Infrastructure.Data
             modelBuilder.Entity<FinancialReport>()
                 .Property(fr => fr.CollectedRevenue)
                 .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<ReservationUpdateModel>().HasNoKey();
         }
     }
 }

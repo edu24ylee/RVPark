@@ -22,6 +22,7 @@ namespace Infrastructure.Data
         private IGenericRepository<LotType> _LotType;
         private IGenericRepository<Lot> _Lot;
         private IGenericRepository<Reservation> _Reservation;
+        public IGenericRepository<ReservationUpdateModel> _ReservationUpdateModel;
         private IGenericRepository<RV> _RV;
         private IGenericRepository<Guest> _Guest;
         private IGenericRepository<User> _User;
@@ -78,6 +79,7 @@ namespace Infrastructure.Data
                 return _Reservation;
             }
         }
+
         public IGenericRepository<RV> RV
         {
             get
@@ -177,6 +179,17 @@ namespace Infrastructure.Data
                 return _FinancialReport;
             }
         }   
+        public IGenericRepository<ReservationUpdateModel> ReservationUpdateModel
+        {
+            get
+            {
+                if (_ReservationUpdateModel == null)
+                {
+                    _ReservationUpdateModel = new GenericRepository<ReservationUpdateModel>(_dbContext);
+                }
+                return _ReservationUpdateModel;
+            }
+        }
         public int Commit()
         {
             return _dbContext.SaveChanges();

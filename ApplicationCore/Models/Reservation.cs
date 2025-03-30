@@ -9,26 +9,26 @@ namespace ApplicationCore.Models
         [Key]
         public int ReservationId { get; set; }
 
-        public int? GuestId { get; set; }
+        public int GuestId { get; set; }
 
         [ForeignKey("GuestId")]
-        public Guest Guest { get; set; } = null;
-        public int? RvId { get; set; }
+        public Guest Guest { get; set; }
+        public int RvId { get; set; }
 
         [ForeignKey("RvId")]
-        public RV Rv { get; set; } = null;
+        public RV Rv { get; set; }
 
-        public int? LotId { get; set; }
+        public int LotId { get; set; }
 
         [ForeignKey("LotId")]
-        public Lot Lot { get; set; } = null;
+        public Lot Lot { get; set; }
         public int Duration { get; set; }
 
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
 
-        public string Status { get; set; } = null;
+        public string Status { get; set; }
 
         public string? OverrideReason { get; set; }
         public DateTime? CancellationDate { get; set; }

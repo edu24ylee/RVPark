@@ -4,41 +4,54 @@
     ViewData["Title"] = "Reservations";
 }
 
-<h2 class="my-4">Reservation List</h2>
+<div class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-<a class="btn btn-primary mb-3" asp-page="Upsert">Create New Reservation</a>
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <h2 class="text-primary mb-0">Reservation List</h2>
+                <a asp-page="Upsert" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Reservation
+                </a>
+            </div>
 
-<table id="DT_load" class="table table-bordered table-striped w-100">
-    <thead>
-        <tr>
-            <th>Reservation ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>License Plate</th>
-            <th>Lot</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-</table>
+            <div class="table-responsive">
+                <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Reservation ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>License Plate</th>
+                            <th>Lot</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
     @if (TempData["Success"] != null)
     {
-        <script>
-            toastr.success("@TempData["Success"]");
-        </script>
+        <script>toastr.success("@TempData["Success"]");</script>
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/reservations.js" asp-append-version="true"></script>
+
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
-
-    <script src="~/js/reservations.js"></script>
 }

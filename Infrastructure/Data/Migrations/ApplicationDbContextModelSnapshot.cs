@@ -301,16 +301,16 @@ namespace Infrastructure.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("GuestId")
+                    b.Property<int>("GuestId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("LotId")
+                    b.Property<int>("LotId")
                         .HasColumnType("int");
 
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RvId")
+                    b.Property<int>("RvId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -398,6 +398,28 @@ namespace Infrastructure.Data.Migrations
                     b.HasKey("ReportId");
 
                     b.ToTable("ReservationReports");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
+                {
+                    b.Property<string>("GuestName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("OriginalTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RvID")
+                        .HasColumnType("int");
+
+                    b.HasIndex("ReservationId");
+
+                    b.HasIndex("RvID");
+
+                    b.ToTable("ReservationUpdateModel");
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.User", b =>
@@ -710,21 +732,43 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("ApplicationCore.Models.Guest", "Guest")
                         .WithMany("Reservations")
                         .HasForeignKey("GuestId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ApplicationCore.Models.Lot", "Lot")
                         .WithMany()
                         .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ApplicationCore.Models.RV", "Rv")
                         .WithMany()
                         .HasForeignKey("RvId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Guest");
 
                     b.Navigation("Lot");
+
+                    b.Navigation("Rv");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
+                {
+                    b.HasOne("ApplicationCore.Models.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApplicationCore.Models.RV", "Rv")
+                        .WithMany()
+                        .HasForeignKey("RvID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
 
                     b.Navigation("Rv");
                 });

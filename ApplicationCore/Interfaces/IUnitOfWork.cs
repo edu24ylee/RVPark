@@ -14,6 +14,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<LotType> LotType { get; }
         public IGenericRepository<Lot> Lot { get; }
         public IGenericRepository<Reservation> Reservation { get; }
+        public IGenericRepository<ReservationUpdateModel> ReservationUpdateModel { get; }
         public IGenericRepository<Guest> Guest { get; }
         public IGenericRepository<RV> RV { get; }
         public IGenericRepository<User> User { get; }
