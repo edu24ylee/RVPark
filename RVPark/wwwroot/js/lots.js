@@ -1,30 +1,27 @@
-﻿$(document).ready(function () {
+﻿var dataTable;
+
+$(document).ready(function () {
     const parkId = new URLSearchParams(window.location.search).get("SelectedParkId");
+
     if (parkId) {
         loadList(parkId);
     }
-
-    if ($('textarea').length) {
-        tinymce.init({
-            selector: 'textarea',
-            plugins: 'lists',
-            menubar: "file edit format"
-        });
-    }
-
 });
 
-
 function loadList(parkId) {
+    if ($.fn.DataTable.isDataTable("#DT_load")) {
+        $('#DT_load').DataTable().destroy();
+    }
+
     dataTable = $('#DT_load').DataTable({
-        "ajax": {
-            "url": `/api/lot/bypark/${parkId}`,
-            "type": "GET",
-            "datatype": "json",
-            "dataSrc": "data",
-            "cache": false
+        ajax: {
+            url: `/api/lot/bypark/${parkId}`,
+            type: "GET",
+            datatype: "json",
+            dataSrc: "data",
+            cache: false
         },
-        "columns": [
+        columns: [
             { data: "lotType.name", width: "15%" },
             { data: "park.name", width: "15%" },
             { data: "location", width: "10%" },
@@ -35,26 +32,40 @@ function loadList(parkId) {
                 render: data => data ? "Yes" : "No",
                 width: "10%"
             },
-            { data: "description", width: "20%" },
+            { data: "description", width: "15%" },
+            {
+              
+                data: "image",
+                render: function (data) {
+                    if (data) {
+                        return `<img src="${data}" alt="Lot Image" style="max-height: 60px;" class="img-fluid rounded shadow-sm"/>`;
+                    } else {
+                        return `<span class="text-muted">No image</span>`;
+                    }
+                },
+                width: "10%"
+            },
             {
                 data: "id",
-                render: data => `
-                    <div class="text-center">
-                        <a href="/Admin/Lots/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <button class="btn btn-sm btn-custom-grey" onclick="deleteLot(${data})">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>`,
+                render: function (data) {
+                    return `
+                        <div class="text-center">
+                            <a href="/Admin/Lots/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button class="btn btn-sm btn-custom-grey" onclick="deleteLot(${data})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>`;
+                },
                 orderable: false,
-                width: "20%"
+                width: "15%"
             }
         ],
-        "language": {
-            "emptyTable": "No lots found."
+        language: {
+            emptyTable: "No lots found."
         },
-        "width": "100%"
+        width: "100%"
     });
 }
 

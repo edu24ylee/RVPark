@@ -1,92 +1,97 @@
 ﻿@page
 @model RVPark.Pages.Admin.Lots.UpsertModel
+@{
+    ViewData["Title"] = "Create or Edit Lot";
+}
 
 <form method="post" enctype="multipart/form-data">
-    <input type="hidden" asp-for="ParkId" />
-
     <div class="container mt-4 d-flex justify-content-center">
-        <div class="card shadow-sm w-50">
-            <div class="card-body p-4 text-center">
+        <div class="card shadow-sm w-100" style="max-width: 700px;">
+            <div class="card-body px-5 py-4">
+                <div asp-validation-summary="All" class="text-danger text-start small mb-3"></div>
 
-                <!-- Validation Summary -->
-                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <h2 class="text-primary text-center mb-4">
+                    @(Model.LotObject.Id == 0 ? "Create New Lot" : "Update Lot")
+                </h2>
 
-                <!-- Form Header -->
-                <h2 class="text-primary mb-3">@(Model.LotObject.Id != 0 ? "Update" : "Create") Lot</h2>
-                <hr />
+                <input type="hidden" asp-for="LotObject.Id" />
+                <input type="hidden" asp-for="LotObject.Image" />
 
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-
-                        <!-- Lot Type -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.LotTypeId" class="form-label fw-bold">Lot Type</label>
-                            @Html.DropDownListFor(m => m.LotObject.LotTypeId,
-                                     Model.LotTypeList,
-                                     " - Please select a lot type - ",
-                                     new { @class = "form-control" })
-                            <span class="text-danger" asp-validation-for="LotObject.LotTypeId"></span>
-                        </div>
-
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.Location" class="form-label fw-bold">Location</label>
-                            <input asp-for="LotObject.Location" class="form-control text-center" />
-                            <span class="text-danger" asp-validation-for="LotObject.Location"></span>
-                        </div>
-
-                        <!-- Width -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.Width" class="form-label fw-bold">Width</label>
-                            <input asp-for="LotObject.Width" class="form-control text-center" />
-                            <span class="text-danger" asp-validation-for="LotObject.Width"></span>
-                        </div>
-
-                        <!-- Length -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.Length" class="form-label fw-bold">Length</label>
-                            <input asp-for="LotObject.Length" class="form-control text-center" />
-                            <span class="text-danger" asp-validation-for="LotObject.Length"></span>
-                        </div>
-
-                       
-                        <!-- Is Available -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.IsAvailable" class="form-label fw-bold">Available</label>
-                            <select asp-for="LotObject.IsAvailable" class="form-control text-center">
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="LotObject.IsAvailable"></span>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mb-3">
-                            <label asp-for="LotObject.Description" class="form-label fw-bold">Description</label>
-                            <textarea asp-for="LotObject.Description" class="form-control" style="height: 200px;"></textarea>
-                            <span class="text-danger" asp-validation-for="LotObject.Description"></span>
-                        </div>
-
-                    </div>
+                <!-- Location -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.Location" class="form-label fw-bold">Location</label>
+                    <input asp-for="LotObject.Location" class="form-control text-center" />
+                    <span asp-validation-for="LotObject.Location" class="text-danger small"></span>
                 </div>
+
+                <!-- Length -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.Length" class="form-label fw-bold">Length (ft)</label>
+                    <input asp-for="LotObject.Length" class="form-control text-center" />
+                    <span asp-validation-for="LotObject.Length" class="text-danger small"></span>
+                </div>
+
+                <!-- Width -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.Width" class="form-label fw-bold">Width (ft)</label>
+                    <input asp-for="LotObject.Width" class="form-control text-center" />
+                    <span asp-validation-for="LotObject.Width" class="text-danger small"></span>
+                </div>
+
+                <!-- Is Available -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.IsAvailable" class="form-label fw-bold">Available</label>
+                    <select asp-for="LotObject.IsAvailable" class="form-control text-center">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <span asp-validation-for="LotObject.IsAvailable" class="text-danger small"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.Description" class="form-label fw-bold">Description</label>
+                    <textarea asp-for="LotObject.Description" class="form-control text-center" rows="2"></textarea>
+                    <span asp-validation-for="LotObject.Description" class="text-danger small"></span>
+                </div>
+
+                <!-- Lot Type -->
+                <div class="mb-3">
+                    <label asp-for="LotObject.LotTypeId" class="form-label fw-bold">Lot Type</label>
+                    <select asp-for="LotObject.LotTypeId" asp-items="Model.LotTypeList" class="form-control text-center"></select>
+                    <span asp-validation-for="LotObject.LotTypeId" class="text-danger small"></span>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload Image</label>
+                    <input type="file" name="imageFile" class="form-control" />
+                </div>
+
+                <!-- Preview Existing Image -->
+                @if (!string.IsNullOrEmpty(Model.LotObject.Image))
+                {
+                    <div class="text-center mb-3">
+                        <img src="@Model.LotObject.Image" alt="Lot Image" class="img-thumbnail rounded shadow" style="max-height: 200px;" />
+                    </div>
+                }
 
                 <!-- Buttons -->
                 <div class="d-flex justify-content-center gap-3 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> @(Model.LotObject.Id != 0 ? "Update" : "Create")
+                        <i class="fas fa-save"></i> Save
                     </button>
-                    <a asp-page="./Index" asp-route-SelectedParkId="@Model.ParkId" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back To List
+                    <a asp-page="Index" asp-route-selectedParkId="@Model.ParkId" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
                     </a>
                 </div>
-
             </div>
         </div>
     </div>
 </form>
 
-
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/tinymce/js/tinymce/tinymce.min.js"></script>
