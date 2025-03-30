@@ -105,3 +105,25 @@ body {
     transform: scale(1.02);
     transition: transform 0.2s ease-in-out;
 }
+.img-container img {
+    max-height: 500px; 
+    object-fit: contain; 
+    margin: 0 auto; 
+}
+:root {
+    --airforce-blue: #002244;
+}
+
+.bg-airforce {
+    background-color: var(--airforce-blue);
+}
+
+.info-card {
+    max-width: 350px;
+    min-width: 250px;
+}
+
+.carousel-inner img {
+    height: 400px;
+    object-fit: cover;
+}
