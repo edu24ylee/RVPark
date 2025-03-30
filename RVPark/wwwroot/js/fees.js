@@ -14,20 +14,20 @@ function loadList() {
         "columns": [
             { data: "id", width: "10%" },
             { data: "feeType.feeTypeName", width: "30%" },
-            {
-                data: "triggeringPolicy.policyName",
+            { 
+                data: "triggeringPolicy.policyName", 
                 width: "30%",
                 "render": function (data) {
                     return data ? data : "N/A";
                 }
             },
-            {
-                data: "feeTotal",
-                width: "15%",
-                "render": $.fn.dataTable.render.number(',', '.', 2, '$')
+            { 
+                data: "feeTotal", 
+                width: "15%", 
+                "render": $.fn.dataTable.render.number( ',', '.', 2, '$' )
             },
             {
-                data: "id",
+                data: "id", 
                 width: "15%",
                 "render": function (data) {
                     return `<div class="text-center">
