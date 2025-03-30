@@ -14,8 +14,6 @@
         public const string StatusCompleted = "Completed";
         public const string StatusCancelled = "Cancelled";
 
-        // Default Lot Values
-        public const int DefaultHeightLimit = 12;
 
         // Trailer size categories (optional usage)
         public const decimal SmallRvMaxLength = 20.0m;

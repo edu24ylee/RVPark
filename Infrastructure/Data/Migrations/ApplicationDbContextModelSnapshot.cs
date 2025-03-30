@@ -140,11 +140,7 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("HeightLimit")
-                        .HasColumnType("int");
-
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAvailable")
@@ -305,16 +301,16 @@ namespace Infrastructure.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GuestId")
+                    b.Property<int?>("GuestId")
                         .HasColumnType("int");
 
-                    b.Property<int>("LotId")
+                    b.Property<int?>("LotId")
                         .HasColumnType("int");
 
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RvId")
+                    b.Property<int?>("RvId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -426,6 +422,9 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LockOutEnd")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -711,20 +710,17 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("ApplicationCore.Models.Guest", "Guest")
                         .WithMany("Reservations")
                         .HasForeignKey("GuestId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ApplicationCore.Models.Lot", "Lot")
                         .WithMany()
                         .HasForeignKey("LotId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ApplicationCore.Models.RV", "Rv")
                         .WithMany()
                         .HasForeignKey("RvId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Guest");
 

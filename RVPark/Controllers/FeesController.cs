@@ -19,9 +19,11 @@ namespace RVPark.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllFees()
         {
-            var fees = await _unitOfWork.Fee.GetAllAsync();
+            // Eagerly load FeeType and TriggeringPolicy
+            var fees = await _unitOfWork.Fee.GetAllAsync(null, null, "FeeType,TriggeringPolicy");
             return Json(new { success = true, data = fees });
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFeeById(int id)

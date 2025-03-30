@@ -1,0 +1,159 @@
+﻿@page "{id:int}"
+@model RVPark.Pages.Admin.Reservations.UpdateModel
+@{
+    ViewData["Title"] = "Update Reservation";
+}
+
+<form method="post">
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-75">
+            <div class="card-body p-4 text-center">
+
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <h2 class="text-primary mb-3">Update Reservation</h2>
+                <hr />
+
+                @if (Model.Reservation != null)
+                {
+                        <div class="row justify-content-center">
+                            <div class="col-md-10">
+
+                                <!-- DEBUG -->
+                                <div class="alert alert-info text-start">
+                                    <strong>DEBUG:</strong><br />
+                                    Reservation ID: @Model.Reservation.ReservationId <br />
+                                    Selected LotTypeId: @Model.SelectedLotTypeId <br />
+                                    Selected LotId: @Model.Reservation.LotId <br />
+                                    RV Length: @Model.Reservation?.Rv?.Length <br />
+                                    Duration: @Model.Reservation.Duration days <br />
+                                    Updated Total: @Model.UpdatedTotal.ToString("C") <br />
+                                    Balance Difference: @Model.BalanceDifference.ToString("+0.00;-0.00") <br />
+                                </div>
+
+                                <h5 class="fw-bold">Guest Name</h5>
+                            @if (Model.Reservation?.Guest?.User != null)
+                            {
+                                        <p>@Model.Reservation.Guest.User.FirstName @Model.Reservation.Guest.User.LastName</p>
+                            }
+                            else
+                            {
+                                        <p class="text-warning">Guest name not available</p>
+                            }
+
+                                <h5 class="fw-bold">Trailer Length</h5>
+                            @if (Model.Reservation?.Rv != null)
+                            {
+                                        <p>@Model.Reservation.Rv.Length ft</p>
+                            }
+                            else
+                            {
+                                        <p class="text-warning">RV information not available</p>
+                            }
+
+                                <!-- Lot Type -->
+                                <div class="mb-3">
+                                    <label asp-for="SelectedLotTypeId" class="form-label fw-bold">Lot Type</label>
+                                    <select asp-for="SelectedLotTypeId" asp-items="Model.LotTypeOptions" class="form-control text-center"
+                                            onchange="this.form.submit()">
+                                        <option value="">- Select a Lot Type -</option>
+                                    </select>
+                                </div>
+
+                                <!-- Lot -->
+                                <div class="mb-3">
+                                    <label asp-for="Reservation.LotId" class="form-label fw-bold">Lot</label>
+                                    <select asp-for="Reservation.LotId" asp-items="Model.LotOptions" class="form-control text-center">
+                                        <option value="">- Select a Lot -</option>
+                                    </select>
+                                    <span asp-validation-for="Reservation.LotId" class="text-danger"></span>
+                                </div>
+
+                                <!-- Start Date -->
+                                <div class="mb-3">
+                                    <label asp-for="Reservation.StartDate" class="form-label fw-bold">Start Date</label>
+                                    <input asp-for="Reservation.StartDate" type="date" class="form-control text-center" onchange="updateDuration()" />
+                                    <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
+                                </div>
+
+                                <!-- End Date -->
+                                <div class="mb-3">
+                                    <label asp-for="Reservation.EndDate" class="form-label fw-bold">End Date</label>
+                                    <input asp-for="Reservation.EndDate" type="date" class="form-control text-center" onchange="updateDuration()" />
+                                    <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
+                                </div>
+
+                                <!-- Duration -->
+                                <div class="mb-3">
+                                    <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration</label>
+                                    <input asp-for="Reservation.Duration" class="form-control text-center" readonly />
+                                    <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
+                                </div>
+
+                                <!-- Updated Total -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Updated Total ($)</label>
+                                    <input class="form-control text-center" value="@Model.UpdatedTotal.ToString("F2")" readonly />
+                                </div>
+
+                                <!-- Balance Difference -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Balance Difference ($)</label>
+                                    <input class="form-control text-center @(Model.BalanceDifference > 0 ? "text-danger" : "text-success")"
+                                           value="@Model.BalanceDifference.ToString("+0.00;-0.00")" readonly />
+                                </div>
+
+                                <!-- Hidden fields -->
+                                <input type="hidden" asp-for="Reservation.ReservationId" />
+                                <input type="hidden" asp-for="Reservation.GuestId" />
+                                <input type="hidden" asp-for="Reservation.RvId" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <button type="submit" asp-page-handler="Cancel" class="btn btn-danger">
+                                <i class="fas fa-times-circle"></i> Cancel Reservation
+                            </button>
+                            <a asp-page="/Admin/Reservations/Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                }
+                else
+                {
+                        <div class="alert alert-warning mt-3">
+                            Reservation not found.
+                        </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+
+        <script>
+            function updateDuration() {
+                const startInput = document.querySelector('[name="Reservation.StartDate"]');
+                const endInput = document.querySelector('[name="Reservation.EndDate"]');
+                const durationInput = document.querySelector('[name="Reservation.Duration"]');
+
+                if (startInput && endInput && durationInput) {
+                    const startDate = new Date(startInput.value);
+                    const endDate = new Date(endInput.value);
+
+                    if (startDate && endDate && endDate > startDate) {
+                        const diff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+                        durationInput.value = diff;
+                    } else {
+                        durationInput.value = "";
+                    }
+                }
+            }
+        </script>
+}
