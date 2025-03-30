@@ -30,6 +30,8 @@ namespace RVPark.Pages.Admin.Reservations
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
+            Console.WriteLine($"[DEBUG] OnGetAsync called with ReservationId: {id}");
+
             Reservation = await _context.Reservation
                 .Include(r => r.Guest).ThenInclude(g => g.User)
                 .Include(r => r.Lot).ThenInclude(l => l.LotType)
@@ -37,20 +39,28 @@ namespace RVPark.Pages.Admin.Reservations
                 .FirstOrDefaultAsync(r => r.ReservationId == id);
 
             if (Reservation == null)
+            {
+                Console.WriteLine("[DEBUG] Reservation not found.");
                 return NotFound();
+            }
 
             SelectedLotTypeId = Reservation.Lot?.LotTypeId;
+
             await LoadDropdownsAsync(Reservation.Rv.Length, Reservation.StartDate, Reservation.EndDate);
 
             UpdatedTotal = Reservation.CalculateTotal((decimal)Reservation.Lot.LotType.Rate);
             BalanceDifference = 0;
+
+            Console.WriteLine($"[DEBUG] Initial total: {UpdatedTotal:C}");
 
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Reload reservation with associations
             var reservationInDb = await _context.Reservation
+                .Include(r => r.Guest).ThenInclude(g => g.User)
                 .Include(r => r.Lot).ThenInclude(l => l.LotType)
                 .Include(r => r.Rv)
                 .FirstOrDefaultAsync(r => r.ReservationId == Reservation.ReservationId);
@@ -58,11 +68,22 @@ namespace RVPark.Pages.Admin.Reservations
             if (reservationInDb == null)
                 return NotFound();
 
-            var originalTotal = reservationInDb.CalculateTotal((decimal)reservationInDb.Lot.LotType.Rate);
+            // Required fields debug check
+            if (Reservation.GuestId == 0 || Reservation.RvId == 0 || Reservation.LotId == 0 || string.IsNullOrEmpty(Reservation.Status))
+            {
+                ModelState.AddModelError(string.Empty, "Required fields missing.");
+                await LoadDropdownsAsync(reservationInDb.Rv.Length, Reservation.StartDate, Reservation.EndDate);
+                return Page();
+            }
 
+            // Update fields
             reservationInDb.StartDate = Reservation.StartDate;
             reservationInDb.EndDate = Reservation.EndDate;
             reservationInDb.Duration = (Reservation.EndDate - Reservation.StartDate).Days;
+            reservationInDb.Status = Reservation.Status;
+            reservationInDb.LotId = Reservation.LotId;
+            reservationInDb.GuestId = Reservation.GuestId;
+            reservationInDb.RvId = Reservation.RvId;
 
             if (reservationInDb.Duration <= 0)
             {
@@ -71,25 +92,27 @@ namespace RVPark.Pages.Admin.Reservations
                 return Page();
             }
 
-            bool isAvailable = await _context.Reservation
+            // Check for Lot Availability
+            var isAvailable = await _context.Reservation
                 .Where(r => r.LotId == Reservation.LotId && r.ReservationId != Reservation.ReservationId)
                 .AllAsync(r => r.EndDate <= reservationInDb.StartDate || r.StartDate >= reservationInDb.EndDate);
 
             if (!isAvailable)
             {
-                ModelState.AddModelError(string.Empty, "Selected lot is not available for the selected dates.");
+                ModelState.AddModelError(string.Empty, "Lot is not available for these dates.");
                 await LoadDropdownsAsync(reservationInDb.Rv.Length, Reservation.StartDate, Reservation.EndDate);
                 return Page();
             }
 
-            reservationInDb.LotId = Reservation.LotId;
-
+            // Recalculate Cost
+            var oldRate = (decimal)reservationInDb.Lot.LotType.Rate;
             var newLot = await _context.Lot.Include(l => l.LotType).FirstAsync(l => l.Id == Reservation.LotId);
             var newRate = newLot.LotType.Rate;
             var newTotal = reservationInDb.Duration * newRate;
 
             UpdatedTotal = (decimal)newTotal;
-            BalanceDifference = (decimal)newTotal - (decimal)originalTotal;
+            BalanceDifference = (decimal)newTotal - reservationInDb.CalculateTotal(oldRate);
+
 
             await _context.SaveChangesAsync();
             await LoadDropdownsAsync(reservationInDb.Rv.Length, Reservation.StartDate, Reservation.EndDate);
@@ -97,14 +120,20 @@ namespace RVPark.Pages.Admin.Reservations
             return Page();
         }
 
+
         public async Task<IActionResult> OnPostCancelAsync()
         {
+            Console.WriteLine("[DEBUG] Cancel handler triggered.");
+
             var reservation = await _context.Reservation
                 .Include(r => r.Lot).ThenInclude(l => l.LotType)
                 .FirstOrDefaultAsync(r => r.ReservationId == Reservation.ReservationId);
 
             if (reservation == null)
+            {
+                Console.WriteLine("[DEBUG] Reservation not found for cancellation.");
                 return NotFound();
+            }
 
             reservation.CancelReservation();
 
@@ -113,6 +142,8 @@ namespace RVPark.Pages.Admin.Reservations
 
             if (hoursUntilStart <= 24)
             {
+                Console.WriteLine("[DEBUG] Within 24 hours of reservation. Charging cancellation fee.");
+
                 var feeType = await _context.FeeType.FirstOrDefaultAsync(f => f.FeeTypeName == "Cancellation Fee");
 
                 if (feeType != null)
@@ -120,6 +151,8 @@ namespace RVPark.Pages.Admin.Reservations
                     decimal ratePerDay = (decimal)reservation.Lot.LotType.Rate;
                     decimal total = reservation.Duration * ratePerDay;
                     decimal cancellationFeeAmount = total * 0.20m;
+
+                    Console.WriteLine($"[DEBUG] Cancellation fee: {cancellationFeeAmount:C}");
 
                     var fee = new Fee
                     {
@@ -131,15 +164,20 @@ namespace RVPark.Pages.Admin.Reservations
 
                     _context.Fee.Add(fee);
                 }
+                else
+                {
+                    Console.WriteLine("[DEBUG] FeeType 'Cancellation Fee' not found.");
+                }
             }
 
             await _context.SaveChangesAsync();
-
             return RedirectToPage("/Admin/Reservations/Index");
         }
 
         private async Task LoadDropdownsAsync(int trailerLength, DateTime start, DateTime end)
         {
+            Console.WriteLine("[DEBUG] Loading dropdowns...");
+
             var lotTypes = await _context.LotType.OrderBy(lt => lt.Name).ToListAsync();
             LotTypeOptions = new SelectList(lotTypes, "Id", "Name", SelectedLotTypeId);
 
