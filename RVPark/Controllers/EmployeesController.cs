@@ -1,55 +1,65 @@
 ﻿using ApplicationCore.Models;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace RVPark.Controllers
+namespace RVPark.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class EmployeesController(UnitOfWork unitOfWork) : Controller
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class EmployeesController : Controller
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        private readonly UnitOfWork _unitOfWork;
-        private readonly IWebHostEnvironment _hostingEnv;
+        var employees = await _unitOfWork.Employee.GetAllAsync(includes: "User");
 
-        public EmployeesController(UnitOfWork unitOfWork, IWebHostEnvironment hostingEnv)
+        var result = employees.Select(e => new
         {
-            _unitOfWork = unitOfWork;
-            _hostingEnv = hostingEnv;
-        }
-
-        [HttpGet]
-        public IActionResult Get()
-        {
-            return Json(new { data = _unitOfWork.Employee.GetAll(null, null, "User") });
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var objFromDb = _unitOfWork.Employee.Get(e => e.EmployeeID == id);
-            if (objFromDb == null)
+            e.EmployeeID,
+            e.Role,
+            user = new
             {
-                return Json(new { success = false, message = "Error while deleting" });
+                e.User.FirstName,
+                e.User.LastName,
+                e.User.Email,
+                e.User.Phone,
+                e.User.IsActive,
+                e.User.LockOutEnd
             }
-            _unitOfWork.Employee.Delete(objFromDb);
-            _unitOfWork.Commit();
-            return Json(new { success = true, message = "Delete successful" });
-        }
+        });
 
-        [HttpDelete("HardDelete/{id}")]
-        public IActionResult HardDelete(int id)
-        {
-            var employee = _unitOfWork.Employee.Get(e => e.EmployeeID == id, includes: "User");
-            if (employee == null)
-            {
-                return Json(new { success = false, message = "Employee not found" });
-            }
+        return Json(new { data = result });
+    }
 
-            _unitOfWork.Employee.Delete(employee);
-            _unitOfWork.Commit();
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        var emp = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
+        if (emp == null) return NotFound(new { success = false, message = "Employee not found." });
 
-            return Json(new { success = true, message = "Employee deleted but User preserved" });
-        }
+        _unitOfWork.Employee.Delete(emp);
+        await _unitOfWork.CommitAsync();
+
+        return Json(new { success = true, message = "Employee removed." });
+    }
+
+    [HttpPost("lockunlock/{id}")]
+    public async Task<IActionResult> LockUnlock(int id)
+    {
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
+        if (employee == null) return NotFound(new { success = false, message = "Employee not found." });
+
+        var user = employee.User;
+        if (user == null) return NotFound(new { success = false, message = "User not found." });
+
+        user.LockOutEnd = (user.LockOutEnd == null || user.LockOutEnd <= DateTime.Now)
+            ? DateTime.Now.AddYears(100)
+            : DateTime.Now;
+
+        await _unitOfWork.CommitAsync();
+        return Json(new { success = true, message = "Lock status updated." });
     }
 }
