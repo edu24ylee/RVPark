@@ -71,36 +71,37 @@ namespace RVPark.Pages.Admin.Lots
 
             if (!ModelState.IsValid)
             {
-                // Repopulate LotTypeList if validation fails
                 var lotTypes = _unitOfWork.LotType.GetAll(lt => lt.ParkId == ParkId);
                 LotTypeList = lotTypes.Select(lt => new SelectListItem
                 {
                     Text = lt.Name,
                     Value = lt.Id.ToString()
                 });
-
                 return Page();
             }
 
+            string uploadDir = Path.Combine(webRootPath, "Images/lots/");
+            if (!System.IO.Directory.Exists(uploadDir))
+                System.IO.Directory.CreateDirectory(uploadDir);
+
             if (LotObject.Id == 0)
             {
-                // Handle image upload
                 if (files.Count > 0)
                 {
-                    string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(webRootPath, @"Images\lots\");
-                    var extension = Path.GetExtension(files[0].FileName);
-                    var fullpath = uploads + fileName + extension;
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(files[0].FileName);
+                    string fullPath = Path.Combine(uploadDir, fileName);
 
-                    using var fileStream = System.IO.File.Create(fullpath);
-                    files[0].CopyTo(fileStream);
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        files[0].CopyTo(stream);
+                    }
 
-                    LotObject.Image = @"\Images\lots\" + fileName + extension;
+                    LotObject.Image = $"/Images/lots/{fileName}";
                 }
 
                 _unitOfWork.Lot.Add(LotObject);
             }
-            else //If item already exists
+            else
             {
                 var objFromDb = _unitOfWork.Lot.Get(u => u.Id == LotObject.Id, true);
                 if (objFromDb == null)
@@ -108,22 +109,24 @@ namespace RVPark.Pages.Admin.Lots
 
                 if (files.Count > 0)
                 {
-                    string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(webRootPath, @"Images\lots\");
-                    var extension = Path.GetExtension(files[0].FileName);
-                    var imagePath = Path.Combine(webRootPath, objFromDb.Image.TrimStart('\\'));
-
-                    if (System.IO.File.Exists(imagePath))
+                    // Delete old image
+                    if (!string.IsNullOrEmpty(objFromDb.Image))
                     {
-                        System.IO.File.Delete(imagePath);
+                        var oldPath = Path.Combine(webRootPath, objFromDb.Image.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
                     }
 
-                    var fullpath = uploads + fileName + extension;
+                    // Upload new image
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(files[0].FileName);
+                    string fullPath = Path.Combine(uploadDir, fileName);
 
-                    using var fileStream = System.IO.File.Create(fullpath);
-                    files[0].CopyTo(fileStream);
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        files[0].CopyTo(stream);
+                    }
 
-                    LotObject.Image = @"\Images\lots\" + fileName + extension;
+                    LotObject.Image = $"/Images/lots/{fileName}";
                 }
                 else
                 {

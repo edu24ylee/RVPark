@@ -139,6 +139,7 @@ namespace RVPark.Controllers
                     l.Width,
                     l.IsAvailable,
                     l.Description,
+                    l.Image,
                     lotType = new { name = l.LotType.Name },
                     park = new { name = l.LotType.Park.Name }
                 });
