@@ -4,95 +4,101 @@
     ViewData["Title"] = "Update Reservation";
 }
 
-
-<h2>Update Reservation</h2>
-
 <form method="post">
-    <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-100" style="max-width: 700px;">
+            <div class="card-body px-5 py-4">
+                <div asp-validation-summary="All" class="text-danger text-start small mb-3"></div>
 
-    <div>
-        <label>Guest Name</label>
-        <input value="@Model.ViewModel.GuestName" disabled />
+                <h2 class="text-primary text-center mb-4">Update Reservation</h2>
+
+                <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
+                <input type="hidden" id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Guest Name</label>
+                    <input type="text" class="form-control text-center" value="@Model.ViewModel.GuestName" disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">RV Length</label>
+                    <input type="text" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.StartDate" class="form-label fw-bold"></label>
+                    <input asp-for="ViewModel.Reservation.StartDate" type="date" class="form-control text-center" />
+                </div>
+
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.EndDate" class="form-label fw-bold"></label>
+                    <input asp-for="ViewModel.Reservation.EndDate" type="date" class="form-control text-center" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Lot Type</label>
+                    <select id="lotTypeSelect" class="form-control text-center">
+                        @foreach (var lotType in Model.ViewModel.LotTypes)
+                        {
+                            <option value="@lotType.Id">@lotType.Name - $@lotType.Rate/day</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.LotId" class="form-label fw-bold"></label>
+                    <select asp-for="ViewModel.Reservation.LotId" id="lotSelect" class="form-control text-center">
+                        @foreach (var lot in Model.ViewModel.AvailableLots)
+                        {
+                            <option value="@lot.Id" data-rate="@lot.LotType.Rate">
+                                @lot.Location (Type: @lot.LotType.Name)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.Duration" class="form-label fw-bold"></label>
+                    <input asp-for="ViewModel.Reservation.Duration" class="form-control text-center" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Updated Total ($)</label>
+                    <input id="updatedTotalField" class="form-control text-center" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.Status" class="form-label fw-bold"></label>
+                    <select asp-for="ViewModel.Reservation.Status" class="form-control text-center">
+                        <option>Active</option>
+                        <option>Upcoming</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.CancellationReason" class="form-label fw-bold"></label>
+                    <input asp-for="ViewModel.Reservation.CancellationReason" class="form-control text-center" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ViewModel.Reservation.OverrideReason" class="form-label fw-bold"></label>
+                    <input asp-for="ViewModel.Reservation.OverrideReason" class="form-control text-center" />
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn btn-custom-blue">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a asp-page="./Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div>
-        <label>RV Length</label>
-        <input value="@Model.ViewModel.Rv.Length" disabled />
-    </div>
-
-    <div>
-        <label>Start Date</label>
-        <input asp-for="ViewModel.Reservation.StartDate" type="date" onchange="calculateUpdatedTotal()" />
-    </div>
-
-    <div>
-        <label>End Date</label>
-        <input asp-for="ViewModel.Reservation.EndDate" type="date" onchange="calculateUpdatedTotal()" />
-    </div>
-
-    <div>
-        <label>Lot Type</label>
-        <select id="lotTypeSelect">
-            @foreach (var lotType in Model.ViewModel.LotTypes)
-            {
-                <option value="@lotType.Id">@lotType.Name - $@lotType.Rate/day</option>
-            }
-        </select>
-    </div>
-
-    <div>
-        <label>Lot</label>
-        <select asp-for="ViewModel.Reservation.LotId" id="lotSelect" onchange="calculateUpdatedTotal()">
-            @foreach (var lot in Model.ViewModel.AvailableLots)
-            {
-                <option value="@lot.Id" data-rate="@lot.LotType.Rate">
-                    @lot.Location (Type: @lot.LotType.Name)
-                </option>
-            }
-        </select>
-    </div>
-
-    <div>
-        <label>Duration</label>
-        <input asp-for="ViewModel.Reservation.Duration" readonly />
-    </div>
-
-    <div>
-        <label>Original Total</label>
-        <input id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" readonly />
-    </div>
-
-    <div>
-        <label>Updated Total</label>
-        <input id="updatedTotalField" readonly />
-    </div>
-
-    <div>
-        <label>Balance Difference</label>
-        <input id="balanceDifferenceField" readonly />
-    </div>
-
-    <div>
-        <label>Status</label>
-        <select asp-for="ViewModel.Reservation.Status">
-            <option>Active</option>
-            <option>Upcoming</option>
-            <option>Completed</option>
-            <option>Cancelled</option>
-        </select>
-    </div>
-
-    <div>
-        <label>Cancellation Reason</label>
-        <input asp-for="ViewModel.Reservation.CancellationReason" />
-    </div>
-
-    <div>
-        <label>Override Reason</label>
-        <input asp-for="ViewModel.Reservation.OverrideReason" />
-    </div>
-
-    <button type="submit">Save Changes</button>
 </form>
 
 @section Scripts {

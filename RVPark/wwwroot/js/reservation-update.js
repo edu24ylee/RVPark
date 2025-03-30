@@ -1,35 +1,43 @@
 ﻿function calculateUpdatedTotal() {
-    const startInput = document.querySelector('[name="Reservation.StartDate"]');
-    const endInput = document.querySelector('[name="Reservation.EndDate"]');
-    const lotSelect = document.querySelector('[name="Reservation.LotId"]');
+    const startInput = document.querySelector('[name="ViewModel.Reservation.StartDate"]');
+    const endInput = document.querySelector('[name="ViewModel.Reservation.EndDate"]');
+    const lotSelect = document.querySelector('[name="ViewModel.Reservation.LotId"]');
+    const updatedTotalField = document.getElementById("updatedTotalField");
 
     const start = new Date(startInput.value);
     const end = new Date(endInput.value);
 
-    const durationField = document.querySelector('[name="Reservation.Duration"]');
-    const updatedTotalField = document.getElementById("updatedTotalField");
-    const balanceField = document.getElementById("balanceDifferenceField");
-    const originalTotal = parseFloat(document.getElementById("originalTotal").value);
-
     if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
-        durationField.value = "";
         updatedTotalField.value = "";
-        balanceField.value = "";
         return;
     }
 
     const duration = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-    durationField.value = duration;
+    document.querySelector('[name="ViewModel.Reservation.Duration"]').value = duration;
 
     const selectedOption = lotSelect.options[lotSelect.selectedIndex];
-    const rateAttr = selectedOption.getAttribute("data-rate");
+    const rate = parseFloat(selectedOption.getAttribute("data-rate"));
 
-    if (!rateAttr) return;
+    if (isNaN(rate)) {
+        updatedTotalField.value = "";
+        return;
+    }
 
-    const rate = parseFloat(rateAttr);
     const newTotal = duration * rate;
-    const diff = newTotal - originalTotal;
-
     updatedTotalField.value = newTotal.toFixed(2);
-    balanceField.value = (diff >= 0 ? "+" : "") + diff.toFixed(2);
 }
+
+window.addEventListener("DOMContentLoaded", function () {
+    calculateUpdatedTotal();
+});
+
+document.addEventListener("input", function (e) {
+    const names = [
+        "ViewModel.Reservation.StartDate",
+        "ViewModel.Reservation.EndDate",
+        "ViewModel.Reservation.LotId"
+    ];
+    if (names.includes(e.target.name)) {
+        calculateUpdatedTotal();
+    }
+});

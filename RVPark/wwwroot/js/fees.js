@@ -32,12 +32,12 @@ function loadList() {
                 "render": function (data) {
                     return `<div class="text-center">
                                 <a href="/Admin/Fees/Upsert?id=${data}" 
-                                   class="btn btn-success text-white" 
+                                   class="btn btn-custom-blue" 
                                    style="cursor:pointer; width:100px;">
                                     <i class="far fa-edit"></i> Edit
                                 </a>
                                 <a onClick="Delete('/api/fees/' + ${data})" 
-                                   class="btn btn-danger text-white" 
+                                   class="btn btn-custom-grey" 
                                    style="cursor:pointer; width:100px;">
                                     <i class="far fa-trash-alt"></i> Delete
                                 </a>

@@ -59,6 +59,8 @@ namespace RVPark.Pages.Admin.Reservations
             if (res == null)
                 return NotFound();
 
+            var oldLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
+
             res.StartDate = ViewModel.Reservation.StartDate;
             res.EndDate = ViewModel.Reservation.EndDate;
             res.LotId = ViewModel.Reservation.LotId;
@@ -70,12 +72,37 @@ namespace RVPark.Pages.Admin.Reservations
             res.UpdateDuration(newDuration);
 
             if (res.Status == "Cancelled")
+            {
                 res.CancelReservation();
+
+                if (oldLot != null)
+                {
+                    oldLot.IsAvailable = true;
+                    _unitOfWork.Lot.Update(oldLot);
+                }
+            }
+            else
+            {
+
+                var newLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
+                if (newLot != null)
+                {
+                    newLot.IsAvailable = false;
+                    _unitOfWork.Lot.Update(newLot);
+                }
+
+                if (oldLot != null && oldLot.Id != res.LotId)
+                {
+                    oldLot.IsAvailable = true;
+                    _unitOfWork.Lot.Update(oldLot);
+                }
+            }
 
             _unitOfWork.Reservation.Update(res);
             await _unitOfWork.CommitAsync();
 
             return RedirectToPage("./Index");
         }
+
     }
 }

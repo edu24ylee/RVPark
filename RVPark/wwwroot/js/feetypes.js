@@ -18,9 +18,9 @@ function loadList() {
                 "render": function (data) {
                     return `<div class="text-center">
                             <a href="/Admin/FeeTypes/Upsert?id=${data}"
-                            class ="btn btn-success text-white style="cursor:pointer; width=100px;"> <i class="far fa-edit"></i>Edit</a>
+                            class ="btn btn-custom-blue style="cursor:pointer; width=100px;"> <i class="far fa-edit"></i>Edit</a>
                             <a onClick=Delete('/api/feetype/'+${data})
-                            class ="btn btn-danger text-white style="cursor:pointer; width=100px;"> <i class="far fa-trash-alt"></i>Delete</a>
+                            class ="btn btn-custom-grey style="cursor:pointer; width=100px;"> <i class="far fa-trash-alt"></i>Delete</a>
                     </div>`;
                 }
             }
