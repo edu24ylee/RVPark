@@ -65,5 +65,43 @@ body {
 }
 .radio-inline-group {
     display: inline-flex;
-    gap: 1rem; /* Adjust spacing as needed */
+    gap: 1rem; 
+}
+
+.navbar-nav .dropdown:hover > .dropdown-menu {
+    display: block;
+    margin-top: 0; 
+}
+
+.hover-card:hover {
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    transform: translateY(-3px);
+    transition: all 0.3s ease-in-out;
+}
+@media (min-width: 992px) {
+    .navbar-nav .dropdown:hover > .dropdown-menu {
+        display: block;
+    }
+}
+.navbar-nav .nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
 }

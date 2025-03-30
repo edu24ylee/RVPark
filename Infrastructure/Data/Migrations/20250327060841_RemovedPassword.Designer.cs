@@ -127,9 +127,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("HeightLimit")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
