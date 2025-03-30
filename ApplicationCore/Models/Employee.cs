@@ -9,7 +9,7 @@ namespace ApplicationCore.Models
         public int EmployeeID { get; set; }
 
         [Required]
-        public int Role { get; set; }
+        public string Role { get; set; } 
 
         [Required]
         public int UserID { get; set; }
@@ -17,13 +17,6 @@ namespace ApplicationCore.Models
         [ForeignKey("UserID")]
         public virtual User User { get; set; }
 
-        public Employee() { }
 
-        public Employee(User user, int role)
-        {
-            User = user;
-            UserID = user.UserID;
-            Role = role;
-        }
     }
 }

@@ -1,5 +1,5 @@
-using ApplicationCore.Models;
 using ApplicationCore.Interfaces;
+using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -168,6 +168,30 @@ namespace Infrastructure
                     _db.Reservation.Add(reservation);
                     _db.SaveChanges();
                 }
+
+
+            }
+            // Employee Users
+            var employeeUsers = new List<(User user, string role)>
+            {
+                (new User { FirstName = "Janet", LastName = "Walker", Email = "janet@rvpark.com", Phone = "555-0100", IsActive = true }, "Manager"),
+                (new User { FirstName = "Tom", LastName = "Barnes", Email = "tom@rvpark.com", Phone = "555-0101", IsActive = true }, "Maintenance"),
+                (new User { FirstName = "Maria", LastName = "Gonzalez", Email = "maria@rvpark.com", Phone = "555-0102", IsActive = true }, "Guest")
+            };
+
+            foreach (var (empUser, role) in employeeUsers)
+            {
+                _db.User.Add(empUser);
+                _db.SaveChanges();
+
+                var emp = new Employee
+                {
+                    UserID = empUser.UserID,
+                    Role = role
+                };
+
+                _db.Employee.Add(emp);
+                _db.SaveChanges();
             }
 
         }

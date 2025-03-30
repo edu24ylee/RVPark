@@ -1,12 +1,108 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿let employeeTable;
 
-namespace RVPark.wwwroot.js
-{
-    public class employees : Controller
-    {
-        public IActionResult Index()
-        {
-            return View();
+$(document).ready(function () {
+    loadEmployeeList();
+});
+
+function loadEmployeeList() {
+    employeeTable = $('#DT_load').DataTable({
+        ajax: {
+            url: `/api/employees`,
+            type: "GET",
+            datatype: "json",
+            dataSrc: "data"
+        },
+        columns: [
+            {
+                data: "user",
+                render: data => `${data.firstName} ${data.lastName}`,
+                width: "20%"
+            },
+            { data: "user.email", width: "20%" },
+            { data: "user.phone", width: "15%" },
+            {
+                data: "user.isActive",
+                render: data => data ? "Active" : "Inactive",
+                width: "10%"
+            },
+            {
+                data: "role",
+                width: "10%"
+            },
+            {
+                data: "user.lockOutEnd",
+                render: function (data, type, row) {
+                    const isLocked = data && new Date(data) > new Date();
+                    const btnText = isLocked ? "Unlock" : "Lock";
+                    const icon = isLocked ? "fa-lock-open" : "fa-lock";
+                    return `
+                        <button class="btn btn-outline-warning" onclick="toggleLock(${row.employeeID})">
+                            <i class="fas ${icon}"></i> ${btnText}
+                        </button>`;
+                },
+                orderable: false,
+                width: "15%"
+            },
+            {
+                data: "employeeID",
+                render: function (data) {
+                    return `
+                        <div class="text-center">
+                            <a href="/Admin/Employees/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
+                                <i class="fas fa-edit"></i> Update
+                            </a>
+                            <button class="btn btn-sm btn-custom-grey" onclick="deleteEmployee(${data})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>`;
+                },
+                orderable: false,
+                width: "20%"
+            }
+        ],
+        language: {
+            emptyTable: "No employees found."
+        },
+        width: "100%"
+    });
+}
+
+function deleteEmployee(id) {
+    swal({
+        title: "Are you sure?",
+        text: "This employee will be permanently removed.",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true
+    }).then(confirmed => {
+        if (confirmed) {
+            $.ajax({
+                url: `/api/employees/${id}`,
+                type: "DELETE",
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        employeeTable.ajax.reload();
+                    } else {
+                        toastr.error(data.message);
+                    }
+                }
+            });
         }
-    }
+    });
+}
+
+function toggleLock(id) {
+    $.ajax({
+        url: `/api/employees/lockunlock/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                employeeTable.ajax.reload();
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
 }
