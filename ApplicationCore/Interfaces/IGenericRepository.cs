@@ -30,6 +30,8 @@ namespace ApplicationCore.Interfaces
         // A second Expression is added for Order By
         // Includes allows JOINS
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? predicate = null, Expression<Func<T, int>>? orderBy = null, string? includes = null);
+        Task ReloadAsync(T entity, string? includes = null);
+
 
         // Same as above but Asynchronous action
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = null, Expression<Func<T, int>>? orderBy = null, string? includes = null);

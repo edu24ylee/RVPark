@@ -107,6 +107,38 @@ namespace Infrastructure.Data
 
             return await queryable.ToListAsync();
         }
+        public async Task ReloadAsync(T entity, string? includes = null)
+        {
+            var entry = _dbContext.Entry(entity);
+
+            if (!string.IsNullOrEmpty(includes))
+            {
+                foreach (var include in includes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (include.Contains('.'))
+                    {
+                        var parts = include.Split('.');
+                        var firstLevel = entry.Reference(parts[0]);
+                        await firstLevel.LoadAsync();
+
+                        var nestedEntity = firstLevel.CurrentValue;
+                        if (nestedEntity != null)
+                        {
+                            var nestedEntry = _dbContext.Entry(nestedEntity);
+                            await nestedEntry.Reference(parts[1]).LoadAsync();
+                        }
+                    }
+                    else
+                    {
+                        await entry.Reference(include).LoadAsync();
+                    }
+                }
+            }
+            else
+            {
+                await entry.ReloadAsync();
+            }
+        }
 
         public void Update(T entity)
         {

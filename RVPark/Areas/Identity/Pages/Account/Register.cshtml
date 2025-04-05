@@ -1,0 +1,157 @@
+﻿@page
+@model RegisterModel
+@using Infrastructure.Utilities
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center">
+                    <h2 class="m-0">
+                        @(User.IsInRole(SD.AdminRole) ? "Register an Employee" : "Sign Up")
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Input.FirstName" class="form-label"></label>
+                                <input asp-for="Input.FirstName" class="form-control" placeholder="First Name" />
+                                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Input.LastName" class="form-label"></label>
+                                <input asp-for="Input.LastName" class="form-control" placeholder="Last Name" />
+                                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="Input.Email" class="form-label"></label>
+                                <input asp-for="Input.Email" class="form-control" placeholder="Email" />
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone Number" />
+                                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="Input.DodId" class="form-label"></label>
+                                <input asp-for="Input.DodId" class="form-control" placeholder="DoD ID" />
+                                <span asp-validation-for="Input.DodId" class="text-danger"></span>
+                            </div>
+                                          
+                            <div class="col-md-6 mb-3 form-floating">
+                                <select asp-for="Input.Branch" class="form-select">
+                                    <option value="">Select a Branch</option>
+                                    <option>Army</option>
+                                    <option>Navy</option>
+                                    <option>Air Force</option>
+                                    <option>Marine Corps</option>
+                                    <option>Coast Guard</option>
+                                    <option>Space Force</option>
+                                </select>
+                                <label asp-for="Input.Branch"></label>
+                                <span asp-validation-for="Input.Branch" class="text-danger"></span>
+                            </div>
+
+                            <!-- Rank -->
+                            <div class="col-md-6 mb-3 form-floating">
+                                <select asp-for="Input.Rank" class="form-select">
+                                    <option value="">Select a Rank</option>
+                                    <option>E-1</option>
+                                    <option>E-2</option>
+                                    <option>E-3</option>
+                                    <option>E-4</option>
+                                    <option>E-5</option>
+                                    <option>E-6</option>
+                                    <option>E-7</option>
+                                    <option>E-8</option>
+                                    <option>E-9</option>
+                                    <option>O-1</option>
+                                    <option>O-2</option>
+                                    <option>O-3</option>
+                                    <option>O-4</option>
+                                    <option>O-5</option>
+                                    <option>O-6</option>
+                                    <option>O-7</option>
+                                    <option>O-8</option>
+                                    <option>O-9</option>
+                                    <option>O-10</option>
+                                    <option>W-1</option>
+                                    <option>W-2</option>
+                                    <option>W-3</option>
+                                    <option>W-4</option>
+                                    <option>W-5</option>
+                                </select>
+                                <label asp-for="Input.Rank"></label>
+                                <span asp-validation-for="Input.Rank" class="text-danger"></span>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6 mb-3 form-floating">
+                                <select asp-for="Input.Status" class="form-select">
+                                    <option value="">Select Status</option>
+                                    <option>Active Duty</option>
+                                    <option>Reserves</option>
+                                    <option>National Guard</option>
+                                    <option>Retired</option>
+                                </select>
+                                <label asp-for="Input.Status"></label>
+                                <span asp-validation-for="Input.Status" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="Input.Password" class="form-label"></label>
+                                <input asp-for="Input.Password" class="form-control" placeholder="Password" />
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                                <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            @if (User.IsInRole(SD.AdminRole))
+                            {
+                                <div class="col-md-12">
+                                    <label class="form-label d-block">Select Role</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.AdminRole" id="adminRole" />
+                                        <label class="form-check-label" for="adminRole">Admin</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.ManagerRole" id="managerRole" />
+                                        <label class="form-check-label" for="managerRole">Manager</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.MaintenanceRole" id="maintenanceRole" />
+                                        <label class="form-check-label" for="maintenanceRole">Maintenance</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.CampHostRole" id="campHostRole" />
+                                        <label class="form-check-label" for="campHostRole">Camp Host</label>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-dark w-100">Register</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
