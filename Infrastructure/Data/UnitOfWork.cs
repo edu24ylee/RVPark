@@ -22,7 +22,7 @@ namespace Infrastructure.Data
         private IGenericRepository<LotType> _LotType;
         private IGenericRepository<Lot> _Lot;
         private IGenericRepository<Reservation> _Reservation;
-        public IGenericRepository<ReservationUpdateModel> _ReservationUpdateModel;
+        private IGenericRepository<ReservationUpdateModel> _ReservationUpdateModel;
         private IGenericRepository<RV> _RV;
         private IGenericRepository<Guest> _Guest;
         private IGenericRepository<User> _User;
@@ -32,6 +32,7 @@ namespace Infrastructure.Data
         private IGenericRepository<FeeType> _FeeType;
         private IGenericRepository<Policy> _Policy;
         private IGenericRepository<FinancialReport> _FinancialReport;
+        private IGenericRepository<DodAffiliation> _DodAffiliation;
 
 
         public IGenericRepository<Park> Park
@@ -190,6 +191,17 @@ namespace Infrastructure.Data
                 return _ReservationUpdateModel;
             }
         }
+        public IGenericRepository<DodAffiliation> DodAffiliation
+        {
+            get
+            {
+                if (_DodAffiliation == null)
+                {
+                    _DodAffiliation = new GenericRepository<DodAffiliation>(_dbContext);
+                }
+                return _DodAffiliation;
+            }
+        }   
         public int Commit()
         {
             return _dbContext.SaveChanges();

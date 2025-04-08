@@ -15,9 +15,11 @@ namespace RVPark.Pages.Admin.LotTypes
             _unitOfWork = unitOfWork;
         }
 
+        // Used to filter lot types by a selected park
         [BindProperty(SupportsGet = true)]
         public int? SelectedParkId { get; set; }
 
+        // List of parks for dropdown filtering
         public List<SelectListItem> ParkList { get; set; } = new();
 
         public async Task OnGetAsync()

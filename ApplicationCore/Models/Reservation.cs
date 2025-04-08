@@ -13,6 +13,7 @@ namespace ApplicationCore.Models
 
         [ForeignKey("GuestId")]
         public Guest Guest { get; set; }
+
         public int RvId { get; set; }
 
         [ForeignKey("RvId")]
@@ -22,6 +23,7 @@ namespace ApplicationCore.Models
 
         [ForeignKey("LotId")]
         public Lot Lot { get; set; }
+
         public int Duration { get; set; }
 
         public DateTime StartDate { get; set; }
@@ -31,7 +33,9 @@ namespace ApplicationCore.Models
         public string Status { get; set; }
 
         public string? OverrideReason { get; set; }
+
         public DateTime? CancellationDate { get; set; }
+
         public string? CancellationReason { get; set; }
 
         public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)

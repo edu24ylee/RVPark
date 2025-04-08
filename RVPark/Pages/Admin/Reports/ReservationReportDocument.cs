@@ -8,6 +8,7 @@ using System.Collections.Generic;
 public class ReservationReportDocument : IDocument
 {
     private readonly List<Reservation> _reservations;
+
     private readonly DateTime _start;
     private readonly DateTime _end;
 
@@ -24,12 +25,17 @@ public class ReservationReportDocument : IDocument
     {
         container.Page(page =>
         {
-            page.Size(PageSizes.A4);
-            page.Margin(30);
-            page.Header().Text($"Reservation Report: {_start:MM/dd/yyyy} - {_end:MM/dd/yyyy}")
-                .SemiBold().FontSize(18);
+            page.Size(PageSizes.A4); 
+            page.Margin(30);     
+
+            page.Header()
+                .Text($"Reservation Report: {_start:MM/dd/yyyy} - {_end:MM/dd/yyyy}")
+                .SemiBold()
+                .FontSize(18);
+
             page.Content().Table(table =>
             {
+
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn(2); // Name
@@ -37,8 +43,8 @@ public class ReservationReportDocument : IDocument
                     columns.RelativeColumn(1); // Phone
                     columns.RelativeColumn(1); // Lot
                     columns.RelativeColumn(1); // Status
-                    columns.RelativeColumn(1); // Start
-                    columns.RelativeColumn(1); // End
+                    columns.RelativeColumn(1); // Start Date
+                    columns.RelativeColumn(1); // End Date
                     columns.RelativeColumn(1); // Duration
                 });
 

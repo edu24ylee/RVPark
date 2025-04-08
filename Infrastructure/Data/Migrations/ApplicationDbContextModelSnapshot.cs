@@ -17,10 +17,41 @@ namespace Infrastructure.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationCore.Models.DodAffiliation", b =>
+                {
+                    b.Property<int>("DodAffiliationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DodAffiliationId"));
+
+                    b.Property<string>("Branch")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GuestID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DodAffiliationId");
+
+                    b.HasIndex("GuestID")
+                        .IsUnique();
+
+                    b.ToTable("DodAffiliation");
+                });
 
             modelBuilder.Entity("ApplicationCore.Models.Employee", b =>
                 {
@@ -340,15 +371,6 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
 
-                    b.Property<DateTime?>("CancellationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CancellationReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -368,9 +390,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("OverrideReason")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -385,13 +404,6 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("TotalPaid")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TrailerLength")
                         .HasColumnType("int");
@@ -656,6 +668,17 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.DodAffiliation", b =>
+                {
+                    b.HasOne("ApplicationCore.Models.Guest", "Guest")
+                        .WithOne("DodAffiliation")
+                        .HasForeignKey("ApplicationCore.Models.DodAffiliation", "GuestID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Employee", b =>
                 {
                     b.HasOne("User", "User")
@@ -827,6 +850,9 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
+                    b.Navigation("DodAffiliation")
+                        .IsRequired();
+
                     b.Navigation("RVs");
 
                     b.Navigation("Reservations");

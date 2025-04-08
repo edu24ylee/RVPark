@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-
 namespace ApplicationCore.Models
 {
     public class RV
@@ -27,7 +26,6 @@ namespace ApplicationCore.Models
         public string Description { get; set; }
 
         public int Length { get; set; }
-
         public static RV GetGuestRV(List<RV> rvList, int guestId)
         {
             return rvList.FirstOrDefault(rv => rv.GuestID == guestId);

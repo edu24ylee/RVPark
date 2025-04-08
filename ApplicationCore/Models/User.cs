@@ -24,6 +24,7 @@ public class User
     public DateTime? LockOutEnd { get; set; }
 
     public virtual Guest Guest { get; set; }
+
     public virtual Employee Employee { get; set; }
 
     [NotMapped]

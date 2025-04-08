@@ -24,6 +24,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<FeeType> FeeType { get; }
         public IGenericRepository<Policy> Policy { get; }
         public IGenericRepository<FinancialReport> FinancialReport { get; }
+        public IGenericRepository<DodAffiliation> DodAffiliation { get; }
 
         int Commit();
         Task<int> CommitAsync();    

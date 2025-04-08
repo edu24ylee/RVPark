@@ -24,6 +24,9 @@ namespace Infrastructure.Data
         public DbSet<Fee> Fee { get; set; }
         public DbSet<FeeType> FeeType { get; set; }
         public DbSet<FinancialReport> FinancialReport { get; set; }
+        public DbSet<Policy> Policy { get; set; }
+
+        public DbSet<DodAffiliation> DodAffiliation { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

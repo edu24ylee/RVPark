@@ -1,6 +1,6 @@
 using ApplicationCore.Models;
 using Infrastructure.Data;
-using Infrastructure.Utilities; 
+using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClosedXML.Excel;
@@ -42,7 +42,7 @@ namespace RVPark.Pages.Admin.Reports
             }
 
             Reservations = (await _unitOfWork.Reservation.GetAllAsync(
-                r => r.StartDate >= StartDate && r.EndDate <= EndDate,
+                r => r.StartDate <= EndDate && r.EndDate >= StartDate,
                 includes: "Guest.User,Lot"
             )).OrderBy(r => r.Status).ToList();
 
@@ -55,7 +55,7 @@ namespace RVPark.Pages.Admin.Reports
             SetDefaultDatesIfNeeded();
 
             var data = (await _unitOfWork.Reservation.GetAllAsync(
-                r => r.StartDate >= StartDate && r.EndDate <= EndDate,
+                r => r.StartDate <= EndDate && r.EndDate >= StartDate,
                 includes: "Guest.User,Lot"
             )).OrderBy(r => r.Status).ToList();
 
@@ -88,17 +88,22 @@ namespace RVPark.Pages.Admin.Reports
             workbook.SaveAs(stream);
             stream.Position = 0;
 
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ReservationReport.xlsx");
+            return File(
+                stream,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "ReservationReport.xlsx"
+            );
         }
 
         public async Task<IActionResult> OnGetExportPdfAsync(DateTime startDate, DateTime endDate)
         {
             var reservations = (await _unitOfWork.Reservation.GetAllAsync(
-                r => r.StartDate >= startDate && r.EndDate <= endDate,
+                r => r.StartDate <= endDate && r.EndDate >= startDate,
                 includes: "Guest.User,Lot"
             )).OrderBy(r => r.Status).ToList();
 
             var stream = PdfExporter.ExportReservationsToPdf(reservations, startDate, endDate);
+
             return File(stream, "application/pdf", "ReservationReport.pdf");
         }
 
