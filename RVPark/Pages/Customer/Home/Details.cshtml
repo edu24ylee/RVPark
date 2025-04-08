@@ -15,6 +15,7 @@
         <div class="col-md-7">
             <h1 class="display-4 text-primary font-weight-bold mb-3">Lot Information</h1>
 
+            <h4 class="card-title text-primary mb-2"><strong> @(Model.SelectedLot.LotType != null ? $"{Model.SelectedLot.LotType:C}" : "Name unavailable")</strong></h4>
             <div class="mb-4">
                 <p class="lead text-muted">
                     <strong>Location:</strong> @Model.SelectedLot.Location
@@ -54,7 +55,7 @@
 
             <!-- Call to Action Button, placed outside the tab content but still within the column -->
             <div class="mt-4">
-                <a href="@Url.Page("/Customer/Home/Schedule", new { lotId = Model.SelectedLot.Id })" class="btn btn-primary btn-lg shadow-lg hover-shadow-lg transition-all">
+                <a asp-page="Schedule" asp-route-id="@Model.SelectedLot.Id" class="btn btn-primary btn-lg shadow-lg hover-shadow-lg transition-all">
                     <i class="fas fa-calendar-check mr-2"></i> Schedule Visit
                 </a>
             </div>

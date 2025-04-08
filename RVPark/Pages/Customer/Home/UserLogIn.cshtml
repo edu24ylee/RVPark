@@ -1,0 +1,68 @@
+﻿@page
+@model RVPark.Pages.Customer.Home.UserLogInModel
+@{
+}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0">Log In</h3>
+                    <small>Welcome back! Please enter your credentials.</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form action="#" method="POST" id="login-form">
+
+                        <!-- Email Address -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-control" required placeholder="Enter your email address">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                            <label class="form-check-label" for="remember-me">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
+                        </div>
+                    </form>
+
+                    <!-- Forgot Password Link -->
+                    <div class="text-center mt-3">
+                        <a href="#" class="text-muted">Forgot your password?</a>
+                    </div>
+                </div>
+
+                <div class="card-footer text-muted text-center small">
+                    New to the site? <a href="#">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional JavaScript for form validation -->
+<script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            event.preventDefault();
+            alert("Please fill in both email and password fields.");
+        }
+    });
+</script>

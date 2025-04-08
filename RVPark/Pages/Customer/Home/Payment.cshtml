@@ -1,0 +1,91 @@
+﻿@page
+@model PaymentModel
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0">Complete Your Reservation</h3>
+                    <small>Desert Eagle Nellis AFB RV Park</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Reservation Summary -->
+                        <div class="col-md-6 border-end">
+                            <h5 class="fw-bold mb-3">Reservation Summary</h5>
+                            <p><strong>Name:</strong> Lexus</p>
+                            <p><strong>Dates:</strong> tusday Maybe?</p>
+                            <p><strong>Duration:</strong> 1000/p>
+                            <p><strong>Trailer:</strong> 9000</p>
+                            <p><strong>Adults:</strong> 0</p>
+                            <p><strong>Pets:</strong> 10</p>
+                         
+                            <p><strong>Special Requests:</strong> idk</p>
+                            
+
+                            <hr />
+                            <h5 class="fw-bold">Lot Info</h5>
+                            <p><strong>Lot #:</strong>1</p>
+                            <p><strong>Type:</strong>Type/p>
+                            <p><strong>Location:</strong>Description</p>
+                        </div>
+
+                        <!-- Payment Form -->
+                        <div class="col-md-6">
+                            <h5 class="fw-bold mb-3">Payment Details</h5>
+
+                            <form method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Cardholder Name</label>
+                                    <input type="text" name="CardholderName" class="form-control" required />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Card Number</label>
+                                    <input type="text" name="CardNumber" class="form-control" inputmode="numeric" pattern="[0-9\s]{13,19}" maxlength="19" required />
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Expiry Date</label>
+                                        <input type="text" name="Expiry" class="form-control" placeholder="MM/YY" required />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">CVV</label>
+                                        <input type="text" name="CVV" class="form-control" maxlength="4" required />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Billing Zip Code</label>
+                                    <input type="text" name="ZipCode" class="form-control" required />
+                                </div>
+
+                                <hr />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5>Total:</h5>
+                                        <h4 class="text-success">12</h4>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-lock"></i> Pay Now
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-muted text-center small">
+                    Your payment is secure and encrypted.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
