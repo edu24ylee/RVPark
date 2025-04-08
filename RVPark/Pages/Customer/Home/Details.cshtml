@@ -1,0 +1,80 @@
+﻿@page "{id:int}"
+@model RVPark.Pages.Customer.Home.DetailsModel
+
+@{
+    ViewData["Title"] = "Campsite Details";
+}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <!-- Image on the left -->
+        <div class="col-md-5 mb-4 mb-md-0">
+            <img src="@Model.SelectedLot.Image" class="image-container" alt="Lot Image">
+        </div>
+
+        <!-- Details on the right -->
+        <div class="col-md-7">
+            <h1 class="display-4 text-primary font-weight-bold mb-3">Lot Information</h1>
+
+            <h4 class="card-title text-primary mb-2"><strong> @(Model.SelectedLot.LotType != null ? $"{Model.SelectedLot.LotType:C}" : "Name unavailable")</strong></h4>
+            <div class="mb-4">
+                <p class="lead text-muted">
+                    <strong>Location:</strong> @Model.SelectedLot.Location
+                </p>
+            </div>
+
+            <!-- Tabbed Navigation (for further details, optional) -->
+            <div class="mb-4">
+                <ul class="nav nav-tabs" id="lotDetailsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab" aria-controls="size" aria-selected="true">Lot Size</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="location-tab" data-bs-toggle="tab" href="#location" role="tab" aria-controls="description" aria-selected="false">Description</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="lotDetailsTabsContent">
+                    <div class="tab-pane fade show active m-3" id="overview" role="tabpanel" aria-labelledby="size-tab">
+                        <p><strong>Length:</strong> @Model.SelectedLot.Length ft</p>
+                        <p><strong>Width:</strong> @Model.SelectedLot.Width ft</p>
+                    </div>
+                    <div class="tab-pane fade m-3" id="location" role="tabpanel" aria-labelledby="description-tab">
+                        <p>@Model.SelectedLot.Description</p>
+                    </div>
+                    <div class="tab-pane fade m-3" id="contact" role="tabpanel" aria-labelledby="Contact-tab">
+                        <p><strong>for more information call us at:</strong> (702)652-8711</p>
+                        <p><strong>Office Hours</strong></p>
+                        <p>Mon–Sat: 9AM–4PM</p>
+                        <p>Sun: Closed</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action Button, placed outside the tab content but still within the column -->
+            <div class="mt-4">
+                <a asp-page="Schedule" asp-route-id="@Model.SelectedLot.Id" class="btn btn-primary btn-lg shadow-lg hover-shadow-lg transition-all">
+                    <i class="fas fa-calendar-check mr-2"></i> Schedule Visit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS to set a fixed image size and center it -->
+<style>
+    .image-container {
+        height: 300px; /* Fixed height for all images */
+        width: 100%; /* Make the image container full width */
+        overflow: hidden; /* Hide any overflowed parts of the image */
+        position: relative;
+    }
+
+        .image-container img {
+            object-fit: cover; /* Ensures the image covers the container without distortion */
+            width: 100%;
+            height: 100%;
+        }
+</style>

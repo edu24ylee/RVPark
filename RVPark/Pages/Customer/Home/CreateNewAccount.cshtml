@@ -1,0 +1,65 @@
+﻿@page
+@model RVPark.Pages.Customer.Home.CreateNewAccountModel
+@{
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0">Create New Account</h3>
+                    <small>Join us and start your adventure!</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form action="#" method="POST" id="signup-form">
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label for="full-name" class="form-label">Full Name</label>
+                            <input type="text" id="full-name" name="full-name" class="form-control" required placeholder="Enter your full name">
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-control" required placeholder="Enter your email address">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" id="password" name="password" class="form-control" required placeholder="Create a password" minlength="8">
+                            <small class="form-text text-muted">Password must be at least 8 characters long.</small>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">Confirm Password</label>
+                            <input type="password" id="confirm-password" name="confirm-password" class="form-control" required placeholder="Confirm your password">
+                        </div>
+
+                        <!-- Terms & Conditions -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>.
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-muted text-center small">
+                    By signing up, you agree to our Terms and Conditions.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
