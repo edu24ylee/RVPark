@@ -95,7 +95,10 @@
                     <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
                         <li class="nav-item"><a class="nav-link" href="/Customer/Lots/Available">View Available Lots</a></li>
                         <li class="nav-item"><a class="nav-link" href="/Customer/Reservations/Create">Make a Reservation</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/Customer/Reservations/History">Reservation History</a></li>
+                        @if (User.Identity.IsAuthenticated && !(User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin")))
+                        {
+                            <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
+                        }
 
                         @if (User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin"))
                         {
