@@ -1,8 +1,12 @@
 ﻿@page
+@using Infrastructure.Utilities
+@inject UserManager<IdentityUser> UserManager
 @model RVPark.Pages.Admin.Parks.IndexModel
 @{
     ViewData["Title"] = "Manage Parks";
 }
+
+
 
 <div class="container my-4">
     <div class="card shadow-sm">
@@ -46,7 +50,7 @@
                                             <button type="submit" class="btn btn-warning btn-sm">Archive</button>
                                         </form>
                                     }
-                                    else if (User.IsInRole("SuperAdmin"))
+                                    else if (User.IsInRole(Model.SuperAdminRole))
                                     {
                                         <form method="post" asp-page-handler="Unarchive" asp-route-id="@park.Id" class="d-inline">
                                             <button type="submit" class="btn btn-success btn-sm">Unarchive</button>
@@ -61,7 +65,6 @@
         </div>
     </div>
 </div>
-
 
 @section Scripts {
     <script src="~/js/park.js" asp-append-version="true"></script>

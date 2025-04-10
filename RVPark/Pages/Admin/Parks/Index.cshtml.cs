@@ -1,5 +1,7 @@
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Infrastructure.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -17,13 +19,21 @@ namespace RVPark.Pages.Admin.Parks
             _userManager = userManager;
         }
 
+        // This property exposes SuperAdminRole for Razor access
+        public string SuperAdminRole => SD.SuperAdminRole;
+
         public List<Park> Parks { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
-            bool isSuperAdmin = roles.Contains("SuperAdmin");
+            bool isSuperAdmin = roles.Contains(SD.SuperAdminRole);
 
             Parks = isSuperAdmin
                 ? _unitOfWork.Park.GetAll().ToList()
@@ -31,6 +41,7 @@ namespace RVPark.Pages.Admin.Parks
 
             return Page();
         }
+
 
         public IActionResult OnPostArchive(int id)
         {

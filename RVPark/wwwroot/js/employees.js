@@ -67,31 +67,6 @@ function loadEmployeeList() {
     });
 }
 
-function deleteEmployee(id) {
-    swal({
-        title: "Are you sure?",
-        text: "This employee will be permanently removed.",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then(confirmed => {
-        if (confirmed) {
-            $.ajax({
-                url: `/api/employees/${id}`,
-                type: "DELETE",
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);
-                        employeeTable.ajax.reload();
-                    } else {
-                        toastr.error(data.message);
-                    }
-                }
-            });
-        }
-    });
-}
-
 function toggleLock(id) {
     $.ajax({
         url: `/api/employees/lockunlock/${id}`,

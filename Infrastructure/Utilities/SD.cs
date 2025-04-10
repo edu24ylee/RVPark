@@ -4,12 +4,14 @@
     {
         // Roles
         public const string AdminRole = "Admin";
+        public const string SuperAdminRole = "Super Admin";
         public const string ManagerRole = "Manager";
         public const string GuestRole = "Guest";
         public const string MaintenanceRole = "Maintenance";
         public const string CampHostRole = "Camp Host";
 
         public const string StatusPending = "Pending";
+        public const string StatusConfirmed = "Confirmed";
         public const string StatusActive = "Active";
         public const string StatusCompleted = "Completed";
         public const string StatusCancelled = "Cancelled";

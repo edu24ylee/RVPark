@@ -1,6 +1,7 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,11 +29,10 @@ namespace Infrastructure
                 _db.Database.Migrate();
             }
 
-            if (_db.Park.Any())
-                return;
+            if (_db.Park.Any()) return;
 
-            // Create roles
-            var roles = new[] { "Admin", "Manager", "SuperAdmin" };
+            // === 1. Create roles ===
+            var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
             foreach (var role in roles)
             {
                 if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
@@ -41,85 +41,75 @@ namespace Infrastructure
                 }
             }
 
-            // Create admin user
-            var adminUser = new IdentityUser
+            // === 2. Create SuperAdmin (Employee only) ===
+            var superEmail = "tawnymcaleese@gmail.com";
+            var superUser = _userManager.FindByEmailAsync(superEmail).GetAwaiter().GetResult();
+            if (superUser == null)
             {
-                UserName = "admin@rvpark.com",
-                Email = "admin@rvpark.com",
-                EmailConfirmed = true
-            };
+                superUser = new IdentityUser
+                {
+                    UserName = superEmail,
+                    Email = superEmail,
+                    EmailConfirmed = true
+                };
 
-            var adminResult = _userManager.CreateAsync(adminUser, "Password123!").GetAwaiter().GetResult();
-            if (adminResult.Succeeded)
-            {
-                _userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+                var result = _userManager.CreateAsync(superUser, "Admin123*").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
-            // Create or fetch SuperAdmin
-            var adminEmail = "tawnymcaleese@gmail.com";
-            var identityUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
-            User customUser;
-
-            if (identityUser == null)
+            if (!_userManager.IsInRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult())
             {
-                identityUser = new IdentityUser
+                _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
+            }
+
+            var customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower());
+            if (customUser == null)
+            {
+                customUser = new User
+                {
+                    FirstName = "Tawny",
+                    LastName = "McAleese",
+                    Email = superEmail,
+                    Phone = "555-9999",
+                    IsActive = true,
+                    IdentityUserId = superUser.Id
+                };
+                _db.User.Add(customUser);
+                _db.SaveChanges();
+            }
+
+            if (!_db.Employee.Any(e => e.UserID == customUser.UserID))
+            {
+                var emp = new Employee
+                {
+                    UserID = customUser.UserID,
+                    Role = SD.SuperAdminRole
+                };
+                _db.Employee.Add(emp);
+                _db.SaveChanges();
+            }
+
+            // === 3. Create Admin User ===
+            var adminEmail = SD.DefaultAdminEmail;
+            var adminUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
+            if (adminUser == null)
+            {
+                adminUser = new IdentityUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
                     EmailConfirmed = true
                 };
 
-                var result = _userManager.CreateAsync(identityUser, "Admin123*").GetAwaiter().GetResult();
-                if (!result.Succeeded)
+                var result = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
+                if (result.Succeeded)
                 {
-                    throw new Exception("Failed to create super admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                    _userManager.AddToRoleAsync(adminUser, SD.AdminRole).GetAwaiter().GetResult();
                 }
-
-                _userManager.AddToRoleAsync(identityUser, "SuperAdmin").GetAwaiter().GetResult();
-
-                customUser = new User
-                {
-                    FirstName = "Tawny",
-                    LastName = "McAleese",
-                    Email = adminEmail,
-                    Phone = "555-9999",
-                    IsActive = true,
-                    IdentityUserId = identityUser.Id
-                };
-
-                _db.User.Add(customUser);
-                _db.SaveChanges();
-            }
-            else
-            {
-                customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == adminEmail.ToLower())!;
             }
 
-            // Add Guest and RV for SuperAdmin if they don't exist
-            if (!_db.Guest.Any(g => g.UserID == customUser.UserID))
-            {
-                var superGuest = new Guest
-                {
-                    DodId = 9999,
-                    UserID = customUser.UserID
-                };
-                _db.Guest.Add(superGuest);
-                _db.SaveChanges();
-
-                var superRv = new RV
-                {
-                    GuestID = superGuest.GuestID,
-                    Description = "SuperAdmin's RV",
-                    Length = 38,
-                    Make = "Airstream",
-                    Model = "Classic XL",
-                    LicensePlate = "SUPR-001"
-                };
-                _db.RV.Add(superRv);
-                _db.SaveChanges();
-            }
-
-            // Add Park
+            // === 4. Seed Park ===
             var park = new Park
             {
                 Name = "Desert Eagle Nellis AFB",
@@ -131,7 +121,7 @@ namespace Infrastructure
             _db.Park.Add(park);
             _db.SaveChanges();
 
-            // Add LotTypes
+            // === 5. Seed LotTypes and Lots ===
             var lotTypes = new List<LotType>
             {
                 new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
@@ -141,7 +131,6 @@ namespace Infrastructure
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            // Add Lots
             var lots = new List<Lot>();
             foreach (var lt in lotTypes)
             {
@@ -161,7 +150,7 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            // Guests from Big Bang Theory
+            // === 6. Seed Guests ===
             var characterNames = new (string FirstName, string LastName)[]
             {
                 ("Sheldon", "Cooper"),
@@ -171,7 +160,7 @@ namespace Infrastructure
                 ("Raj", "Koothrappali")
             };
 
-            var statuses = new[] { "Pending", "Confirmed", "Active", "Cancelled", "Completed" };
+            var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
             var rand = new Random();
             var today = DateTime.Today;
 
@@ -180,25 +169,25 @@ namespace Infrastructure
                 var (first, last) = characterNames[i];
                 var email = $"guest{i + 1}@email.com";
 
-                var guestIdentityUser = new IdentityUser
+                var guestIdentity = new IdentityUser
                 {
                     UserName = email,
                     Email = email,
                     EmailConfirmed = true
                 };
 
-                var guestIdentityResult = _userManager.CreateAsync(guestIdentityUser, "Guest123!").GetAwaiter().GetResult();
-                if (!guestIdentityResult.Succeeded)
-                    throw new Exception("Failed to create guest IdentityUser: " + string.Join(", ", guestIdentityResult.Errors.Select(e => e.Description)));
+                var result = _userManager.CreateAsync(guestIdentity, "Guest123!").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create guest: " + string.Join(", ", result.Errors.Select(e => e.Description)));
 
                 var user = new User
                 {
-                    Email = email,
                     FirstName = first,
                     LastName = last,
+                    Email = email,
                     Phone = $"555-000{i + 1}",
                     IsActive = true,
-                    IdentityUserId = guestIdentityUser.Id
+                    IdentityUserId = guestIdentity.Id
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
@@ -242,34 +231,34 @@ namespace Infrastructure
                         LotId = lot.Id,
                         RvId = rv.RvID,
                         OverrideReason = "Seeded for testing",
-                        CancellationDate = status == "Cancelled" ? endDate.AddDays(-1) : null,
-                        CancellationReason = status == "Cancelled" ? "No longer needed" : null
+                        CancellationDate = status == SD.StatusCancelled ? endDate.AddDays(-1) : null,
+                        CancellationReason = status == SD.StatusCancelled ? "No longer needed" : null
                     };
                     _db.Reservation.Add(reservation);
                     _db.SaveChanges();
                 }
             }
 
-            // Add Employees
-            var employeeUsers = new List<(string Email, string FirstName, string LastName, string Role)>
+            // === 7. Seed Employees ===
+            var employees = new List<(string Email, string First, string Last, string Role)>
             {
-                ("janet@rvpark.com", "Janet", "Walker", "Manager"),
-                ("tom@rvpark.com", "Tom", "Barnes", "Maintenance"),
-                ("maria@rvpark.com", "Maria", "Gonzalez", "Guest")
+                ("janet@rvpark.com", "Janet", "Walker", SD.ManagerRole),
+                ("tom@rvpark.com", "Tom", "Barnes", SD.MaintenanceRole),
+                ("maria@rvpark.com", "Maria", "Gonzalez", SD.GuestRole)
             };
 
-            foreach (var (email, first, last, role) in employeeUsers)
+            foreach (var (email, first, last, role) in employees)
             {
-                var identityUserEmp = new IdentityUser
+                var idUser = new IdentityUser
                 {
                     UserName = email,
                     Email = email,
                     EmailConfirmed = true
                 };
 
-                var empResult = _userManager.CreateAsync(identityUserEmp, "Emp123!").GetAwaiter().GetResult();
-                if (!empResult.Succeeded)
-                    throw new Exception("Failed to create employee IdentityUser: " + string.Join(", ", empResult.Errors.Select(e => e.Description)));
+                var result = _userManager.CreateAsync(idUser, "Emp123!").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create employee: " + string.Join(", ", result.Errors.Select(e => e.Description)));
 
                 var user = new User
                 {
@@ -278,7 +267,7 @@ namespace Infrastructure
                     Email = email,
                     Phone = "555-0100",
                     IsActive = true,
-                    IdentityUserId = identityUserEmp.Id
+                    IdentityUserId = idUser.Id
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
