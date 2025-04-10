@@ -1,16 +1,14 @@
 ﻿#nullable disable
 
 using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
-using ApplicationCore.Models;
-using ApplicationCore.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
+using ApplicationCore.Models;
+using ApplicationCore.Interfaces;
 using Infrastructure.Data;
 
 namespace RVPark.Areas.Identity.Pages.Account
@@ -65,7 +63,7 @@ namespace RVPark.Areas.Identity.Pages.Account
             [Required]
             [Phone]
             [Display(Name = "Phone Number")]
-            public string PhoneNumber { get; set; }
+            public string Phone { get; set; }
 
             [Required]
             [Display(Name = "DoD ID")]
@@ -80,12 +78,15 @@ namespace RVPark.Areas.Identity.Pages.Account
             [Display(Name = "Confirm Password")]
             [Compare("Password")]
             public string ConfirmPassword { get; set; }
+
             [Display(Name = "Military Branch")]
             public string Branch { get; set; }
 
             public string Rank { get; set; }
 
             public string Status { get; set; }
+
+            public string IdentityUserId { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -102,14 +103,37 @@ namespace RVPark.Areas.Identity.Pages.Account
             {
                 return Page();
             }
+            if (await _userManager.FindByEmailAsync(Input.Email) != null)
+            {
+                ModelState.AddModelError(string.Empty, "An account with this email already exists.");
+                return Page();
+            }
+
+            var identityUser = new IdentityUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email,
+                PhoneNumber = Input.Phone
+            };
+
+            var result = await _userManager.CreateAsync(identityUser, Input.Password);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return Page();
+            }
 
             var user = new User
             {
                 Email = Input.Email,
                 FirstName = Input.FirstName,
                 LastName = Input.LastName,
-                Phone = Input.PhoneNumber,
-                IsActive = true
+                Phone = Input.Phone,
+                IsActive = true,
+                IdentityUserId = identityUser.Id
             };
 
             _unitOfWork.User.Add(user);
@@ -118,6 +142,7 @@ namespace RVPark.Areas.Identity.Pages.Account
             var guest = new Guest
             {
                 UserID = user.UserID,
+                DodId = Input.DodId,
                 DodAffiliation = new DodAffiliation
                 {
                     Branch = Input.Branch,
@@ -129,11 +154,31 @@ namespace RVPark.Areas.Identity.Pages.Account
             _unitOfWork.Guest.Add(guest);
             _unitOfWork.Commit();
 
-            await _emailSender.SendEmailAsync(user.Email, "Welcome!", $"Hi {user.FullName}, your account has been created.");
+            await _emailSender.SendEmailAsync(
+                user.Email,
+                "Welcome to Nellis AFB RV Park!",
+                $@"<p>Dear {user.FullName},</p>
+
+                <p>Welcome to the <strong>Nellis AFB RV Park</strong> family!</p>
+
+                <p>Your account has been successfully created, and you’re now ready to enjoy all the benefits our park has to offer—spacious lots, trusted amenities, and a community dedicated to making your stay unforgettable.</p>
+
+                <p>Click below to start your journey with us:</p>
+
+                <p style='text-align: center; margin: 20px 0;'>
+                    <a href='https://example.com/Customer/Reservations/Create' style='background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>
+                        Make a Reservation
+                    </a>
+                </p>
+
+                <p>If you have any questions, feel free to reach out—we're here to help.</p>
+
+                <p>Warm regards,<br/>
+                The Nellis AFB RV Park Team</p>"
+            );
 
             return RedirectToPage("/Account/Login");
         }
-
 
         private IUserEmailStore<IdentityUser> GetEmailStore()
         {
