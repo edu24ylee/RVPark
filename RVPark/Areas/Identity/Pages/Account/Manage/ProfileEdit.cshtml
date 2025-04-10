@@ -1,0 +1,53 @@
+﻿@page
+@model ProfileEditModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-floating mb-3">
+        <input asp-for="Username" class="form-control" disabled />
+        <label asp-for="Username"></label>
+    </div>
+
+    <div class="form-floating mb-3">
+        <input asp-for="Input.PhoneNumber" class="form-control" />
+        <label asp-for="Input.PhoneNumber"></label>
+        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <h4>RV Information</h4>
+
+    <div class="form-floating mb-3">
+        <input asp-for="Input.Make" class="form-control" />
+        <label asp-for="Input.Make"></label>
+        <span asp-validation-for="Input.Make" class="text-danger"></span>
+    </div>
+    <div class="form-floating mb-3">
+        <input asp-for="Input.Model" class="form-control" />
+        <label asp-for="Input.Model"></label>
+        <span asp-validation-for="Input.Model" class="text-danger"></span>
+    </div>
+    <div class="form-floating mb-3">
+        <input asp-for="Input.LicensePlate" class="form-control" />
+        <label asp-for="Input.LicensePlate"></label>
+        <span asp-validation-for="Input.LicensePlate" class="text-danger"></span>
+    </div>
+    <div class="form-floating mb-3">
+        <input asp-for="Input.Length" class="form-control" />
+        <label asp-for="Input.Length"></label>
+        <span asp-validation-for="Input.Length" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

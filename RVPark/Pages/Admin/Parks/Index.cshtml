@@ -15,7 +15,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
+                <table class="table table-striped table-hover table-bordered align-middle w-100">
                     <thead class="table-primary">
                         <tr>
                             <th>Name</th>
@@ -26,11 +26,42 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+                    <tbody>
+                        @foreach (var park in Model.Parks)
+                        {
+                            <tr>
+                                <td>@park.Name</td>
+                                <td>@park.Address</td>
+                                <td>@park.City</td>
+                                <td>@park.State</td>
+                                <td>@park.Zipcode</td>
+                                <td>
+                                    <a class="btn btn-outline-primary btn-sm" asp-page="Upsert" asp-route-id="@park.Id">
+                                        Edit
+                                    </a>
+
+                                    @if (!park.IsArchived)
+                                    {
+                                        <form method="post" asp-page-handler="Archive" asp-route-id="@park.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-warning btn-sm">Archive</button>
+                                        </form>
+                                    }
+                                    else if (User.IsInRole("SuperAdmin"))
+                                    {
+                                        <form method="post" asp-page-handler="Unarchive" asp-route-id="@park.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-success btn-sm">Unarchive</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
+
 
 @section Scripts {
     <script src="~/js/park.js" asp-append-version="true"></script>

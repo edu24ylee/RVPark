@@ -31,7 +31,7 @@ namespace Infrastructure
             if (_db.Park.Any())
                 return;
 
-            // Roles
+            // Create roles
             var roles = new[] { "Admin", "Manager", "SuperAdmin" };
             foreach (var role in roles)
             {
@@ -41,26 +41,28 @@ namespace Infrastructure
                 }
             }
 
-            // Admin user
+            // Create admin user
             var adminUser = new IdentityUser
             {
                 UserName = "admin@rvpark.com",
                 Email = "admin@rvpark.com",
                 EmailConfirmed = true
             };
+
             var adminResult = _userManager.CreateAsync(adminUser, "Password123!").GetAwaiter().GetResult();
             if (adminResult.Succeeded)
             {
                 _userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
             }
 
-            // SuperAdmin user
+            // Create or fetch SuperAdmin
             var adminEmail = "tawnymcaleese@gmail.com";
-            var superAdmin = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
+            var identityUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
+            User customUser;
 
-            if (superAdmin == null)
+            if (identityUser == null)
             {
-                var identityUser = new IdentityUser
+                identityUser = new IdentityUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -68,7 +70,6 @@ namespace Infrastructure
                 };
 
                 var result = _userManager.CreateAsync(identityUser, "Admin123*").GetAwaiter().GetResult();
-
                 if (!result.Succeeded)
                 {
                     throw new Exception("Failed to create super admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -76,7 +77,7 @@ namespace Infrastructure
 
                 _userManager.AddToRoleAsync(identityUser, "SuperAdmin").GetAwaiter().GetResult();
 
-                var customUser = new User
+                customUser = new User
                 {
                     FirstName = "Tawny",
                     LastName = "McAleese",
@@ -89,8 +90,36 @@ namespace Infrastructure
                 _db.User.Add(customUser);
                 _db.SaveChanges();
             }
+            else
+            {
+                customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == adminEmail.ToLower())!;
+            }
 
-            // Seed Park
+            // Add Guest and RV for SuperAdmin if they don't exist
+            if (!_db.Guest.Any(g => g.UserID == customUser.UserID))
+            {
+                var superGuest = new Guest
+                {
+                    DodId = 9999,
+                    UserID = customUser.UserID
+                };
+                _db.Guest.Add(superGuest);
+                _db.SaveChanges();
+
+                var superRv = new RV
+                {
+                    GuestID = superGuest.GuestID,
+                    Description = "SuperAdmin's RV",
+                    Length = 38,
+                    Make = "Airstream",
+                    Model = "Classic XL",
+                    LicensePlate = "SUPR-001"
+                };
+                _db.RV.Add(superRv);
+                _db.SaveChanges();
+            }
+
+            // Add Park
             var park = new Park
             {
                 Name = "Desert Eagle Nellis AFB",
@@ -102,7 +131,7 @@ namespace Infrastructure
             _db.Park.Add(park);
             _db.SaveChanges();
 
-            // LotTypes
+            // Add LotTypes
             var lotTypes = new List<LotType>
             {
                 new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
@@ -112,7 +141,7 @@ namespace Infrastructure
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            // Lots
+            // Add Lots
             var lots = new List<Lot>();
             foreach (var lt in lotTypes)
             {
@@ -132,7 +161,7 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            // Guests
+            // Guests from Big Bang Theory
             var characterNames = new (string FirstName, string LastName)[]
             {
                 ("Sheldon", "Cooper"),
@@ -151,16 +180,16 @@ namespace Infrastructure
                 var (first, last) = characterNames[i];
                 var email = $"guest{i + 1}@email.com";
 
-                var identityUser = new IdentityUser
+                var guestIdentityUser = new IdentityUser
                 {
                     UserName = email,
                     Email = email,
                     EmailConfirmed = true
                 };
 
-                var identityResult = _userManager.CreateAsync(identityUser, "Guest123!").GetAwaiter().GetResult();
-                if (!identityResult.Succeeded)
-                    throw new Exception("Failed to create guest IdentityUser: " + string.Join(", ", identityResult.Errors.Select(e => e.Description)));
+                var guestIdentityResult = _userManager.CreateAsync(guestIdentityUser, "Guest123!").GetAwaiter().GetResult();
+                if (!guestIdentityResult.Succeeded)
+                    throw new Exception("Failed to create guest IdentityUser: " + string.Join(", ", guestIdentityResult.Errors.Select(e => e.Description)));
 
                 var user = new User
                 {
@@ -169,7 +198,7 @@ namespace Infrastructure
                     LastName = last,
                     Phone = $"555-000{i + 1}",
                     IsActive = true,
-                    IdentityUserId = identityUser.Id
+                    IdentityUserId = guestIdentityUser.Id
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
@@ -221,7 +250,7 @@ namespace Infrastructure
                 }
             }
 
-            // Employees
+            // Add Employees
             var employeeUsers = new List<(string Email, string FirstName, string LastName, string Role)>
             {
                 ("janet@rvpark.com", "Janet", "Walker", "Manager"),
@@ -231,16 +260,16 @@ namespace Infrastructure
 
             foreach (var (email, first, last, role) in employeeUsers)
             {
-                var identityUser = new IdentityUser
+                var identityUserEmp = new IdentityUser
                 {
                     UserName = email,
                     Email = email,
                     EmailConfirmed = true
                 };
 
-                var result = _userManager.CreateAsync(identityUser, "Emp123!").GetAwaiter().GetResult();
-                if (!result.Succeeded)
-                    throw new Exception("Failed to create employee IdentityUser: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                var empResult = _userManager.CreateAsync(identityUserEmp, "Emp123!").GetAwaiter().GetResult();
+                if (!empResult.Succeeded)
+                    throw new Exception("Failed to create employee IdentityUser: " + string.Join(", ", empResult.Errors.Select(e => e.Description)));
 
                 var user = new User
                 {
@@ -249,7 +278,7 @@ namespace Infrastructure
                     Email = email,
                     Phone = "555-0100",
                     IsActive = true,
-                    IdentityUserId = identityUser.Id
+                    IdentityUserId = identityUserEmp.Id
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();

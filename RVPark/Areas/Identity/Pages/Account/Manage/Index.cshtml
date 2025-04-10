@@ -1,30 +1,32 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Profile";
-    ViewData["ActivePage"] = ManageNavPages.Index;
+    ViewData["Title"] = "My Profile";
 }
 
-<h3>@ViewData["Title"]</h3>
+<h2>@ViewData["Title"]</h2>
+
 <partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h4>User Information</h4>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Phone:</strong> @Model.PhoneNumber</p>
+
+        <h4 class="mt-4">RV Information</h4>
+        @if (Model.RV != null)
+        {
+            <p><strong>Make:</strong> @Model.RV.Make</p>
+            <p><strong>Model:</strong> @Model.RV.Model</p>
+            <p><strong>License Plate:</strong> @Model.RV.LicensePlate</p>
+            <p><strong>Length:</strong> @Model.RV.Length ft</p>
+        }
+        else
+        {
+            <p>No RV on file.</p>
+        }
+
+        <a asp-page="./ProfileEdit" class="btn btn-primary mt-3">Edit Profile</a>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

@@ -24,7 +24,9 @@ namespace ApplicationCore.Models
 
         [Required]
         public string Zipcode { get; set; } = string.Empty;
- 
+        public bool IsArchived { get; set; } = false;
+
+
         public virtual ICollection<LotType> LotTypes { get; set; } = new List<LotType>();
     }
 }
