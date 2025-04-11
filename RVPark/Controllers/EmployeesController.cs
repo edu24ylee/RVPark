@@ -26,9 +26,10 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
                 e.User.LastName,
                 e.User.Email,
                 e.User.Phone,
-                e.User.IsActive,
-                e.User.LockOutEnd
+                e.User.LockOutEnd,
+                e.User.IsArchived
             }
+
         });
 
         return Json(new { data = result });
@@ -38,16 +39,40 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
     public async Task<IActionResult> LockUnlock(int id)
     {
         var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
-        if (employee == null) return NotFound(new { success = false, message = "Employee not found." });
+        if (employee == null || employee.User == null)
+            return NotFound(new { success = false, message = "Employee or user not found." });
 
-        var user = employee.User;
-        if (user == null) return NotFound(new { success = false, message = "User not found." });
-
-        user.LockOutEnd = (user.LockOutEnd == null || user.LockOutEnd <= DateTime.Now)
+        employee.User.LockOutEnd = (employee.User.LockOutEnd == null || employee.User.LockOutEnd <= DateTime.Now)
             ? DateTime.Now.AddYears(100)
             : DateTime.Now;
 
         await _unitOfWork.CommitAsync();
         return Json(new { success = true, message = "Lock status updated." });
+    }
+
+    [HttpPost("archive/{id}")]
+    public async Task<IActionResult> Archive(int id)
+    {
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
+        if (employee == null || employee.User == null)
+            return NotFound(new { success = false, message = "Employee or user not found." });
+
+        employee.User.IsArchived = true;
+        await _unitOfWork.CommitAsync();
+
+        return Json(new { success = true, message = "Employee archived successfully." });
+    }
+
+    [HttpPost("unarchive/{id}")]
+    public async Task<IActionResult> Unarchive(int id)
+    {
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
+        if (employee == null || employee.User == null)
+            return NotFound(new { success = false, message = "Employee or user not found." });
+
+        employee.User.IsArchived = false;
+        await _unitOfWork.CommitAsync();
+
+        return Json(new { success = true, message = "Employee unarchived successfully." });
     }
 }

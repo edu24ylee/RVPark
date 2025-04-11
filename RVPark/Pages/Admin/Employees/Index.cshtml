@@ -1,4 +1,6 @@
 ﻿@page
+@using System.Text.Json
+@inject UserManager<IdentityUser> UserManager
 @model RVPark.Pages.Admin.Employees.IndexModel
 @{
     ViewData["Title"] = "Employees";
@@ -41,4 +43,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+    <script>
+        const isSuperAdmin = @JsonSerializer.Serialize(User.IsInRole("SuperAdmin"));
+    </script>
 }

@@ -25,5 +25,6 @@ namespace ApplicationCore.ViewModels
  
         [Required]
         public string Role { get; set; } = "Admin";
+        public bool IsArchived { get; set; } = false;
     }
 }
