@@ -15,14 +15,11 @@ namespace RVPark.Pages.Admin.Lots
             _unitOfWork = unitOfWork;
         }
 
-        // Park selected in the dropdown (passed via query string)
         [BindProperty(SupportsGet = true)]
         public int? SelectedParkId { get; set; }
 
-        // Dropdown list of all available parks
         public List<SelectListItem> ParkList { get; set; } = new();
 
-        // Loads all parks for filtering on page load
         public async Task OnGetAsync()
         {
             var parks = await _unitOfWork.Park.GetAllAsync();
@@ -31,6 +28,16 @@ namespace RVPark.Pages.Admin.Lots
                 Value = p.Id.ToString(),
                 Text = p.Name
             }).ToList();
+
+            if (SelectedParkId == null)
+            {
+                var defaultPark = parks.FirstOrDefault(p => p.Name == "Desert Eagle Nellis AFB");
+                if (defaultPark != null)
+                {
+                    SelectedParkId = defaultPark.Id;
+                }
+            }
         }
     }
+
 }

@@ -1,151 +1,71 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ApplicationCore.Interfaces;
-using ApplicationCore.Models;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
+﻿using ApplicationCore.Models;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 
-namespace RVPark.Controllers
+namespace RVPark.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class LotController : Controller
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class LotController : Controller
+    private readonly UnitOfWork _unitOfWork;
+
+    public LotController(UnitOfWork unitOfWork)
     {
-        private readonly UnitOfWork _unitOfWork;
-        private readonly IWebHostEnvironment _hostingEnv;
+        _unitOfWork = unitOfWork;
+    }
+    [HttpGet("bypark/{parkId}")]
+    public async Task<IActionResult> GetByPark(int parkId)
+    {
+        var lots = await _unitOfWork.Lot.GetAllAsync(
+            l => l.LotType.ParkId == parkId,
+            includes: "LotType.Park"
+        );
 
-        public LotController(UnitOfWork unitOfWork)
+        var result = lots.Select(l => new
         {
-            _unitOfWork = unitOfWork;
-        }
+            id = l.Id,
+            location = l.Location,
+            width = l.Width,
+            length = l.Length,
+            isAvailable = l.IsAvailable,
+            description = l.Description,
+            image = l.Image,
+            featuredImage = l.FeaturedImage, 
+            lotType = new { name = l.LotType.Name },
+            park = new { name = l.LotType.Park.Name },
+            isArchived = l.IsArchived
+        });
 
-        [HttpGet]
-        [HttpGet]
-        public async Task<IActionResult> GetAllLotTypes()
-        {
-            var lotTypes = await _unitOfWork.LotType.GetAllAsync(includes: "Park");
-
-            var result = lotTypes.Select(l => new
-            {
-                id = l.Id,
-                name = l.Name,
-                rate = l.Rate,
-                park = new
-                {
-                    name = l.Park?.Name ?? "N/A"
-                }
-            });
-
-            return Json(new { data = result });
-        }
+        return Json(new { data = result });
+    }
 
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLotById(int id)
-        {
-            var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
-            if (lot == null)
-            {
-                return NotFound(new { success = false, message = "Lot not found." });
-            }
-            return Json(new { success = true, data = lot });
-        }
+    [HttpPost("archive/{id}")]
+    public async Task<IActionResult> Archive(int id)
+    {
+        var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
+        if (lot == null)
+            return Json(new { success = false, message = "Lot not found." });
 
-        [HttpPost]
-        public async Task<IActionResult> CreateLot([FromBody] Lot lot)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
+        lot.IsArchived = true;
+        _unitOfWork.Lot.Update(lot);
+        await _unitOfWork.CommitAsync();
 
-            _unitOfWork.Lot.Add(lot);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = lot });
-        }
+        return Json(new { success = true, message = "Lot archived successfully." });
+    }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLot(int id, [FromBody] Lot lot)
-        {
-            if (id != lot.Id)
-            {
-                return BadRequest(new { success = false, message = "Lot ID mismatch." });
-            }
+    [HttpPost("unarchive/{id}")]
+    public async Task<IActionResult> Unarchive(int id)
+    {
+        var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
+        if (lot == null)
+            return Json(new { success = false, message = "Lot not found." });
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
+        lot.IsArchived = false;
+        _unitOfWork.Lot.Update(lot);
+        await _unitOfWork.CommitAsync();
 
-            _unitOfWork.Lot.Update(lot);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = lot });
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLot(int id)
-        {
-            var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
-            if (lot == null)
-            {
-                return NotFound(new { success = false, message = "Lot not found." });
-            }
-            if(lot.Image != null)
-            {
-                var imgPath = Path.Combine(_hostingEnv.WebRootPath, lot.Image.TrimStart('\\'));
-                if(System.IO.File.Exists(imgPath))
-                {
-                    System.IO.File.Delete(imgPath);
-                }
-            }
-
-            _unitOfWork.Lot.Delete(lot);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Lot deleted successfully." });
-        }
-
-        [HttpGet("available")]
-        public async Task<IActionResult> GetAvailableLots()
-        {
-            Expression<Func<Lot, bool>> predicate = l => l.IsAvailable;
-            var availableLots = await _unitOfWork.Lot.GetAllAsync(predicate);
-
-            var projected = availableLots.Select(l => new
-            {
-                l.Id,
-                l.Location,
-                l.Length,
-                l.Width,
-                l.IsAvailable,
-                l.Description,
-                LotType = new { l.LotType?.Name }
-            });
-
-            return Json(new { success = true, data = projected });
-        }
-        [HttpGet("bypark/{parkId}")]
-        public async Task<IActionResult> GetLotsByPark(int parkId)
-        {
-            var lots = await _unitOfWork.Lot.GetAllAsync(
-                includes: "LotType,LotType.Park");
-
-            var filtered = lots
-                .Where(l => l.LotType.ParkId == parkId)
-                .Select(l => new
-                {
-                    l.Id,
-                    l.Location,
-                    l.Length,
-                    l.Width,
-                    l.IsAvailable,
-                    l.Description,
-                    l.Image,
-                    lotType = new { name = l.LotType.Name },
-                    park = new { name = l.LotType.Park.Name }
-                });
-
-            return Json(new { data = filtered });
-        }
-
+        return Json(new { success = true, message = "Lot unarchived successfully." });
     }
 }

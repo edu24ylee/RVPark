@@ -10,7 +10,10 @@ function loadEmployeeList() {
             url: `/api/employees`,
             type: "GET",
             datatype: "json",
-            dataSrc: "data"
+            dataSrc: function (json) {
+                const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
+                return isSuperAdmin ? json.data : json.data.filter(e => !e.user.isArchived);
+            }
         },
         columns: [
             {
@@ -41,10 +44,14 @@ function loadEmployeeList() {
                 data: null,
                 render: function (data, type, row) {
                     const isArchived = row.user.isArchived;
+                    const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
+
                     const archiveBtn = isArchived
-                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveEmployee(${row.employeeID})">
-                               <i class="fas fa-box-open"></i> Unarchive
-                           </button>`
+                        ? (isSuperAdmin
+                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveEmployee(${row.employeeID})">
+                                   <i class="fas fa-box-open"></i> Unarchive
+                               </button>`
+                            : ``)
                         : `<button class="btn btn-sm btn-custom-grey" onclick="archiveEmployee(${row.employeeID})">
                                <i class="fas fa-archive"></i> Archive
                            </button>`;

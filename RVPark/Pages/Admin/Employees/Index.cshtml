@@ -1,4 +1,5 @@
 ﻿@page
+@using Infrastructure.Utilities;
 @using System.Text.Json
 @inject UserManager<IdentityUser> UserManager
 @model RVPark.Pages.Admin.Employees.IndexModel
@@ -34,6 +35,11 @@
 </div>
 
 @section Scripts {
+    <script>
+        window.isSuperAdmin = @User.IsInRole(SD.SuperAdminRole).ToString().ToLower();
+        window.isAdmin = @User.IsInRole(SD.AdminRole).ToString().ToLower();
+        window.isCampHost = @User.IsInRole(SD.CampHostRole).ToString().ToLower();
+    </script>
     <script src="~/js/employees.js" asp-append-version="true"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -43,7 +49,4 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
-    <script>
-        const isSuperAdmin = @JsonSerializer.Serialize(User.IsInRole("SuperAdmin"));
-    </script>
 }

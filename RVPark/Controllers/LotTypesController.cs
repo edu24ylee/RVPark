@@ -6,11 +6,11 @@ namespace RVPark.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LotTypesController : Controller
+    public class LotTypeController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
 
-        public LotTypesController(UnitOfWork unitOfWork)
+        public LotTypeController(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
@@ -19,7 +19,6 @@ namespace RVPark.Controllers
         public async Task<IActionResult> GetAll()
         {
             var lotTypes = await _unitOfWork.LotType.GetAllAsync(includes: "Park");
-
             var result = lotTypes.Select(l => new
             {
                 id = l.Id,
@@ -34,37 +33,24 @@ namespace RVPark.Controllers
             return Json(new { data = result });
         }
 
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var lotType = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
-            if (lotType == null)
-            {
-                return Json(new { success = false, message = "Lot type not found." });
-            }
-
-            _unitOfWork.LotType.Delete(lotType);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Lot type deleted successfully." });
-        }
-
-        [HttpGet("GetByPark/{parkId}")]
+        [HttpGet("bypark/{parkId}")]
         public async Task<IActionResult> GetByPark(int parkId)
         {
-            var lotTypes = await _unitOfWork.LotType.GetAllAsync(
-                l => l.ParkId == parkId,
-                orderBy: null,
-                includes: "Park"); 
+            var lotTypes = await _unitOfWork.LotType.GetAllAsync(l => l.ParkId == parkId, includes: "Park");
             var result = lotTypes.Select(l => new
             {
                 id = l.Id,
                 name = l.Name,
-                rate = l.Rate
+                rate = l.Rate,
+                startDate = l.StartDate,
+                endDate = l.EndDate,
+                isArchived = l.IsArchived,
+                parkName = l.Park?.Name ?? "N/A"
             });
 
             return Json(new { data = result });
         }
+
         [HttpPost("archive/{id}")]
         public async Task<IActionResult> Archive(int id)
         {
@@ -92,6 +78,5 @@ namespace RVPark.Controllers
 
             return Json(new { success = true, message = "Lot type unarchived." });
         }
-
     }
 }

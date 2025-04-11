@@ -11,7 +11,7 @@ namespace Infrastructure.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsArchived",
+                name: "",
                 table: "Park",
                 type: "bit",
                 nullable: false,
@@ -22,7 +22,7 @@ namespace Infrastructure.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsArchived",
+                name: "",
                 table: "Park");
         }
     }

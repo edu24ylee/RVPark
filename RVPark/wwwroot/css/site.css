@@ -166,3 +166,14 @@ body {
     background-color: #0066cc !important;
     color: white;
 }
+table.dataTable th,
+table.dataTable td {
+    white-space: nowrap;
+}
+.text-custom-blue {
+    color: #0066cc;
+}
+table.dataTable td {
+    white-space: normal !important;
+    word-wrap: break-word;
+}

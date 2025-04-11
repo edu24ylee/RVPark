@@ -16,6 +16,7 @@
 
                 <input type="hidden" asp-for="LotObject.Id" />
                 <input type="hidden" asp-for="LotObject.Image" />
+                <input type="hidden" name="LotObject.FeaturedImage" id="FeaturedImageInput" value="@Model.LotObject.FeaturedImage" />
 
                 <!-- Location -->
                 <div class="mb-3">
@@ -64,24 +65,53 @@
 
                 <!-- Image Upload -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Upload Image</label>
-                    <input type="file" name="imageFile" class="form-control" />
+                    <label class="form-label fw-bold">Upload Images</label>
+                    <input type="file" name="Images" multiple class="form-control" />
                 </div>
 
-                <!-- Preview Existing Image -->
-                @if (!string.IsNullOrEmpty(Model.LotObject.Image))
+                <!-- Existing Images -->
+                @if (!string.IsNullOrWhiteSpace(Model.LotObject.Image))
                 {
-                    <div class="text-center mb-3">
-                        <img src="@Model.LotObject.Image" alt="Lot Image" class="img-thumbnail rounded shadow" style="max-height: 200px;" />
+                    var imagePaths = Model.LotObject.Image.Split(',');
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Existing Images</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            @foreach (var img in imagePaths)
+                            {
+                                var trimmed = img.Trim();
+                                var isFeatured = Model.LotObject.FeaturedImage?.Trim() == trimmed;
+
+                                <div class="d-flex align-items-center border rounded p-1" style="width: fit-content;">
+                                    <!-- Star -->
+                                    <button type="button"
+                                            class="btn btn-sm me-2 @(isFeatured ? "btn-custom-blue" : "btn-outline-custom-blue")"
+                                            onclick="setFeaturedImage('@trimmed')" title="Set as Featured">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+
+                                    <!-- Image -->
+                                    <img src="@trimmed" class="img-thumbnail" style="max-height: 80px; width: auto;" />
+
+                                    <!-- Delete -->
+                                    <button type="button"
+                                            class="btn btn-sm ms-2 btn-custom-grey text-white"
+                                            onclick="removeImage('@trimmed')" title="Remove">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+
+                                    <input type="hidden" name="ExistingImages" value="@trimmed" />
+                                </div>
+                            }
+                        </div>
                     </div>
                 }
 
-                <!-- Buttons -->
+                <!-- Submit -->
                 <div class="d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-custom-blue text-white">
                         <i class="fas fa-save"></i> Save
                     </button>
-                    <a asp-page="Index" asp-route-selectedParkId="@Model.ParkId" class="btn btn-secondary">
+                    <a asp-page="Index" asp-route-selectedParkId="@Model.SelectedParkId" class="btn btn-custom-grey text-white">
                         <i class="fas fa-arrow-left"></i> Back to List
                     </a>
                 </div>
@@ -92,12 +122,31 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/tinymce/js/tinymce/tinymce.min.js"></script>
-    <script src="~/js/site.js"></script>
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+    <script>
+        function removeImage(imagePath) {
+            const container = event.target.closest('.d-flex.align-items-center');
+            if (container) container.remove();
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'DeleteImages';
+            input.value = imagePath;
+            document.querySelector('form').appendChild(input);
+        }
+
+        function setFeaturedImage(imagePath) {
+            document.getElementById('FeaturedImageInput').value = imagePath;
+
+            document.querySelectorAll('.fa-star').forEach(star => {
+                const button = star.closest('button');
+                button.classList.remove('btn-custom-blue');
+                button.classList.add('btn-outline-custom-blue');
+            });
+
+            const clickedButton = event.target.closest('button');
+            clickedButton.classList.remove('btn-outline-custom-blue');
+            clickedButton.classList.add('btn-custom-blue');
+        }
+    </script>
 }

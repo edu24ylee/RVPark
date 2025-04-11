@@ -23,7 +23,7 @@ namespace RVPark.Pages.Admin.LotTypes
         {
             if (id == null || id == 0)
             {
-                if (parkId == null)
+                if (parkId == null || await _unitOfWork.Park.GetAsync(p => p.Id == parkId) == null)
                     return NotFound();
 
                 LotTypeObject = new LotType
@@ -50,6 +50,13 @@ namespace RVPark.Pages.Admin.LotTypes
             if (!ModelState.IsValid)
                 return Page();
 
+            var parkExists = await _unitOfWork.Park.GetAsync(p => p.Id == LotTypeObject.ParkId) != null;
+            if (!parkExists)
+            {
+                ModelState.AddModelError(string.Empty, "Selected Park does not exist.");
+                return Page();
+            }
+
             if (LotTypeObject.Id == 0)
             {
                 LotTypeObject.StartDate = DateTime.Today;
@@ -75,7 +82,7 @@ namespace RVPark.Pages.Admin.LotTypes
                 }
 
                 _unitOfWork.LotType.Update(existing);
-                LotTypeObject = existing; 
+                LotTypeObject = existing;
             }
 
             await _unitOfWork.CommitAsync();

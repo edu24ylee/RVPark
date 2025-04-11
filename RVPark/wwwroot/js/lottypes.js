@@ -1,8 +1,6 @@
 ﻿let dataTable;
 
 $(document).ready(function () {
-    loadList();
-
     const rawToday = new Date();
     const today = new Date(rawToday.getFullYear(), rawToday.getMonth(), rawToday.getDate());
 
@@ -12,7 +10,6 @@ $(document).ready(function () {
 
     const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
 
-    // Custom blue reminder for SuperAdmin only
     if (isSuperAdmin && today >= fiscalReminderStart && today <= fiscalStart) {
         toastr.info(
             "Reminder: Review Lot Type pricing for the upcoming fiscal year (Oct 1).",
@@ -20,26 +17,29 @@ $(document).ready(function () {
             { toastClass: 'toast toast-custom-blue' }
         );
     }
+
+    loadList();
 });
 
 function loadList() {
     dataTable = $('#DT_load').DataTable({
         ajax: {
-            url: "/api/lottypes",
+            url: "/api/lottype",
             type: "GET",
             datatype: "json",
             dataSrc: "data",
+            error: function (xhr, error, thrown) {
+                toastr.error("Failed to load lot types.");
+                console.error("DataTable Load Error:", error, thrown);
+            },
             complete: function (xhr) {
-                const rawToday = new Date();
-                const today = new Date(rawToday.getFullYear(), rawToday.getMonth(), rawToday.getDate());
-
+                const today = new Date();
                 const response = xhr.responseJSON?.data ?? [];
 
                 response.forEach(item => {
                     if (item.endDate) {
                         const endDateRaw = new Date(item.endDate);
                         const endDate = new Date(endDateRaw.getFullYear(), endDateRaw.getMonth(), endDateRaw.getDate());
-
                         const warningStart = new Date(endDate);
                         warningStart.setDate(endDate.getDate() - 5);
 
@@ -84,21 +84,22 @@ function loadList() {
                 }
             },
             {
-                data: "id",
+                data: null,
                 width: "20%",
                 render: function (data, type, row) {
-                    const isArchived = row.isArchived;
+                    const isArchived = row.isArchived === true || row.isArchived === "true";
+
                     const archiveBtn = isArchived
-                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLotType(${data})">
+                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLotType(${row.id})">
                                <i class="fas fa-box-open"></i> Unarchive
                            </button>`
-                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLotType(${data})">
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLotType(${row.id})">
                                <i class="fas fa-archive"></i> Archive
                            </button>`;
 
                     return `
                         <div class="text-center d-flex justify-content-center gap-2">
-                            <a href="/Admin/LotTypes/Upsert?id=${data}" class="btn btn-sm btn-custom-blue text-white">
+                            <a href="/Admin/LotTypes/Upsert?id=${row.id}" class="btn btn-sm btn-custom-blue text-white">
                                 <i class="far fa-edit"></i> Edit
                             </a>
                             ${archiveBtn}
@@ -115,30 +116,32 @@ function loadList() {
 
 function archiveLotType(id) {
     $.ajax({
-        url: `/api/lottypes/archive/${id}`,
+        url: `/api/lottype/archive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
                 dataTable.ajax.reload();
             } else {
-                toastr.error(data.message);
+                toastr.error(data.message || "Archive failed.");
             }
-        }
+        },
+        error: () => toastr.error("Failed to archive lot type.")
     });
 }
 
 function unarchiveLotType(id) {
     $.ajax({
-        url: `/api/lottypes/unarchive/${id}`,
+        url: `/api/lottype/unarchive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
                 dataTable.ajax.reload();
             } else {
-                toastr.error(data.message);
+                toastr.error(data.message || "Unarchive failed.");
             }
-        }
+        },
+        error: () => toastr.error("Failed to unarchive lot type.")
     });
 }

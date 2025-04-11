@@ -141,7 +141,7 @@ namespace Infrastructure
                     ParkId = park.Id,
                     StartDate = today,
                     EndDate = today.AddYears(1),
-                    IsArchived = false
+                   IsArchived  = false
                 },
                 new LotType
                 {
