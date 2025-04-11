@@ -132,3 +132,33 @@ body {
     color: white;
     border: none;
 }
+.btn-outline-custom-blue {
+    color: #0066cc;
+    border: 1px solid #0066cc;
+    background-color: transparent;
+}
+
+.btn-outline-custom-blue:hover {
+    background-color: #0066cc;
+    color: white;
+}
+.text-custom-blue-header {
+    color: #0066cc !important;
+}
+.table-primary th {
+    color: #0066cc !important; 
+}
+.toast-custom-blue {
+    background-color: #0066cc !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.toast-custom-blue .toast-title {
+    font-weight: bold;
+    color: white !important;
+}
+
+.toast-custom-blue .toast-message {
+    color: white !important;
+}

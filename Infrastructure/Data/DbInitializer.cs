@@ -122,14 +122,41 @@ namespace Infrastructure
             _db.SaveChanges();
 
             // === 5. Seed LotTypes and Lots ===
+            var today = DateTime.Today;
             var lotTypes = new List<LotType>
             {
-                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
-                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id },
-                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id }
+                new LotType
+                {
+                    Name = "Standard",
+                    Rate = 40.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                    IsArchived = false
+                },
+                new LotType
+                {
+                    Name = "Premium",
+                    Rate = 55.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                    IsArchived = false
+                },
+                new LotType
+                {
+                    Name = "Deluxe",
+                    Rate = 70.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                    IsArchived = false
+                }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
+
+
 
             var lots = new List<Lot>();
             foreach (var lt in lotTypes)
@@ -162,7 +189,6 @@ namespace Infrastructure
 
             var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
             var rand = new Random();
-            var today = DateTime.Today;
 
             for (int i = 0; i < characterNames.Length; i++)
             {

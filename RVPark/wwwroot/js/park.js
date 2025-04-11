@@ -1,88 +1,63 @@
-﻿let employeeTable;
+﻿let dataTable;
 
 $(document).ready(function () {
-    loadEmployeeList();
+    loadList();
 });
 
-function loadEmployeeList() {
-    employeeTable = $('#DT_load').DataTable({
+function loadList() {
+    dataTable = $('#DT_load').DataTable({
         ajax: {
-            url: `/api/employees`,
+            url: "/api/parks",
             type: "GET",
-            datatype: "json",
-            dataSrc: "data"
+            datatype: "json"
         },
         columns: [
+            { data: "name", width: "25%" },
+            { data: "address", width: "25%" },
+            { data: "city", width: "15%" },
+            { data: "state", width: "10%" },
+            { data: "zipcode", width: "10%" },
             {
-                data: "user",
-                render: data => `${data.firstName} ${data.lastName}`,
-                width: "20%"
-            },
-            { data: "user.email", width: "20%" },
-            { data: "user.phone", width: "15%" },
-            {
-                data: "user.isActive",
-                render: data => data ? "Active" : "Inactive",
-                width: "10%"
-            },
-            { data: "role", width: "10%" },
-            {
-                data: "user.lockOutEnd",
+                data: "id",
                 render: function (data, type, row) {
-                    const isLocked = data && new Date(data) > new Date();
-                    const btnText = isLocked ? "Unlock" : "Lock";
-                    const icon = isLocked ? "fa-lock-open" : "fa-lock";
+                    const isArchived = row.isArchived;
+
+                    const archiveBtn = isArchived
+                        ? `<button class="btn btn-sm btn-custom-blue-header" onclick="unarchivePark(${data})" style="width: 100px;">
+                               <i class="fas fa-box-open"></i> Unarchive
+                           </button>`
+                        : `<button class="btn btn-sm btn-custom-grey" onclick="archivePark(${data})" style="width: 100px;">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
+
                     return `
-                        <button class="btn btn-outline-warning btn-sm" onclick="toggleLock(${row.employeeID})">
-                            <i class="fas ${icon}"></i> ${btnText}
-                        </button>`;
-                },
-                orderable: false,
-                width: "10%"
-            },
-            {
-                data: "user.isActive",
-                render: function (isActive, type, row) {
-                    const action = isActive ? "archive" : "unarchive";
-                    const label = isActive ? "Archive" : "Unarchive";
-                    const btnClass = isActive ? "btn-custom-grey" : "btn-success";
-                    return `
-                        <button class="btn ${btnClass} btn-sm" onclick="${action}Employee(${row.employeeID})">
-                            <i class="fas fa-box-archive"></i> ${label}
-                        </button>`;
-                },
-                orderable: false,
-                width: "10%"
-            },
-            {
-                data: "employeeID",
-                render: function (data) {
-                    return `
-                        <div class="text-center">
-                            <a href="/Admin/Employees/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
-                                <i class="fas fa-edit"></i> Update
+                        <div class="text-center d-flex flex-column gap-2 align-items-center">
+                            <a href="/Admin/Parks/Upsert?id=${data}" 
+                               class="btn btn-sm btn-custom-blue" 
+                               style="width: 100px;">
+                                <i class="far fa-edit"></i> Edit
                             </a>
+                            ${archiveBtn}
                         </div>`;
                 },
-                orderable: false,
                 width: "15%"
             }
         ],
         language: {
-            emptyTable: "No employees found."
+            emptyTable: "No parks found."
         },
         width: "100%"
     });
 }
 
-function toggleLock(id) {
+function archivePark(id) {
     $.ajax({
-        url: `/api/employees/lockunlock/${id}`,
+        url: `/api/parks/archive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
-                employeeTable.ajax.reload();
+                dataTable.ajax.reload();
             } else {
                 toastr.error(data.message);
             }
@@ -90,31 +65,16 @@ function toggleLock(id) {
     });
 }
 
-function archiveEmployee(id) {
+function unarchivePark(id) {
     $.ajax({
-        url: `/api/employees/archive/${id}`,
+        url: `/api/parks/unarchive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
-                toastr.success("Employee archived");
-                employeeTable.ajax.reload();
+                toastr.success(data.message);
+                dataTable.ajax.reload();
             } else {
-                toastr.error("Archive failed");
-            }
-        }
-    });
-}
-
-function unarchiveEmployee(id) {
-    $.ajax({
-        url: `/api/employees/unarchive/${id}`,
-        type: "POST",
-        success: function (data) {
-            if (data.success) {
-                toastr.success("Employee unarchived");
-                employeeTable.ajax.reload();
-            } else {
-                toastr.error("Unarchive failed");
+                toastr.error(data.message);
             }
         }
     });

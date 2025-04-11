@@ -34,18 +34,6 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
         return Json(new { data = result });
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteEmployee(int id)
-    {
-        var emp = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
-        if (emp == null) return NotFound(new { success = false, message = "Employee not found." });
-
-        _unitOfWork.Employee.Delete(emp);
-        await _unitOfWork.CommitAsync();
-
-        return Json(new { success = true, message = "Employee removed." });
-    }
-
     [HttpPost("lockunlock/{id}")]
     public async Task<IActionResult> LockUnlock(int id)
     {

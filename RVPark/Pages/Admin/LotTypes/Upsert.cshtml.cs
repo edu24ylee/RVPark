@@ -2,6 +2,8 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System;
+using System.Threading.Tasks;
 
 namespace RVPark.Pages.Admin.LotTypes
 {
@@ -14,27 +16,28 @@ namespace RVPark.Pages.Admin.LotTypes
             _unitOfWork = unitOfWork;
         }
 
-        // The lot type being created or edited
         [BindProperty]
         public LotType LotTypeObject { get; set; } = new();
 
-        // Loads form for creating or editing a lot type
         public async Task<IActionResult> OnGetAsync(int? id, int? parkId)
         {
             if (id == null || id == 0)
             {
-                // New lot type — requires a parkId context
-                if (parkId == null) return NotFound();
+                if (parkId == null)
+                    return NotFound();
 
                 LotTypeObject = new LotType
                 {
-                    ParkId = parkId.Value
+                    ParkId = parkId.Value,
+                    StartDate = DateTime.Today,
+                    EndDate = DateTime.Today
                 };
             }
             else
             {
                 var lotTypeFromDb = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
-                if (lotTypeFromDb == null) return NotFound();
+                if (lotTypeFromDb == null)
+                    return NotFound();
 
                 LotTypeObject = lotTypeFromDb;
             }
@@ -42,21 +45,37 @@ namespace RVPark.Pages.Admin.LotTypes
             return Page();
         }
 
-        // Submits changes to the lot type
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             if (LotTypeObject.Id == 0)
             {
+                LotTypeObject.StartDate = DateTime.Today;
+                LotTypeObject.EndDate = DateTime.Today;
                 _unitOfWork.LotType.Add(LotTypeObject);
             }
             else
             {
-                _unitOfWork.LotType.Update(LotTypeObject);
+                var existing = await _unitOfWork.LotType.GetAsync(l => l.Id == LotTypeObject.Id);
+                if (existing == null)
+                    return NotFound();
+
+                bool endDateChanged = existing.EndDate != LotTypeObject.EndDate;
+
+                existing.Name = LotTypeObject.Name;
+                existing.Rate = LotTypeObject.Rate;
+                existing.EndDate = LotTypeObject.EndDate;
+                existing.IsArchived = LotTypeObject.IsArchived;
+
+                if (endDateChanged)
+                {
+                    existing.StartDate = DateTime.Today;
+                }
+
+                _unitOfWork.LotType.Update(existing);
+                LotTypeObject = existing; 
             }
 
             await _unitOfWork.CommitAsync();

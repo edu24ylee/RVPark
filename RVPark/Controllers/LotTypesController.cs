@@ -25,11 +25,15 @@ namespace RVPark.Controllers
                 id = l.Id,
                 name = l.Name,
                 rate = l.Rate,
+                startDate = l.StartDate,
+                endDate = l.EndDate,
+                isArchived = l.IsArchived,
                 parkName = l.Park?.Name ?? "N/A"
             });
 
             return Json(new { data = result });
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -61,5 +65,33 @@ namespace RVPark.Controllers
 
             return Json(new { data = result });
         }
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var lotType = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
+            if (lotType == null)
+                return Json(new { success = false, message = "Lot type not found." });
+
+            lotType.IsArchived = true;
+            _unitOfWork.LotType.Update(lotType);
+            await _unitOfWork.CommitAsync();
+
+            return Json(new { success = true, message = "Lot type archived." });
+        }
+
+        [HttpPost("unarchive/{id}")]
+        public async Task<IActionResult> Unarchive(int id)
+        {
+            var lotType = await _unitOfWork.LotType.GetAsync(l => l.Id == id);
+            if (lotType == null)
+                return Json(new { success = false, message = "Lot type not found." });
+
+            lotType.IsArchived = false;
+            _unitOfWork.LotType.Update(lotType);
+            await _unitOfWork.CommitAsync();
+
+            return Json(new { success = true, message = "Lot type unarchived." });
+        }
+
     }
 }

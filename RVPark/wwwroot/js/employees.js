@@ -20,40 +20,41 @@ function loadEmployeeList() {
             },
             { data: "user.email", width: "20%" },
             { data: "user.phone", width: "15%" },
-            {
-                data: "user.isActive",
-                render: data => data ? "Active" : "Inactive",
-                width: "10%"
-            },
-            {
-                data: "role",
-                width: "10%"
-            },
+            { data: "role", width: "10%" },
             {
                 data: "user.lockOutEnd",
                 render: function (data, type, row) {
                     const isLocked = data && new Date(data) > new Date();
                     const btnText = isLocked ? "Unlock" : "Lock";
                     const icon = isLocked ? "fa-lock-open" : "fa-lock";
+                    const btnClass = isLocked ? "btn-outline-custom-blue" : "btn-custom-blue";
+
                     return `
-                        <button class="btn btn-outline-warning" onclick="toggleLock(${row.employeeID})">
-                            <i class="fas ${icon}"></i> ${btnText}
-                        </button>`;
+            <button class="btn btn-sm ${btnClass}" onclick="toggleLock(${row.employeeID})">
+                <i class="fas ${icon}"></i> ${btnText}
+            </button>`;
                 },
                 orderable: false,
                 width: "15%"
             },
             {
                 data: "employeeID",
-                render: function (data) {
+                render: function (data, type, row) {
+                    const isArchived = row.user.isArchived;
+                    const archiveBtn = isArchived
+                        ? `<button class="btn btn-sm btn-success" onclick="unarchiveEmployee(${data})">
+                               <i class="fas fa-box-open"></i> Unarchive
+                           </button>`
+                        : `<button class="btn btn-sm btn-custom-grey" onclick="archiveEmployee(${data})">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
+
                     return `
-                        <div class="text-center">
+                        <div class="text-center d-flex flex-column align-items-center gap-1">
                             <a href="/Admin/Employees/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
                                 <i class="fas fa-edit"></i> Update
                             </a>
-                            <button class="btn btn-sm btn-custom-grey" onclick="deleteEmployee(${data})">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                            ${archiveBtn}
                         </div>`;
                 },
                 orderable: false,
@@ -70,6 +71,36 @@ function loadEmployeeList() {
 function toggleLock(id) {
     $.ajax({
         url: `/api/employees/lockunlock/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                employeeTable.ajax.reload();
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}
+
+function archiveEmployee(id) {
+    $.ajax({
+        url: `/api/employees/archive/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                employeeTable.ajax.reload();
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}
+
+function unarchiveEmployee(id) {
+    $.ajax({
+        url: `/api/employees/unarchive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {

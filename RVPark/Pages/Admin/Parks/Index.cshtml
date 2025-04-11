@@ -6,14 +6,12 @@
     ViewData["Title"] = "Manage Parks";
 }
 
-
-
 <div class="container my-4">
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center py-3">
-                <h2 class="text-primary mb-0">Park List</h2>
-                <a asp-page="Upsert" class="btn btn-primary">
+                <h2 class="text-custom-blue-header mb-0">Park List</h2>
+                <a asp-page="Upsert" class="btn btn-custom-blue-header">
                     <i class="fas fa-plus"></i> Create New Park
                 </a>
             </div>
@@ -40,20 +38,24 @@
                                 <td>@park.State</td>
                                 <td>@park.Zipcode</td>
                                 <td>
-                                    <a class="btn btn-outline-primary btn-sm" asp-page="Upsert" asp-route-id="@park.Id">
-                                        Edit
+                                    <a class="btn btn-sm btn-custom-blue" asp-page="Upsert" asp-route-id="@park.Id">
+                                        <i class="fas fa-edit"></i> Edit
                                     </a>
 
                                     @if (!park.IsArchived)
                                     {
                                         <form method="post" asp-page-handler="Archive" asp-route-id="@park.Id" class="d-inline">
-                                            <button type="submit" class="btn btn-warning btn-sm">Archive</button>
+                                            <button type="submit" class="btn btn-sm btn-custom-grey">
+                                                <i class="fas fa-archive"></i> Archive
+                                            </button>
                                         </form>
                                     }
                                     else if (User.IsInRole(Model.SuperAdminRole))
                                     {
                                         <form method="post" asp-page-handler="Unarchive" asp-route-id="@park.Id" class="d-inline">
-                                            <button type="submit" class="btn btn-success btn-sm">Unarchive</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-custom-blue">
+                                                <i class="fas fa-box-open"></i> Unarchive
+                                            </button>
                                         </form>
                                     }
                                 </td>

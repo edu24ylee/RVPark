@@ -25,7 +25,6 @@ namespace RVPark.Pages.Admin.Roles
         // Called when the page is loaded
         public async Task OnGetAsync(bool success = false, string message = null)
         {
-            // Receive status and message from redirection (after role create/update)
             Success = success;
             Message = message;
 
