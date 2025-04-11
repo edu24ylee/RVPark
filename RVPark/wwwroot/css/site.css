@@ -162,3 +162,7 @@ body {
 .toast-custom-blue .toast-message {
     color: white !important;
 }
+.bg-custom-blue {
+    background-color: #0066cc !important;
+    color: white;
+}
