@@ -9,7 +9,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center py-3">
                 <h2 class="text-primary mb-0">Employee List</h2>
-                <a asp-page="Upsert" class="btn btn-primary">
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Create New
                 </a>
             </div>
@@ -21,8 +21,7 @@
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Status</th>
-                            <th>Lock/Unlock</th>
+                            <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

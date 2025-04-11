@@ -127,3 +127,8 @@ body {
     height: 400px;
     object-fit: cover;
 }
+.btn-custom-blue-header {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+}

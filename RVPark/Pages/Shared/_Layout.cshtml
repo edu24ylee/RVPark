@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Infrastructure.Utilities
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -69,13 +70,14 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSecondRow">
                             <li><a class="dropdown-item" href="/Customer/Lots/Available">View Available Lots</a></li>
                             <li><a class="dropdown-item" href="/Customer/Reservations/Create">Make a Reservation</a></li>
-                            @if (User.Identity.IsAuthenticated && !(User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin")))
+                            @if (User.IsInRole(SD.GuestRole))
                             {
                                 <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
                             }
 
 
-                            @if (User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin"))
+                            @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.CampHostRole) || User.IsInRole(SD.SuperAdminRole))
+
                             {
                                 <li class="nav-item dropdown">
                                     <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
@@ -95,12 +97,13 @@
                     <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
                         <li class="nav-item"><a class="nav-link" href="/Customer/Lots/Available">View Available Lots</a></li>
                         <li class="nav-item"><a class="nav-link" href="/Customer/Reservations/Create">Make a Reservation</a></li>
-                        @if (User.Identity.IsAuthenticated && !(User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin")))
+                        @if (User.IsInRole(SD.GuestRole))
                         {
                             <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
                         }
 
-                        @if (User.IsInRole("Admin") || User.IsInRole("CampHost") || User.IsInRole("SuperAdmin"))
+                        @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.CampHostRole) || User.IsInRole(SD.SuperAdminRole))
+
                         {
                             <li class="nav-item dropdown">
                                 <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
@@ -109,11 +112,13 @@
                                     <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
                                     <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
                                     <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
+                                    @if (User.IsInRole(SD.SuperAdminRole))
+                                    {
                                     <a class="dropdown-item" href="/Admin/Employees/Index">Employees</a>
+                                    }
                                     <a class="dropdown-item" href="/Admin/FeeTypes/Index">FeeTypes</a>
                                     <a class="dropdown-item" href="/Admin/Fees/Index">Fees</a>
                                     <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
-                                    <a class="dropdown-item" href="/Admin/Roles/Index">Roles</a>
                                 </div>
                             </li>
                         }
