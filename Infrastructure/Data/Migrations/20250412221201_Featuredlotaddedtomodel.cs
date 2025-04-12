@@ -5,14 +5,14 @@
 namespace Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class IsarchivePark : Migration
+    public partial class Featuredlotaddedtomodel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsArchived",
-                table: "Park",
+                name: "IsFeatured",
+                table: "Lot",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -22,8 +22,8 @@ namespace Infrastructure.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsArchived",
-                table: "Park");
+                name: "IsFeatured",
+                table: "Lot");
         }
     }
 }

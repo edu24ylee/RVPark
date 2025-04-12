@@ -3,85 +3,118 @@
 
 @{
     ViewData["Title"] = "Campsite Details";
+
+    // Determine the main image path
+    string mainImagePath;
+
+    if (!string.IsNullOrEmpty(Model.SelectedLot.FeaturedImage))
+    {
+        mainImagePath = Model.SelectedLot.FeaturedImage.StartsWith("/Images/")
+            ? Model.SelectedLot.FeaturedImage
+            : $"/Images/lots/{Model.SelectedLot.FeaturedImage}";
+    }
+    else if (Model.SelectedLot.Images?.FirstOrDefault() is string firstImage)
+    {
+        mainImagePath = firstImage.StartsWith("/Images/")
+            ? firstImage
+            : $"/Images/lots/{firstImage}";
+    }
+    else
+    {
+        mainImagePath = "/Images/default.jpg";
+    }
 }
 
 <div class="container mt-5">
     <div class="row align-items-center">
-
-        <div class="col-md-5 mb-4 mb-md-0">
-            <div class="image-container">
-                <img src="@Model.SelectedLot.Image" class="img-fluid rounded shadow-sm" alt="Lot Image" />
-            </div>
+        <div class="col-12 text-center mb-4">
+            <img id="mainImage"
+                 src="@mainImagePath"
+                 class="lot-main-img"
+                 alt="Main Lot Image"
+                 onerror="this.onerror=null;this.src='/Images/default.jpg';">
         </div>
 
-        <div class="col-md-7">
-            <h1 class="display-4 text-primary font-weight-bold mb-3">Lot Information</h1>
+        @if (Model.SelectedLot.Images != null && Model.SelectedLot.Images.Count > 1)
+        {
+            <div class="col-12 d-flex justify-content-center flex-wrap gap-2 mb-5">
+                @foreach (var image in Model.SelectedLot.Images)
+                {
+                    var thumbPath = image.StartsWith("/Images/")
+                    ? image
+                    : $"/Images/lots/{image}";
 
-            <h4 class="card-title text-primary mb-2">
+                    <img src="@thumbPath"
+                         class="lot-thumb-img"
+                         alt="Thumbnail"
+                         onclick="setMainImage('@thumbPath')"
+                         onerror="this.onerror=null;this.src='/Images/default.jpg';">
+                }
+            </div>
+        }
+
+        <div class="col-md-12">
+            <h1 class="display-4 text-custom-blue-header fw-bold mb-3">Lot Information</h1>
+            <h4 class="card-title text-custom-blue-header mb-2">
                 <strong>@(Model.SelectedLot.LotType?.Name ?? "Name unavailable")</strong>
             </h4>
 
             <div class="mb-4">
-                <p class="lead text-muted">
-                    <strong>Location:</strong> @Model.SelectedLot.Location
-                </p>
-                <p class="text-danger fs-5 fw-bold">
-                    @(Model.SelectedLot.LotType != null ? $"{Model.SelectedLot.LotType.Rate:C}/night" : "Rate unavailable")
-                </p>
+                <p class="lead text-muted"><strong>Location:</strong> @Model.SelectedLot.Location</p>
             </div>
 
-            <div class="mb-4">
-                <ul class="nav nav-tabs" id="lotDetailsTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">Lot Size</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="location-tab" data-bs-toggle="tab" href="#location" role="tab">Description</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#contact" role="tab">Contact</a>
-                    </li>
-                </ul>
+            <ul class="nav nav-tabs mb-3" id="lotDetailsTabs" role="tablist">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#overview" role="tab">Lot Size</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#description" role="tab">Description</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#contact" role="tab">Contact</a></li>
+            </ul>
 
-                <div class="tab-content" id="lotDetailsTabsContent">
-                    <div class="tab-pane fade show active m-3" id="overview" role="tabpanel">
-                        <p><strong>Length:</strong> @Model.SelectedLot.Length ft</p>
-                        <p><strong>Width:</strong> @Model.SelectedLot.Width ft</p>
-                    </div>
-                    <div class="tab-pane fade m-3" id="location" role="tabpanel">
-                        <p>@Model.SelectedLot.Description</p>
-                    </div>
-                    <div class="tab-pane fade m-3" id="contact" role="tabpanel">
-                        <p><strong>For more information call us at:</strong> (702)652-8711</p>
-                        <p><strong>Office Hours</strong></p>
-                        <p>Mon–Sat: 9AM–4PM</p>
-                        <p>Sun: Closed</p>
-                    </div>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <p><strong>Length:</strong> @Model.SelectedLot.Length ft</p>
+                    <p><strong>Width:</strong> @Model.SelectedLot.Width ft</p>
+                </div>
+                <div class="tab-pane fade" id="description" role="tabpanel">
+                    <p>@Model.SelectedLot.Description</p>
+                </div>
+                <div class="tab-pane fade" id="contact" role="tabpanel">
+                    <p><strong>Phone:</strong> (702) 652-8711</p>
+                    <p><strong>Office Hours:</strong> Mon–Sat: 9AM–4PM, Sun: Closed</p>
                 </div>
             </div>
 
-            <div class="d-flex gap-3 mt-4">
-                <a asp-page="Schedule" asp-route-id="@Model.SelectedLot.Id" class="btn btn-primary btn-lg shadow">
-                    <i class="fas fa-calendar-check me-2"></i> Schedule Visit
+            <div class="mt-4">
+                <a asp-page="Schedule" asp-route-id="@Model.SelectedLot.Id" class="btn btn-custom-blue btn-lg">
+                    <i class="fas fa-calendar-check"></i> Schedule Your Stay
                 </a>
-                <a asp-page="Index" class="btn btn-outline-secondary btn-lg shadow">
-                    <i class="fas fa-arrow-left me-2"></i> Back to Campsites
-                </a>
+                <a asp-page="./Index" class="btn btn-custom-grey btn-lg ms-3">Back to Campsites</a>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .image-container {
-        height: 300px;
-        overflow: hidden;
-        border-radius: 8px;
-    }
+<div id="customFullscreen" class="fullscreen-overlay" style="display:none;">
+    <span class="fullscreen-close" onclick="closeFullscreen()">×</span>
+    <img id="fullscreenImage" src="" alt="Fullscreen Lot Image">
+</div>
 
-        .image-container img {
-            height: 100%;
-            width: 100%;
-            object-fit: cover;
+@section Scripts {
+    <script>
+        function setMainImage(url) {
+            document.getElementById("mainImage").src = url;
         }
-</style>
+
+        document.getElementById("mainImage").addEventListener("click", function () {
+            const fullImage = document.getElementById("fullscreenImage");
+            const fullContainer = document.getElementById("customFullscreen");
+            fullImage.src = this.src;
+            fullContainer.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        });
+
+        function closeFullscreen() {
+            document.getElementById("customFullscreen").style.display = "none";
+            document.body.style.overflow = "";
+        }
+    </script>
+}

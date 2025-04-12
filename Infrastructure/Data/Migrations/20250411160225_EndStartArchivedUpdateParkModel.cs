@@ -18,7 +18,7 @@ namespace Infrastructure.Data.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
-                name: "",
+                name: "IsArchived",
                 table: "LotType",
                 type: "bit",
                 nullable: false,
@@ -40,7 +40,7 @@ namespace Infrastructure.Data.Migrations
                 table: "LotType");
 
             migrationBuilder.DropColumn(
-                name: "",
+                name: "IsArchived",
                 table: "LotType");
 
             migrationBuilder.DropColumn(

@@ -15,6 +15,8 @@ namespace RVPark.Pages.Customer.Home
 
         public List<Lot> AvailableLots { get; set; } = new List<Lot>();
 
+        public Lot? FeaturedLot { get; set; }
+
         public async Task OnGetAsync()
         {
             var lots = await _unitOfWork.Lot.GetAllAsync(
@@ -22,7 +24,14 @@ namespace RVPark.Pages.Customer.Home
                 includes: "LotType"
             );
 
-            AvailableLots = lots.ToList();
+            FeaturedLot = lots
+                .Where(l => l.LotType != null)
+                .OrderByDescending(l => l.LotType!.Rate)
+                .FirstOrDefault();
+
+            AvailableLots = lots
+                .Where(l => l.Id != FeaturedLot?.Id)
+                .ToList();
         }
     }
 }

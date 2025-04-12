@@ -5,25 +5,25 @@
 namespace Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class IsarchivePark : Migration
+    public partial class lotmodelimageupdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsArchived",
-                table: "Park",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
+            migrationBuilder.DropColumn(
+                name: "Images",
+                table: "Lot");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "IsArchived",
-                table: "Park");
+            migrationBuilder.AddColumn<string>(
+                name: "Images",
+                table: "Lot",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "");
         }
     }
 }
