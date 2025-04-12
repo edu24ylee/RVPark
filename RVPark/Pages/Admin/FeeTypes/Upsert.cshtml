@@ -1,37 +1,66 @@
 ﻿@page
 @model RVPark.Pages.Admin.FeeTypes.UpsertModel
 @{
+    ViewData["Title"] = Model.FeeTypeObject.Id != 0 ? "Update Fee Type" : "Create Fee Type";
 }
-<form method="post" asp-action="Upsert">
+
+<form method="post">
     <div class="container">
         <div class="row px-2 mx-2 border">
-            <div asp-asp-validation-summary="All" class="text-danger"></div>
-            <div class="col-12 px-3" style="border-bottom: 1px solid #325d88">
-                <h2 class="text-primary">@(Model.FeeTypeObject.Id != 0 ? "Update" : "Create") Fee Type</h2>
+            <div class="col-12 px-3 py-3 border-bottom border-custom-blue">
+                <h2 class="text-custom-blue-header">@ViewData["Title"]</h2>
             </div>
+
             <div class="col-8 pt-3">
-                <div class="form-group row">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="FeeTypeObject.Id" />
+
+                <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeTypeObject.FeeTypeName"></label>
+                        <label asp-for="FeeTypeObject.FeeTypeName" class="form-label"></label>
                     </div>
                     <div class="col-9">
-                        <input class="form-control" asp-for="FeeTypeObject.FeeTypeName" />
-                        <span class="text-danger" asp-asp-validation-for="FeeTypeObject.FeeTypeName"></span>
+                        <input asp-for="FeeTypeObject.FeeTypeName" class="form-control" />
+                        <span asp-validation-for="FeeTypeObject.FeeTypeName" class="text-danger"></span>
                     </div>
-                    @if (Model.FeeTypeObject.Id != 0)
-                    {
-                        <input type="hidden" asp-for="FeeTypeObject.Id" />
-                    }
                 </div>
 
-                <div class="form-group row">
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="FeeTypeObject.TriggerType" class="form-label"></label>
+                    </div>
+                    <div class="col-9">
+                        <select asp-for="FeeTypeObject.TriggerType" class="form-select">
+                            <option value="">-- Select Trigger Type --</option>
+                            <option value="Reservation">Reservation</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                        <span asp-validation-for="FeeTypeObject.TriggerType" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="FeeTypeObject.TriggerRuleJson" class="form-label"></label>
+                    </div>
+                    <div class="col-9">
+                        <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="3"
+                                  placeholder="Optional: JSON rules for triggering (e.g. cancellation window)"></textarea>
+                        <span asp-validation-for="FeeTypeObject.TriggerRuleJson" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row pt-3">
                     <div class="col-9 offset-3">
                         <div class="row">
                             <div class="col-6">
-                                <button type="submit" class="btn btn-primary form-control">@(Model.FeeTypeObject.Id != 0 ? "Update" : "Create")</button>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    @(Model.FeeTypeObject.Id != 0 ? "Update" : "Create")
+                                </button>
                             </div>
                             <div class="col-6">
-                                <a asp-page="./Index" class="btn btn-success from-control">Back to List</a>
+                                <a asp-page="./Index" class="btn btn-secondary w-100">Back to List</a>
                             </div>
                         </div>
                     </div>
@@ -40,6 +69,7 @@
         </div>
     </div>
 </form>
+
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>

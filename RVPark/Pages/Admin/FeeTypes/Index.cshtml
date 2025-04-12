@@ -7,10 +7,9 @@
 <div class="container my-4">
     <div class="card shadow-sm">
         <div class="card-body">
-
             <div class="d-flex justify-content-between align-items-center py-3">
                 <h2 class="text-primary mb-0">Fee Type List</h2>
-                <a asp-page="Upsert" asp-route-id="0" class="btn btn-primary">
+                <a asp-page="Upsert" asp-route-id="0" class="btn btn-custom-blue-header">
                     <i class="fas fa-plus"></i> Add Fee Type
                 </a>
             </div>
@@ -19,23 +18,33 @@
                 <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
                     <thead class="table-primary">
                         <tr>
-                            <th>Fee Type</th>
+                            <th>
+                                Fee Type
+                                <select id="feeTypeFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
+                            <th>
+                                Trigger Type
+                                <select id="triggerTypeFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                 </table>
             </div>
-
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/feetypes.js"></script>
+    <script src="~/js/feetypes.js" asp-append-version="true"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
 }

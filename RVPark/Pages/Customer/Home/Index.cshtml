@@ -21,26 +21,26 @@
     <div id="lotContainer" class="row g-4">
         @foreach (var lot in Model.AvailableLots)
         {
-            <!-- Moved .lot-card class here to wrap the entire column -->
+            var lotType = lot.LotType;
+            var lotName = lotType?.Name ?? "Name unavailable";
+            var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
+            var lotRateValue = lotType?.Rate ?? 0;
+
             <div class="col-lg-4 col-md-6 lot-card"
                  data-name="@lot.Location"
-                 data-price="@(lot.LotType != null ? lot.LotType.Rate : 0)">
+                 data-price="@lotRateValue">
                 <div class="card shadow-sm border-0 h-100">
                     @if (!string.IsNullOrEmpty(lot.Image))
                     {
-                        <img src="@lot.Image" class="card-img-top rounded-top lot-img" alt="@lot.Location">
+                        <img src="@lot.Image" class="card-img-top rounded-top lot-img" alt="@lot.Location" />
                     }
 
                     <div class="card-body d-flex flex-column">
-                        <span class="text-danger fs-5 fw-bold">      
-                            <h4 class="card-title text-primary mb-2"><strong> @(lot.LotType != null ? $"{lot.LotType.Name:C}" : "Name unavailable")</strong></h4>
-                        </span>
+                        <h4 class="card-title text-primary mb-2"><strong>@lotName</strong></h4>
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="badge bg-warning text-dark px-3 py-2">@lot.Location</span>
-                            <span class="text-danger fs-5 fw-bold">
-                                @(lot.LotType != null ? $"{lot.LotType.Rate:C}/night" : "Rate unavailable")
-                            </span>
+                            <span class="text-danger fs-5 fw-bold">@lotRate/night</span>
                         </div>
 
                         <p class="card-text text-muted mb-4">
@@ -93,7 +93,6 @@
             }
         });
 
-        // Clear and re-append cards in new order
         container.innerHTML = "";
         cards.forEach(card => container.appendChild(card));
     });

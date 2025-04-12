@@ -2,44 +2,40 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Threading.Tasks;
 
 namespace RVPark.Pages.Admin.FeeTypes
 {
-    // Handles creation and editing of FeeType records
     public class UpsertModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;
-
-        // Bound model for form fields
-        [BindProperty]
-        public FeeType FeeTypeObject { get; set; }
 
         public UpsertModel(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        // Loads the form and pre-fills data if editing
-        public void OnGet(int? id)
+        [BindProperty]
+        public FeeType FeeTypeObject { get; set; } = new();
+
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id != null)
+            if (id is > 0)
             {
-                FeeTypeObject = _unitOfWork.FeeType.Get(ft => ft.Id == id);
+                var fromDb = await _unitOfWork.FeeType.GetAsync(ft => ft.Id == id);
+                if (fromDb == null)
+                    return NotFound();
+
+                FeeTypeObject = fromDb;
             }
 
-            if (FeeTypeObject == null)
-            {
-                FeeTypeObject = new FeeType();
-            }
+            return Page();
         }
 
-        // Processes form submission
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             if (FeeTypeObject.Id == 0)
             {
@@ -47,10 +43,20 @@ namespace RVPark.Pages.Admin.FeeTypes
             }
             else
             {
-                _unitOfWork.FeeType.Update(FeeTypeObject);
+                var existing = await _unitOfWork.FeeType.GetAsync(ft => ft.Id == FeeTypeObject.Id);
+                if (existing == null)
+                    return NotFound();
+
+                existing.FeeTypeName = FeeTypeObject.FeeTypeName;
+                existing.Description = FeeTypeObject.Description;
+                existing.TriggerType = FeeTypeObject.TriggerType;
+                existing.TriggerRuleJson = FeeTypeObject.TriggerRuleJson;
+                existing.IsArchived = FeeTypeObject.IsArchived;
+
+                _unitOfWork.FeeType.Update(existing);
             }
 
-            _unitOfWork.Commit();
+            await _unitOfWork.CommitAsync();
             return RedirectToPage("./Index");
         }
     }

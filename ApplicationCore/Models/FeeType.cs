@@ -1,20 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Azure.Documents;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ApplicationCore.Models
 {
-
     public class FeeType
     {
-
-        [Key]
         public int Id { get; set; }
+        public string FeeTypeName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public TriggerType TriggerType { get; set; }
+        public string? TriggerRuleJson { get; set; }
+        public bool IsArchived { get; set; }
+    }
 
-        [Required]
-        public string FeeTypeName { get; set; }
+
+    public enum TriggerType
+    {
+        Manual = 0,
+        Triggered = 1
+    }
+
+    public class CancellationFeeRule
+    {
+        public int DaysBefore { get; set; }
+        public double PenaltyPercent { get; set; }
     }
 }

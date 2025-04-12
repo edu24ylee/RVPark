@@ -1,10 +1,11 @@
 ﻿using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace RVPark.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/feetypes")]
     [ApiController]
     public class FeeTypeController : Controller
     {
@@ -16,62 +17,36 @@ namespace RVPark.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFeeTypes()
+        public async Task<IActionResult> GetAll()
         {
-            var feeTypes = await _unitOfWork.FeeType.GetAllAsync();
-            return Json(new { success = true, data = feeTypes });
+            var data = await _unitOfWork.FeeType.GetAllAsync();
+            return Json(new { success = true, data });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetFeeTypeById(int id)
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> Archive(int id)
         {
             var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
-            if (feeType == null)
-            {
-                return NotFound(new { success = false, message = "Fee Type not found." });
-            }
-            return Json(new { success = true, data = feeType });
-        }
+            if (feeType == null) return NotFound();
 
-        [HttpPost]
-        public async Task<IActionResult> CreateFeeType([FromBody] FeeType feeType)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
-            _unitOfWork.FeeType.Add(feeType);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = feeType });
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFeeType(int id, [FromBody] FeeType feeType)
-        {
-            if (id != feeType.Id)
-            {
-                return BadRequest(new { success = false, message = "Fee Type ID mismatch." });
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
+            feeType.IsArchived = true;
             _unitOfWork.FeeType.Update(feeType);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = feeType });
+
+            return Json(new { success = true, message = "Fee Type archived." });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteFeeType(int id)
+        [HttpPost("unarchive/{id}")]
+        public async Task<IActionResult> Unarchive(int id)
         {
             var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
-            if (feeType == null)
-            {
-                return NotFound(new { success = false, message = "Fee Type not found." });
-            }
-            _unitOfWork.FeeType.Delete(feeType);
+            if (feeType == null) return NotFound();
+
+            feeType.IsArchived = false;
+            _unitOfWork.FeeType.Update(feeType);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Fee Type deleted successfully." });
+
+            return Json(new { success = true, message = "Fee Type unarchived." });
         }
     }
 }

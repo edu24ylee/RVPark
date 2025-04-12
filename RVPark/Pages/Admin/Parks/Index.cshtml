@@ -20,14 +20,40 @@
                 <table class="table table-striped table-hover table-bordered align-middle w-100">
                     <thead class="table-primary">
                         <tr>
-                            <th>Name</th>
-                            <th>Address</th>
-                            <th>City</th>
-                            <th>State</th>
-                            <th>Zipcode</th>
+                            <th>
+                                Name
+                                <select id="nameFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
+                            <th>
+                                Address
+                                <select id="addressFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
+                            <th>
+                                City
+                                <select id="cityFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
+                            <th>
+                                State
+                                <select id="stateFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
+                            <th>
+                                Zipcode
+                                <select id="zipcodeFilter" class="form-select form-select-sm mt-1">
+                                    <option value="">All</option>
+                                </select>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @foreach (var park in Model.Parks)
                         {
