@@ -38,10 +38,10 @@ function loadList(parkId) {
                         : `<span class="text-muted">No image</span>`;
 
                     return `
-            <div class="d-flex flex-column align-items-center text-center" style="white-space: normal;">
-                ${imageTag}
-                <span class="fw-semibold text-custom-blue mt-1">${count} image${count !== 1 ? 's' : ''}</span>
-            </div>`;
+                        <div class="d-flex flex-column align-items-center text-center" style="white-space: normal;">
+                            ${imageTag}
+                            <span class="fw-semibold text-custom-blue mt-1">${count} image${count !== 1 ? 's' : ''}</span>
+                        </div>`;
                 }
             },
             {
@@ -73,18 +73,14 @@ function loadList(parkId) {
             }
         ],
         initComplete: function () {
-            this.api().columns([0, 1, 2, 3, 4, 5]).every(function () {
+            this.api().columns([0, 1, 2, 3]).every(function () {
                 const column = this;
                 const columnIndex = column.index();
                 const originalTitle = $('#DT_load thead th').eq(columnIndex).text();
 
                 const $wrapper = $('<div class="d-flex flex-column align-items-start"></div>');
                 const $label = $(`<label class="fw-semibold small mb-1">${originalTitle}</label>`);
-                const $select = $(`<select class="form-select form-select-sm"><option value="">All ${originalTitle}</option></select>`)
-                    .on('change', function () {
-                        const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                        column.search(val ? `^${val}$` : '', true, false).draw();
-                    });
+                const $select = $(`<select class="form-select form-select-sm"><option value="">All ${originalTitle}</option></select>`);
 
                 column.data().unique().sort().each(function (d) {
                     if (d || d === 0) {
@@ -92,10 +88,15 @@ function loadList(parkId) {
                     }
                 });
 
+                $select.on('change', function () {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search(val ? `^${val}$` : '', true, false).draw();
+                });
+
                 $wrapper.append($label).append($select);
                 $(column.header()).empty().append($wrapper);
             });
-        },
+        }, // ✅ COMMA WAS MISSING HERE
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         language: {
             emptyTable: "No lots found.",

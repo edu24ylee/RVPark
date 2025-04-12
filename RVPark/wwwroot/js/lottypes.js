@@ -1,13 +1,13 @@
 ﻿let dataTable;
 
 $(document).ready(function () {
+    loadList();
+
     const rawToday = new Date();
     const today = new Date(rawToday.getFullYear(), rawToday.getMonth(), rawToday.getDate());
-
-    const fiscalStart = new Date(today.getFullYear(), 9, 1); // Oct 1
+    const fiscalStart = new Date(today.getFullYear(), 9, 1);
     const fiscalReminderStart = new Date(fiscalStart);
     fiscalReminderStart.setDate(fiscalStart.getDate() - 5);
-
     const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
 
     if (isSuperAdmin && today >= fiscalReminderStart && today <= fiscalStart) {
@@ -17,8 +17,6 @@ $(document).ready(function () {
             { toastClass: 'toast toast-custom-blue' }
         );
     }
-
-    loadList();
 });
 
 function loadList() {
@@ -26,20 +24,17 @@ function loadList() {
         ajax: {
             url: "/api/lottype",
             type: "GET",
-            datatype: "json",
+            dataType: "json",
             dataSrc: "data",
-            error: function (xhr, error, thrown) {
-                toastr.error("Failed to load lot types.");
-                console.error("DataTable Load Error:", error, thrown);
-            },
             complete: function (xhr) {
                 const today = new Date();
-                const response = xhr.responseJSON?.data ?? [];
+                const data = xhr.responseJSON?.data ?? [];
+                const nameSet = new Set();
 
-                response.forEach(item => {
+                data.forEach(item => {
+                    if (item.name) nameSet.add(item.name);
                     if (item.endDate) {
-                        const endDateRaw = new Date(item.endDate);
-                        const endDate = new Date(endDateRaw.getFullYear(), endDateRaw.getMonth(), endDateRaw.getDate());
+                        const endDate = new Date(item.endDate);
                         const warningStart = new Date(endDate);
                         warningStart.setDate(endDate.getDate() - 5);
 
@@ -60,6 +55,16 @@ function loadList() {
                         }
                     }
                 });
+
+                const $nameFilter = $('#nameFilter');
+                $nameFilter.find('option:not(:first)').remove();
+                [...nameSet].sort().forEach(val => {
+                    $nameFilter.append(`<option value="${val}">${val}</option>`);
+                });
+                $nameFilter.on('change', function () {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    dataTable.column(0).search(val ? `^${val}$` : '', true, false).draw();
+                });
             }
         },
         columns: [
@@ -72,34 +77,28 @@ function loadList() {
             {
                 data: "startDate",
                 width: "15%",
-                render: function (data) {
-                    return data ? new Date(data).toLocaleDateString() : "—";
-                }
+                render: data => data ? new Date(data).toLocaleDateString() : "—"
             },
             {
                 data: "endDate",
                 width: "15%",
-                render: function (data) {
-                    return data ? new Date(data).toLocaleDateString() : "—";
-                }
+                render: data => data ? new Date(data).toLocaleDateString() : "—"
             },
             {
-                data: null,
+                data: "id",
                 width: "20%",
                 render: function (data, type, row) {
-                    const isArchived = row.isArchived === true || row.isArchived === "true";
-
+                    const isArchived = row.isArchived;
                     const archiveBtn = isArchived
-                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLotType(${row.id})">
+                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLotType(${data})">
                                <i class="fas fa-box-open"></i> Unarchive
                            </button>`
-                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLotType(${row.id})">
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLotType(${data})">
                                <i class="fas fa-archive"></i> Archive
                            </button>`;
-
                     return `
                         <div class="text-center d-flex justify-content-center gap-2">
-                            <a href="/Admin/LotTypes/Upsert?id=${row.id}" class="btn btn-sm btn-custom-blue text-white">
+                            <a href="/Admin/LotTypes/Upsert?id=${data}" class="btn btn-sm btn-custom-blue text-white">
                                 <i class="far fa-edit"></i> Edit
                             </a>
                             ${archiveBtn}
@@ -107,41 +106,91 @@ function loadList() {
                 }
             }
         ],
+        dom: '<"row mb-2"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 text-end"f>>rt<"row mt-2"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         language: {
-            emptyTable: "No lot types found."
+            emptyTable: "No lot types found.",
+            search: "Search:"
         },
         width: "100%"
+    });
+
+    dataTable.on('draw', function () {
+        const $rateFilter = $('#rateFilter');
+        if ($rateFilter.children('option').length <= 1) {
+            const values = new Set();
+            dataTable.column(1).nodes().each(cell => {
+                const val = $(cell).text().trim().replace('$', '');
+                if (val) values.add(val);
+            });
+            [...values].sort((a, b) => parseFloat(a) - parseFloat(b)).forEach(v => {
+                $rateFilter.append(`<option value="${v}">${v}</option>`);
+            });
+        }
+        $rateFilter.off('change').on('change', function () {
+            const val = $.fn.dataTable.util.escapeRegex($(this).val());
+            dataTable.column(1).search(val ? `^\\$?${val}$` : '', true, false).draw();
+        });
+
+        const $startDateFilter = $('#startDateFilter');
+        if ($startDateFilter.children('option').length <= 1) {
+            const values = new Set();
+            dataTable.column(2).nodes().each(cell => {
+                const val = $(cell).text().trim();
+                if (val && val !== "—") values.add(val);
+            });
+            [...values].sort().forEach(v => {
+                $startDateFilter.append(`<option value="${v}">${v}</option>`);
+            });
+        }
+        $startDateFilter.off('change').on('change', function () {
+            const val = $.fn.dataTable.util.escapeRegex($(this).val());
+            dataTable.column(2).search(val ? `^${val}$` : '', true, false).draw();
+        });
+
+        const $endDateFilter = $('#endDateFilter');
+        if ($endDateFilter.children('option').length <= 1) {
+            const values = new Set();
+            dataTable.column(3).nodes().each(cell => {
+                const val = $(cell).text().trim();
+                if (val && val !== "—") values.add(val);
+            });
+            [...values].sort().forEach(v => {
+                $endDateFilter.append(`<option value="${v}">${v}</option>`);
+            });
+        }
+        $endDateFilter.off('change').on('change', function () {
+            const val = $.fn.dataTable.util.escapeRegex($(this).val());
+            dataTable.column(3).search(val ? `^${val}$` : '', true, false).draw();
+        });
     });
 }
 
 function archiveLotType(id) {
     $.ajax({
-        url: `/api/lottype/archive/${id}`,
+        url: `/api/lottypes/archive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
                 dataTable.ajax.reload();
             } else {
-                toastr.error(data.message || "Archive failed.");
+                toastr.error(data.message);
             }
-        },
-        error: () => toastr.error("Failed to archive lot type.")
+        }
     });
 }
 
 function unarchiveLotType(id) {
     $.ajax({
-        url: `/api/lottype/unarchive/${id}`,
+        url: `/api/lottypes/unarchive/${id}`,
         type: "POST",
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
                 dataTable.ajax.reload();
             } else {
-                toastr.error(data.message || "Unarchive failed.");
+                toastr.error(data.message);
             }
-        },
-        error: () => toastr.error("Failed to unarchive lot type.")
+        }
     });
 }
