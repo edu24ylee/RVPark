@@ -2,6 +2,7 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Linq;
 
 namespace RVPark.Pages.Customer.Home
 {
@@ -23,9 +24,16 @@ namespace RVPark.Pages.Customer.Home
                 includes: "LotType");
 
             if (SelectedLot == null)
-            {
                 return NotFound();
+
+            if (!string.IsNullOrEmpty(SelectedLot.ImageList))
+            {
+                SelectedLot.Images = SelectedLot.ImageList
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(i => i.Trim())
+                    .ToList();
             }
+
 
             return Page();
         }

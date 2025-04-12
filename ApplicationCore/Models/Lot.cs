@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationCore.Models
 {
-
     public class Lot
     {
         [Key]
@@ -26,14 +25,19 @@ namespace ApplicationCore.Models
 
         [Required]
         public int LotTypeId { get; set; }
-       
 
         [ForeignKey("LotTypeId")]
         [ValidateNever]
         public virtual LotType LotType { get; set; } = null!;
         public string? Image { get; set; }
-        public string? ImageList { get; set; } 
-        public string? FeaturedImage { get; set; } 
+        public string? ImageList { get; set; }
+
+        public string? FeaturedImage { get; set; }
+
+        [NotMapped]
+        public List<string> Images { get; set; } = new();
+
+        public bool IsFeatured { get; set; } = false;
 
         public bool IsArchived { get; set; } = false;
     }

@@ -71,6 +71,18 @@ function loadList(parkId) {
                         </div>`;
                 }
             }
+            {
+                data: "isFeatured",
+                width: "10%",
+                render: function (data, type, row) {
+                    const icon = data ? "fas fa-star text-warning" : "far fa-star text-muted";
+                    return `
+            <button class="btn btn-sm btn-outline-custom-blue" onclick="toggleFeatured(${row.id})">
+                <i class="${icon}"></i> ${data ? "Featured" : "Make Featured"}
+            </button>`;
+                }
+            }
+
         ],
         initComplete: function () {
             this.api().columns([0, 1, 2, 3]).every(function () {
@@ -96,7 +108,7 @@ function loadList(parkId) {
                 $wrapper.append($label).append($select);
                 $(column.header()).empty().append($wrapper);
             });
-        }, // ✅ COMMA WAS MISSING HERE
+        }, 
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         language: {
             emptyTable: "No lots found.",
@@ -129,6 +141,16 @@ function unarchiveLot(id) {
             dataTable.ajax.reload(null, false);
         } else {
             toastr.error(data.message);
+        }
+    });
+}
+function toggleFeatured(id) {
+    $.post(`/api/lots/feature/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload();
+        } else {
+            toastr.error("Something went wrong.");
         }
     });
 }

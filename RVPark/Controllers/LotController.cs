@@ -68,4 +68,17 @@ public class LotController : Controller
 
         return Json(new { success = true, message = "Lot unarchived successfully." });
     }
+    [HttpPost("api/lots/feature/{id}")]
+    public async Task<IActionResult> FeatureLot(int id)
+    {
+        var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
+        if (lot == null) return NotFound();
+
+        lot.IsFeatured = !lot.IsFeatured;
+        _unitOfWork.Lot.Update(lot);
+        await _unitOfWork.CommitAsync();
+
+        return Json(new { success = true, isFeatured = lot.IsFeatured, message = lot.IsFeatured ? "Lot marked as featured." : "Lot unfeatured." });
+    }
+
 }
