@@ -3,7 +3,9 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Azure.Documents;
 using Microsoft.EntityFrameworkCore;
+using TriggerType = ApplicationCore.Models.TriggerType;
 
 namespace Infrastructure
 {
@@ -31,7 +33,6 @@ namespace Infrastructure
 
             if (_db.Park.Any()) return;
 
-            // === 1. Create roles ===
             var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
             foreach (var role in roles)
             {
@@ -41,18 +42,11 @@ namespace Infrastructure
                 }
             }
 
-            // === 2. Create SuperAdmin (Employee only) ===
             var superEmail = "tawnymcaleese@gmail.com";
             var superUser = _userManager.FindByEmailAsync(superEmail).GetAwaiter().GetResult();
             if (superUser == null)
             {
-                superUser = new IdentityUser
-                {
-                    UserName = superEmail,
-                    Email = superEmail,
-                    EmailConfirmed = true
-                };
-
+                superUser = new IdentityUser { UserName = superEmail, Email = superEmail, EmailConfirmed = true };
                 var result = _userManager.CreateAsync(superUser, "Admin123*").GetAwaiter().GetResult();
                 if (!result.Succeeded)
                     throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -81,27 +75,16 @@ namespace Infrastructure
 
             if (!_db.Employee.Any(e => e.UserID == customUser.UserID))
             {
-                var emp = new Employee
-                {
-                    UserID = customUser.UserID,
-                    Role = SD.SuperAdminRole
-                };
+                var emp = new Employee { UserID = customUser.UserID, Role = SD.SuperAdminRole };
                 _db.Employee.Add(emp);
                 _db.SaveChanges();
             }
 
-            // === 3. Create Admin User ===
             var adminEmail = SD.DefaultAdminEmail;
             var adminUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
             if (adminUser == null)
             {
-                adminUser = new IdentityUser
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
-                };
-
+                adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
                 var result = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
                 if (result.Succeeded)
                 {
@@ -109,7 +92,6 @@ namespace Infrastructure
                 }
             }
 
-            // === 4. Seed Park ===
             var park = new Park
             {
                 Name = "Desert Eagle Nellis AFB",
@@ -121,42 +103,61 @@ namespace Infrastructure
             _db.Park.Add(park);
             _db.SaveChanges();
 
-            // === 5. Seed LotTypes and Lots ===
             var today = DateTime.Today;
             var lotTypes = new List<LotType>
             {
-                new LotType
-                {
-                    Name = "Standard",
-                    Rate = 40.00,
-                    ParkId = park.Id,
-                    StartDate = today,
-                    EndDate = today.AddYears(1),
-                    IsArchived = false
-                },
-                new LotType
-                {
-                    Name = "Premium",
-                    Rate = 55.00,
-                    ParkId = park.Id,
-                    StartDate = today,
-                    EndDate = today.AddYears(1),
-                   IsArchived  = false
-                },
-                new LotType
-                {
-                    Name = "Deluxe",
-                    Rate = 70.00,
-                    ParkId = park.Id,
-                    StartDate = today,
-                    EndDate = today.AddYears(1),
-                    IsArchived = false
-                }
+                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
+                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
+                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-
+           var feeTypes = new List<FeeType>
+            {
+                new FeeType
+                {
+                    FeeTypeName = "Late Cancellation Fee",
+                    Description = "Applies when cancellation occurs too close to reservation start.",
+                    TriggerType = TriggerType.Triggered,
+                    TriggerRuleJson = "{\"DaysBefore\": 3, \"PenaltyPercent\": 50}",
+                    IsArchived = false
+                },
+                new FeeType
+                {
+                    FeeTypeName = "Pet Fee",
+                    Description = "Applied when guests bring pets.",
+                    TriggerType = TriggerType.Manual,
+                    TriggerRuleJson = null,
+                    IsArchived = false
+                },
+                new FeeType
+                {
+                    FeeTypeName = "Damage Fee",
+                    Description = "Manually applied for property damage.",
+                    TriggerType = TriggerType.Manual,
+                    TriggerRuleJson = null,
+                    IsArchived = false
+                },
+                new FeeType
+                {
+                    FeeTypeName = "Extra Vehicle Fee",
+                    Description = "Manually applied if guests bring more than one vehicle.",
+                    TriggerType = TriggerType.Manual,
+                    TriggerRuleJson = null,
+                    IsArchived = false
+                },
+                new FeeType
+                {
+                    FeeTypeName = "Holiday Premium",
+                    Description = "Automatically increases rate during holidays.",
+                    TriggerType = TriggerType.Triggered,
+                    TriggerRuleJson = "{\"HolidayRateMultiplier\": 1.25}",
+                    IsArchived = false
+                }
+            };
+            _db.FeeType.AddRange(feeTypes);
+            _db.SaveChanges();
 
             var lots = new List<Lot>();
             foreach (var lt in lotTypes)
@@ -177,7 +178,6 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            // === 6. Seed Guests ===
             var characterNames = new (string FirstName, string LastName)[]
             {
                 ("Sheldon", "Cooper"),
@@ -186,7 +186,6 @@ namespace Infrastructure
                 ("Howard", "Wolowitz"),
                 ("Raj", "Koothrappali")
             };
-
             var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
             var rand = new Random();
 
@@ -194,13 +193,7 @@ namespace Infrastructure
             {
                 var (first, last) = characterNames[i];
                 var email = $"guest{i + 1}@email.com";
-
-                var guestIdentity = new IdentityUser
-                {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true
-                };
+                var guestIdentity = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
 
                 var result = _userManager.CreateAsync(guestIdentity, "Guest123!").GetAwaiter().GetResult();
                 if (!result.Succeeded)
@@ -218,11 +211,7 @@ namespace Infrastructure
                 _db.User.Add(user);
                 _db.SaveChanges();
 
-                var guest = new Guest
-                {
-                    DodId = 2000 + i,
-                    UserID = user.UserID
-                };
+                var guest = new Guest { DodId = 2000 + i, UserID = user.UserID };
                 _db.Guest.Add(guest);
                 _db.SaveChanges();
 
@@ -265,7 +254,6 @@ namespace Infrastructure
                 }
             }
 
-            // === 7. Seed Employees ===
             var employees = new List<(string Email, string First, string Last, string Role)>
             {
                 ("janet@rvpark.com", "Janet", "Walker", SD.ManagerRole),
@@ -275,13 +263,7 @@ namespace Infrastructure
 
             foreach (var (email, first, last, role) in employees)
             {
-                var idUser = new IdentityUser
-                {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true
-                };
-
+                var idUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
                 var result = _userManager.CreateAsync(idUser, "Emp123!").GetAwaiter().GetResult();
                 if (!result.Succeeded)
                     throw new Exception("Failed to create employee: " + string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -298,11 +280,7 @@ namespace Infrastructure
                 _db.User.Add(user);
                 _db.SaveChanges();
 
-                var emp = new Employee
-                {
-                    UserID = user.UserID,
-                    Role = role
-                };
+                var emp = new Employee { UserID = user.UserID, Role = role };
                 _db.Employee.Add(emp);
                 _db.SaveChanges();
             }

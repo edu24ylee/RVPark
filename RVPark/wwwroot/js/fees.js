@@ -1,4 +1,4 @@
-﻿var dataTable;
+﻿let dataTable;
 
 $(document).ready(function () {
     loadList();
@@ -6,73 +6,74 @@ $(document).ready(function () {
 
 function loadList() {
     dataTable = $('#DT_load').DataTable({
-        "ajax": {
-            "url": "/api/fees",
-            "type": "GET",
-            "datatype": "json"
+        ajax: {
+            url: "/api/fees",
+            type: "GET",
+            dataType: "json",
+            dataSrc: "data"
         },
-        "columns": [
+        columns: [
             { data: "id", width: "10%" },
             { data: "feeType.feeTypeName", width: "30%" },
-            { 
-                data: "triggeringPolicy.policyName", 
+            {
+                data: "triggeringPolicy.policyName",
                 width: "30%",
-                "render": function (data) {
-                    return data ? data : "N/A";
+                render: function (data) {
+                    return data || "N/A";
                 }
             },
-            { 
-                data: "feeTotal", 
-                width: "15%", 
-                "render": $.fn.dataTable.render.number( ',', '.', 2, '$' )
+            {
+                data: "feeTotal",
+                width: "15%",
+                render: $.fn.dataTable.render.number(',', '.', 2, '$')
             },
             {
-                data: "id", 
+                data: null,
                 width: "15%",
-                "render": function (data) {
-                    return `<div class="text-center">
-                                <a href="/Admin/Fees/Upsert?id=${data}" 
-                                   class="btn btn-custom-blue" 
-                                   style="cursor:pointer; width:100px;">
-                                    <i class="far fa-edit"></i> Edit
-                                </a>
-                                <a onClick="Delete('/api/fees/' + ${data})" 
-                                   class="btn btn-custom-grey" 
-                                   style="cursor:pointer; width:100px;">
-                                    <i class="far fa-trash-alt"></i> Delete
-                                </a>
-                            </div>`;
+                render: function (data) {
+                    const editBtn = `
+                        <a href="/Admin/Fees/Upsert?id=${data.id}" 
+                           class="btn btn-sm btn-custom-blue me-1">
+                            <i class="far fa-edit"></i> Edit
+                        </a>`;
+
+                    const archiveBtn = data.isArchived
+                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveFee(${data.id})">
+                               <i class="fas fa-box-open"></i> Unarchive
+                           </button>`
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveFee(${data.id})">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
+
+                    return `<div class="text-end">${editBtn}${archiveBtn}</div>`;
                 }
             }
         ],
-        "language": {
-            "emptyTable": "No data found."
+        language: {
+            emptyTable: "No fees found."
         },
-        "width": "100%"
+        width: "100%"
     });
 }
 
-function Delete(url) {
-    swal({
-        title: "Are you sure you want to delete?",
-        text: "You will not be able to restore the data!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: url,
-                type: "DELETE",
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);
-                        dataTable.ajax.reload();
-                    } else {
-                        toastr.error(data.message);
-                    }
-                }
-            });
+function archiveFee(id) {
+    $.post(`/api/fees/archive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload();
+        } else {
+            toastr.error(data.message);
+        }
+    });
+}
+
+function unarchiveFee(id) {
+    $.post(`/api/fees/unarchive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload();
+        } else {
+            toastr.error(data.message);
         }
     });
 }

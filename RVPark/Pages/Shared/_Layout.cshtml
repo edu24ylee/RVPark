@@ -71,8 +71,7 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSecondRow">
-                            <li><a class="dropdown-item" href="/Customer/Lots/Available">View Available Lots</a></li>
-                            <li><a class="dropdown-item" href="/Customer/Reservations/Create">Make a Reservation</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Customer/Home/Index">Make a Reservation</a></li>
                             @if (User.IsInRole(SD.GuestRole))
                             {
                                 <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
@@ -95,8 +94,7 @@
 
                     <!-- Desktop Centered Navigation -->
                     <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
-                        <li class="nav-item"><a class="nav-link" href="/Customer/Lots/Available">View Available Lots</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/Customer/Reservations/Create">Make a Reservation</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Customer/Home/Index">Make a Reservation</a></li>
                         @if (User.IsInRole(SD.GuestRole))
                         {
                             <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>

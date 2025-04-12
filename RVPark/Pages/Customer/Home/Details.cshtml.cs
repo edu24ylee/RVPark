@@ -14,12 +14,13 @@ namespace RVPark.Pages.Customer.Home
             _unitOfWork = unitOfWork;
         }
 
-        public Lot SelectedLot { get; set; }
+        public Lot SelectedLot { get; set; } = null!;
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
             SelectedLot = await _unitOfWork.Lot.GetAsync(
-                l => ((Lot)l).Id == id, includes: "LotType");
+                l => l.Id == id,
+                includes: "LotType");
 
             if (SelectedLot == null)
             {
@@ -30,4 +31,3 @@ namespace RVPark.Pages.Customer.Home
         }
     }
 }
-

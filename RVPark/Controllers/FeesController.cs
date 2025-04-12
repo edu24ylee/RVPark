@@ -19,62 +19,34 @@ namespace RVPark.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllFees()
         {
-            // Eagerly load FeeType and TriggeringPolicy
             var fees = await _unitOfWork.Fee.GetAllAsync(null, null, "FeeType,TriggeringPolicy");
             return Json(new { success = true, data = fees });
         }
 
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetFeeById(int id)
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> ArchiveFee(int id)
         {
             var fee = await _unitOfWork.Fee.GetAsync(f => f.Id == id);
-            if (fee == null)
-            {
-                return NotFound(new { success = false, message = "Fee not found." });
-            }
-            return Json(new { success = true, data = fee });
-        }
+            if (fee == null) return NotFound(new { success = false, message = "Fee not found." });
 
-        [HttpPost]
-        public async Task<IActionResult> CreateFee([FromBody] Fee fee)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
-            _unitOfWork.Fee.Add(fee);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = fee });
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFee(int id, [FromBody] Fee fee)
-        {
-            if (id != fee.Id)
-            {
-                return BadRequest(new { success = false, message = "Fee ID mismatch." });
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
+            fee.IsArchived = true;
             _unitOfWork.Fee.Update(fee);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = fee });
+
+            return Json(new { success = true, message = "Fee archived." });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteFee(int id)
+        [HttpPost("unarchive/{id}")]
+        public async Task<IActionResult> UnarchiveFee(int id)
         {
             var fee = await _unitOfWork.Fee.GetAsync(f => f.Id == id);
-            if (fee == null)
-            {
-                return NotFound(new { success = false, message = "Fee not found." });
-            }
-            _unitOfWork.Fee.Delete(fee);
+            if (fee == null) return NotFound(new { success = false, message = "Fee not found." });
+
+            fee.IsArchived = false;
+            _unitOfWork.Fee.Update(fee);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Fee deleted successfully." });
+
+            return Json(new { success = true, message = "Fee unarchived." });
         }
     }
 }

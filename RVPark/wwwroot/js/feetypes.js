@@ -1,68 +1,99 @@
-﻿// Declare the DataTable variable at the top level so it's accessible across functions.
-var dataTable;
+﻿let dataTable;
 
-// When the page is fully loaded, initialize the data table.
 $(document).ready(function () {
-    loadList(); // Calls the function to populate the table with fee type data from the API.
+    loadList();
 });
 
-// Function that initializes the DataTable with remote data.
 function loadList() {
     dataTable = $('#DT_load').DataTable({
-        "ajax": {
-            "url": "/api/feetype",       // API endpoint for fetching all fee types.
-            "type": "GET",               // HTTP GET request.
-            "datatype": "json"           // Expected data type of the response.
+        dom: "<'row mb-3'<'col-sm-6'l><'col-sm-6 text-end'f>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row mt-3'<'col-sm-5'i><'col-sm-7'p>>",
+        ajax: {
+            url: "/api/feetypes",
+            type: "GET",
+            dataType: "json",
+            dataSrc: "data"
         },
-        "columns": [
-            { data: "feeTypeName", width: "70%" }, // Displays the fee type's name in 70% of the row.
-
-            // Adds buttons for editing and deleting a fee type.
+        columns: [
+            { data: "feeTypeName", width: "30%" },
+            { data: "triggerType", width: "30%" },
             {
-                data: "id", width: "30%",
-                "render": function (data) {
-                    return `<div class="text-center">
-                            <a href="/Admin/FeeTypes/Upsert?id=${data}"
-                            class="btn btn-custom-blue" style="cursor:pointer; width:100px;">
-                                <i class="far fa-edit"></i>Edit
-                            </a>
-                            <a onClick=Delete('/api/feetype/'+${data})
-                            class="btn btn-custom-grey" style="cursor:pointer; width:100px;">
-                                <i class="far fa-trash-alt"></i>Delete
-                            </a>
-                        </div>`;
+                data: "id",
+                width: "20%",
+                render: function (data, type, row) {
+                    const isArchived = row.isArchived;
+
+                    const archiveBtn = isArchived
+                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveFeeType(${data})">
+                           <i class="fas fa-box-open"></i> Unarchive
+                       </button>`
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveFeeType(${data})">
+                           <i class="fas fa-archive"></i> Archive
+                       </button>`;
+
+                    return `
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="/Admin/FeeTypes/Upsert?id=${data}" class="btn btn-sm btn-custom-blue-header text-white">
+                            <i class="far fa-edit"></i> Edit
+                        </a>
+                        ${archiveBtn}
+                    </div>`;
                 }
             }
         ],
-        "language": {
-            "emptyTable": "no data found." // Message displayed when there are no fee types to show.
+        drawCallback: function () {
+            applyFilter('#feeTypeFilter', 0);
+            applyFilter('#triggerTypeFilter', 1);
         },
-        "width": "100%" // Sets the table to take up full width of the container.
+        language: {
+            emptyTable: "No fee types found."
+        },
+        width: "100%"
     });
 }
 
-// Custom function to delete a record using a SweetAlert confirmation dialog.
-function Delete(url) {
-    swal({
-        title: "Are you sure you want to delete?",
-        text: "You will not be able to restore the data!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: url,
-                type: "DELETE", // Sends a DELETE request to the API endpoint.
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);     // Shows success message.
-                        dataTable.ajax.reload();          // Reloads the DataTable with updated data.
-                    } else {
-                        toastr.error(data.message);       // Shows error message if deletion failed.
-                    }
-                }
-            });
+function applyFilter(selector, columnIndex) {
+    if (!dataTable || !dataTable.column) return;
+
+    const $filter = $(selector);
+    if ($filter.children('option').length > 1) return;
+
+    const values = new Set();
+    dataTable.column(columnIndex).nodes().each(cell => {
+        const val = $(cell).text().trim();
+        if (val) values.add(val);
+    });
+
+    [...values].sort().forEach(val => {
+        $filter.append(`<option value="${val}">${val}</option>`);
+    });
+
+    $filter.on('change', function () {
+        const val = $.fn.dataTable.util.escapeRegex($(this).val());
+        dataTable.column(columnIndex).search(val ? `^${val}$` : '', true, false).draw();
+    });
+}
+
+
+function archiveFeeType(id) {
+    $.post(`/api/feetypes/archive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload();
+        } else {
+            toastr.error(data.message);
         }
-    })
+    });
+}
+
+function unarchiveFeeType(id) {
+    $.post(`/api/feetypes/unarchive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload();
+        } else {
+            toastr.error(data.message);
+        }
+    });
 }
