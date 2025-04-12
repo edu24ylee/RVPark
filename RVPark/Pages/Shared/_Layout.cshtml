@@ -1,21 +1,25 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using Infrastructure.Utilities
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - RVPark</title>
 
-    <!-- Bootstrap & Site Styles -->
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- ✅ CSS Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.1.2/css/searchPanes.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+
+    <!-- ✅ Custom -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RVPark.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/lib/fontawesome/css/all.css" asp-append-version="true" />
-
-    <!-- DataTables Bootstrap 5 CSS (Correct one) -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" />
-
-    <!-- Toastr Notifications -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 </head>
 <body>
     <header>
@@ -37,13 +41,24 @@
                         </li>
                         <li class="nav-item me-3 dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user"></i></a>
-                                <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" aria-labelledby="navbarDropdown" style="position: absolute;">
-                                    <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Register</a></li>
+                                <i class="fas fa-user"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                @if (!User.Identity.IsAuthenticated)
+                                {
                                     <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Login">Login</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                </ul>
+                                    <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Register">Register</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Profile</a></li>
+                                    <li>
+                                        <form method="post" asp-area="Identity" asp-page="/Account/Logout" id="logoutForm">
+                                            <button type="submit" class="dropdown-item">Logout</button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -55,7 +70,39 @@
                         <button class="btn btn-light dropdown-toggle" type="button" id="navbarDropdownSecondRow" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px 10px; font-size: 2rem;">
                             <i class="fas fa-bars"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" aria-labelledby="navbarDropdownSecondRow">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownSecondRow">
+                            <li><a class="dropdown-item" href="/Customer/Lots/Available">View Available Lots</a></li>
+                            <li><a class="dropdown-item" href="/Customer/Reservations/Create">Make a Reservation</a></li>
+                            @if (User.IsInRole(SD.GuestRole))
+                            {
+                                <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
+                            }
+                            @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.CampHostRole) || User.IsInRole(SD.SuperAdminRole))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="/Admin/Parks/Index">Parks</a>
+                                        <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
+                                        <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
+                                        <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
+                                        <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- Desktop Centered Navigation -->
+                    <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
+                        <li class="nav-item"><a class="nav-link" href="/Customer/Lots/Available">View Available Lots</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Customer/Reservations/Create">Make a Reservation</a></li>
+                        @if (User.IsInRole(SD.GuestRole))
+                        {
+                            <li><a class="dropdown-item" href="/Customer/Reservations/History">Reservation History</a></li>
+                        }
+                        @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.CampHostRole) || User.IsInRole(SD.SuperAdminRole))
+                        {
                             <li class="nav-item dropdown">
                                 <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
                                 <div class="dropdown-menu">
@@ -63,53 +110,16 @@
                                     <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
                                     <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
                                     <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
+                                    @if (User.IsInRole(SD.SuperAdminRole))
+                                    {
+                                        <a class="dropdown-item" href="/Admin/Employees/Index">Employees</a>
+                                    }
+                                    <a class="dropdown-item" href="/Admin/FeeTypes/Index">FeeTypes</a>
+                                    <a class="dropdown-item" href="/Admin/Fees/Index">Fees</a>
                                     <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
-                                    <a class="dropdown-item" href="/Admin/Fees">Fees</a>
-                                    <a class="dropdown-item" href="/Admin/FeeTypes">FeeTypes</a>
-                                    <a class="dropdown-item" href="/Admin/Employees">Employees</a>
                                 </div>
                             </li>
-                            <li><a class="dropdown-item" href="#">Add here</a></li>
-                            <li><a class="dropdown-item" href="#">Add here</a></li>
-                            <li><a class="dropdown-item" href="#">Add here</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form class="d-flex p-2" role="search">
-                                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" style="width: 250px;">
-                                    <button class="btn btn-primary" type="submit">Search</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Desktop Navigation -->
-                    <ul class="navbar-nav position-absolute start-50 translate-middle-x d-none d-lg-flex">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
-                            <div class="dropdown-menu scrollable-dropdown">
-                                <a class="dropdown-item" href="/Admin/Parks/Index">Parks</a>
-                                <a class="dropdown-item" href="/Admin/LotTypes/Index">Lot Types</a>
-                                <a class="dropdown-item" href="/Admin/Lots/Index">Lots</a>
-                                <a class="dropdown-item" href="/Admin/Reports/Index">Reports</a>
-                                <a class="dropdown-item" href="/Admin/Reservations/Index">Reservations</a>
-                                <a class="dropdown-item" href="/Admin/Fees">Fees</a>
-                                <a class="dropdown-item" href="/Admin/FeeTypes">FeeTypes</a>
-                                <a class="dropdown-item" href="/Admin/Employees">Employee</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Customer</a>
-                            <div class="dropdown-menu scrollable-dropdown">
-                                <a class="dropdown-item" href="/Customer/Home/Index">Home</a>
-                                <a class="dropdown-item" href="/Customer/Home/CreateNewAccount">New Account</a>
-                                <a class="dropdown-item" href="/Customer/Home/UserLogIn">User LogIn</a>
-                                <a class="dropdown-item" href="/Customer/Home/UserProfile">User Profile</a>
-                    
-                            </div>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Add here</a></li>
+                        }
                     </ul>
 
                     <!-- Desktop Search -->
@@ -142,27 +152,22 @@
         </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery Validation -->
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-
-    <!-- Toastr & SweetAlert -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
-    <!-- DataTables Bootstrap 5 (Correct JS order) -->
-    <script src="https://cdn.datatables.net/2.2.2/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.min.js"></script>
-
-    <!-- FontAwesome -->
-    <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
-
-    <!-- Site-wide JS -->
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- ✅ JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
+    <!-- Optional: SearchPanes if you need it -->
+    <!--
+    <script src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js"></script>
+    <script src="https://cdn.datatables.net/searchpanes/2.1.2/js/searchPanes.bootstrap5.min.js"></script>
+    -->
+    <!-- ✅ Site Script -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

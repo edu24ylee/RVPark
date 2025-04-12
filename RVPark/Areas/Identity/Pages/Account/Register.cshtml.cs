@@ -1,17 +1,16 @@
 ﻿#nullable disable
 
 using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
-using ApplicationCore.Models;
-using ApplicationCore.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
+using ApplicationCore.Models;
+using ApplicationCore.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Utilities;
 
 namespace RVPark.Areas.Identity.Pages.Account
 {
@@ -65,13 +64,11 @@ namespace RVPark.Areas.Identity.Pages.Account
             [Required]
             [Phone]
             [Display(Name = "Phone Number")]
-            public string PhoneNumber { get; set; }
+            public string Phone { get; set; }
 
-            [Required]
             [Display(Name = "DoD ID")]
-            public int DodId { get; set; }
+            public int? DodId { get; set; } 
 
-            [Required]
             [StringLength(100, MinimumLength = 6)]
             [DataType(DataType.Password)]
             public string Password { get; set; }
@@ -80,12 +77,16 @@ namespace RVPark.Areas.Identity.Pages.Account
             [Display(Name = "Confirm Password")]
             [Compare("Password")]
             public string ConfirmPassword { get; set; }
+
             [Display(Name = "Military Branch")]
             public string Branch { get; set; }
 
             public string Rank { get; set; }
-
             public string Status { get; set; }
+
+            public string IdentityUserId { get; set; }
+
+            public string SelectedRole { get; set; } 
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -99,7 +100,29 @@ namespace RVPark.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
 
             if (!ModelState.IsValid)
+                return Page();
+
+            if (await _userManager.FindByEmailAsync(Input.Email) != null)
             {
+                ModelState.AddModelError(string.Empty, "An account with this email already exists.");
+                return Page();
+            }
+
+            // Choose password based on role
+            var password = !string.IsNullOrEmpty(Input.SelectedRole) ? SD.DefaultPassword : Input.Password;
+
+            var identityUser = new IdentityUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email,
+                PhoneNumber = Input.Phone
+            };
+
+            var result = await _userManager.CreateAsync(identityUser, password);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
                 return Page();
             }
 
@@ -108,32 +131,60 @@ namespace RVPark.Areas.Identity.Pages.Account
                 Email = Input.Email,
                 FirstName = Input.FirstName,
                 LastName = Input.LastName,
-                Phone = Input.PhoneNumber,
-                IsActive = true
+                Phone = Input.Phone,
+                IsActive = true,
+                IdentityUserId = identityUser.Id
             };
 
             _unitOfWork.User.Add(user);
             _unitOfWork.Commit();
 
-            var guest = new Guest
+            if (!string.IsNullOrEmpty(Input.SelectedRole) &&
+                (User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.AdminRole)))
             {
-                UserID = user.UserID,
-                DodAffiliation = new DodAffiliation
+                await _userManager.AddToRoleAsync(identityUser, Input.SelectedRole);
+
+                var employee = new Employee
                 {
-                    Branch = Input.Branch,
-                    Rank = Input.Rank,
-                    Status = Input.Status
-                }
-            };
+                    UserID = user.UserID,
+                    Role = Input.SelectedRole
+                };
+                _unitOfWork.Employee.Add(employee);
+                _unitOfWork.Commit();
+            }
+            else
+            {
+                var guest = new Guest
+                {
+                    UserID = user.UserID,
+                    DodId = Input.DodId ?? 0,
+                    DodAffiliation = new DodAffiliation
+                    {
+                        Branch = Input.Branch,
+                        Rank = Input.Rank,
+                        Status = Input.Status
+                    }
+                };
+                _unitOfWork.Guest.Add(guest);
+                _unitOfWork.Commit();
+            }
 
-            _unitOfWork.Guest.Add(guest);
-            _unitOfWork.Commit();
-
-            await _emailSender.SendEmailAsync(user.Email, "Welcome!", $"Hi {user.FullName}, your account has been created.");
+            await _emailSender.SendEmailAsync(
+                user.Email,
+                "Welcome to Nellis AFB RV Park!",
+                $@"<p>Dear {user.FullName},</p>
+                <p>Welcome to the <strong>Nellis AFB RV Park</strong> family!</p>
+                <p>Your account has been successfully created.</p>
+                <p style='text-align: center; margin: 20px 0;'>
+                    <a href='https://example.com/Customer/Reservations/Create' style='background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;'>
+                        Make a Reservation
+                    </a>
+                </p>
+                <p>Warm regards,<br/>The Nellis AFB RV Park Team</p>"
+            );
 
             return RedirectToPage("/Account/Login");
         }
-
 
         private IUserEmailStore<IdentityUser> GetEmailStore()
         {

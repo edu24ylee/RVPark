@@ -10,7 +10,10 @@ function loadEmployeeList() {
             url: `/api/employees`,
             type: "GET",
             datatype: "json",
-            dataSrc: "data"
+            dataSrc: function (json) {
+                const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
+                return isSuperAdmin ? json.data : json.data.filter(e => !e.user.isArchived);
+            }
         },
         columns: [
             {
@@ -20,23 +23,17 @@ function loadEmployeeList() {
             },
             { data: "user.email", width: "20%" },
             { data: "user.phone", width: "15%" },
-            {
-                data: "user.isActive",
-                render: data => data ? "Active" : "Inactive",
-                width: "10%"
-            },
-            {
-                data: "role",
-                width: "10%"
-            },
+            { data: "role", width: "10%" },
             {
                 data: "user.lockOutEnd",
                 render: function (data, type, row) {
                     const isLocked = data && new Date(data) > new Date();
                     const btnText = isLocked ? "Unlock" : "Lock";
                     const icon = isLocked ? "fa-lock-open" : "fa-lock";
+                    const btnClass = isLocked ? "btn-outline-custom-blue" : "btn-custom-blue";
+
                     return `
-                        <button class="btn btn-outline-warning" onclick="toggleLock(${row.employeeID})">
+                        <button class="btn btn-sm ${btnClass}" onclick="toggleLock(${row.employeeID})">
                             <i class="fas ${icon}"></i> ${btnText}
                         </button>`;
                 },
@@ -44,16 +41,27 @@ function loadEmployeeList() {
                 width: "15%"
             },
             {
-                data: "employeeID",
-                render: function (data) {
+                data: null,
+                render: function (data, type, row) {
+                    const isArchived = row.user.isArchived;
+                    const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
+
+                    const archiveBtn = isArchived
+                        ? (isSuperAdmin
+                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveEmployee(${row.employeeID})">
+                                   <i class="fas fa-box-open"></i> Unarchive
+                               </button>`
+                            : ``)
+                        : `<button class="btn btn-sm btn-custom-grey" onclick="archiveEmployee(${row.employeeID})">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
+
                     return `
-                        <div class="text-center">
-                            <a href="/Admin/Employees/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
+                        <div class="text-center d-flex flex-column align-items-center gap-1">
+                            <a href="/Admin/Employees/Upsert?id=${row.employeeID}" class="btn btn-sm btn-custom-blue">
                                 <i class="fas fa-edit"></i> Update
                             </a>
-                            <button class="btn btn-sm btn-custom-grey" onclick="deleteEmployee(${data})">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                            ${archiveBtn}
                         </div>`;
                 },
                 orderable: false,
@@ -67,31 +75,6 @@ function loadEmployeeList() {
     });
 }
 
-function deleteEmployee(id) {
-    swal({
-        title: "Are you sure?",
-        text: "This employee will be permanently removed.",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then(confirmed => {
-        if (confirmed) {
-            $.ajax({
-                url: `/api/employees/${id}`,
-                type: "DELETE",
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);
-                        employeeTable.ajax.reload();
-                    } else {
-                        toastr.error(data.message);
-                    }
-                }
-            });
-        }
-    });
-}
-
 function toggleLock(id) {
     $.ajax({
         url: `/api/employees/lockunlock/${id}`,
@@ -99,7 +82,37 @@ function toggleLock(id) {
         success: function (data) {
             if (data.success) {
                 toastr.success(data.message);
-                employeeTable.ajax.reload();
+                employeeTable.ajax.reload(null, false);
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}
+
+function archiveEmployee(id) {
+    $.ajax({
+        url: `/api/employees/archive/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                employeeTable.ajax.reload(null, false);
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}
+
+function unarchiveEmployee(id) {
+    $.ajax({
+        url: `/api/employees/unarchive/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                employeeTable.ajax.reload(null, false);
             } else {
                 toastr.error(data.message);
             }

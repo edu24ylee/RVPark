@@ -1,4 +1,6 @@
 ﻿@page
+@using Infrastructure.Utilities
+@inject UserManager<IdentityUser> UserManager
 @model RVPark.Pages.Admin.Parks.IndexModel
 @{
     ViewData["Title"] = "Manage Parks";
@@ -8,14 +10,14 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center py-3">
-                <h2 class="text-primary mb-0">Park List</h2>
-                <a asp-page="Upsert" class="btn btn-primary">
+                <h2 class="text-custom-blue-header mb-0">Park List</h2>
+                <a asp-page="Upsert" class="btn btn-custom-blue-header">
                     <i class="fas fa-plus"></i> Create New Park
                 </a>
             </div>
 
             <div class="table-responsive">
-                <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
+                <table class="table table-striped table-hover table-bordered align-middle w-100">
                     <thead class="table-primary">
                         <tr>
                             <th>Name</th>
@@ -26,6 +28,40 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+                    <tbody>
+                        @foreach (var park in Model.Parks)
+                        {
+                            <tr>
+                                <td>@park.Name</td>
+                                <td>@park.Address</td>
+                                <td>@park.City</td>
+                                <td>@park.State</td>
+                                <td>@park.Zipcode</td>
+                                <td>
+                                    <a class="btn btn-sm btn-custom-blue" asp-page="Upsert" asp-route-id="@park.Id">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+
+                                    @if (!park.IsArchived)
+                                    {
+                                        <form method="post" asp-page-handler="Archive" asp-route-id="@park.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-custom-grey">
+                                                <i class="fas fa-archive"></i> Archive
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (User.IsInRole(Model.SuperAdminRole))
+                                    {
+                                        <form method="post" asp-page-handler="Unarchive" asp-route-id="@park.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-custom-blue">
+                                                <i class="fas fa-box-open"></i> Unarchive
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
                 </table>
             </div>
         </div>

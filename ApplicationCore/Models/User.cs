@@ -22,6 +22,8 @@ public class User
 
     public bool IsActive { get; set; }
     public DateTime? LockOutEnd { get; set; }
+    public string IdentityUserId { get; set; }
+    public bool IsArchived { get; set; } = false;
 
     public virtual Guest Guest { get; set; }
 

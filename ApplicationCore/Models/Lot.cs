@@ -26,10 +26,15 @@ namespace ApplicationCore.Models
 
         [Required]
         public int LotTypeId { get; set; }
+       
 
         [ForeignKey("LotTypeId")]
         [ValidateNever]
         public virtual LotType LotType { get; set; } = null!;
         public string? Image { get; set; }
+        public string? ImageList { get; set; } 
+        public string? FeaturedImage { get; set; } 
+
+        public bool IsArchived { get; set; } = false;
     }
 }

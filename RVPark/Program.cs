@@ -1,47 +1,49 @@
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data;
+using Microsoft.Extensions.DependencyInjection;
 using ApplicationCore.Interfaces;
 using Infrastructure;
-using Infrastructure.Data;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Utilities;
+using Stripe;
+using Microsoft.AspNetCore.DataProtection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-// Register DbContext ONCE
+// Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString)
-           .EnableSensitiveDataLogging()
-           .LogTo(Console.WriteLine, LogLevel.Information));
-
-// Identity with roles
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-// Razor Pages
-builder.Services.AddRazorPages();
-builder.Services.AddRazorPages().AddRazorPagesOptions(options =>
-{
-    options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
-    options.Conventions.AllowAnonymousToAreaPage("Identity", "/Account/Login");
-    options.Conventions.AllowAnonymousToAreaPage("Identity", "/Account/Register");
-});
-
+    options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+builder.Services.AddRazorPages();
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
-// App services
+
+builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<DbInitializer>();
-builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Keys")))
+    .SetApplicationName("RVParkApp");
+
+
 
 var app = builder.Build();
 
-// Middleware pipeline
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -49,27 +51,31 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
+
     app.UseHsts();
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthentication();
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
+app.UseSession();
+
 app.UseAuthorization();
 
-app.MapRazorPages();
 app.MapControllers();
-
-// Seed DB
 SeedDatabase();
-
 void SeedDatabase()
 {
     using var scope = app.Services.CreateScope();
-    var initializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-    initializer.Initialize();
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+    dbInitializer.Initialize();
 }
+
+
+app.MapRazorPages();
 
 app.Run();

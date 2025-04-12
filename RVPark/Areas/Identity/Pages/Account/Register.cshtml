@@ -11,11 +11,12 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-lg border-0">
-                <div class="card-header bg-dark text-white text-center">
+                <div class="card-header btn-custom-blue-header text-white text-center">
                     <h2 class="m-0">
-                        @(User.IsInRole(SD.AdminRole) ? "Register an Employee" : "Sign Up")
+                        @(User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) ? "Register an Employee" : "Sign Up")
                     </h2>
                 </div>
+
                 <div class="card-body">
                     <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -37,16 +38,18 @@
                                 <span asp-validation-for="Input.Email" class="text-danger"></span>
                             </div>
                             <div class="col-md-12">
-                                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone Number" />
-                                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-                            </div>
+                                <label asp-for="Input.Phone" class="form-label"></label>
+                                <input asp-for="Input.Phone" class="form-control" placeholder="Phone Number" />
+                                <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                            </div>  
+                            @if (!User.IsInRole(SD.AdminRole) && !User.IsInRole(SD.SuperAdminRole))
+                            {
                             <div class="col-md-12">
                                 <label asp-for="Input.DodId" class="form-label"></label>
                                 <input asp-for="Input.DodId" class="form-control" placeholder="DoD ID" />
                                 <span asp-validation-for="Input.DodId" class="text-danger"></span>
                             </div>
-                                          
+
                             <div class="col-md-6 mb-3 form-floating">
                                 <select asp-for="Input.Branch" class="form-select">
                                     <option value="">Select a Branch</option>
@@ -106,6 +109,7 @@
                                 <label asp-for="Input.Status"></label>
                                 <span asp-validation-for="Input.Status" class="text-danger"></span>
                             </div>
+                            }
 
                             <div class="col-md-12">
                                 <label asp-for="Input.Password" class="form-label"></label>
@@ -117,32 +121,22 @@
                                 <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Confirm Password" />
                                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                             </div>
-
-                            @if (User.IsInRole(SD.AdminRole))
+                            @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole))
                             {
-                                <div class="col-md-12">
-                                    <label class="form-label d-block">Select Role</label>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.AdminRole" id="adminRole" />
-                                        <label class="form-check-label" for="adminRole">Admin</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.ManagerRole" id="managerRole" />
-                                        <label class="form-check-label" for="managerRole">Manager</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.MaintenanceRole" id="maintenanceRole" />
-                                        <label class="form-check-label" for="maintenanceRole">Maintenance</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="rdUserRole" value="@SD.CampHostRole" id="campHostRole" />
-                                        <label class="form-check-label" for="campHostRole">Camp Host</label>
-                                    </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" asp-for="Input.SelectedRole">Assign Role</label>
+                                    <select asp-for="Input.SelectedRole" class="form-select">
+                                        <option value="">Select Role</option>
+                                        <option value="@SD.AdminRole">Admin</option>
+                                        <option value="@SD.ManagerRole">Manager</option>
+                                        <option value="@SD.MaintenanceRole">Maintenance</option>
+                                        <option value="@SD.CampHostRole">Camp Host</option>
+                                    </select>
+                                    <span asp-validation-for="Input.SelectedRole" class="text-danger"></span>
                                 </div>
                             }
-
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-dark w-100">Register</button>
+                            <div class="col-12 d-flex justify-content-center">
+                                <button type="submit" class="btn btn-custom-blue-header w-100" style="max-width: 300px;">Register</button>
                             </div>
                         </div>
                     </form>

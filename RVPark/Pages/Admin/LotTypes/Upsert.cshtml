@@ -1,42 +1,57 @@
 ﻿@page
 @model RVPark.Pages.Admin.LotTypes.UpsertModel
+@{
+    ViewData["Title"] = "Edit Lot Type";
+}
 
 <form method="post">
     <div class="container mt-4 d-flex justify-content-center">
         <div class="card shadow-sm w-50">
-            <div class="card-body p-4 text-center">
+            <div class="card-body text-center">
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
-                <h2 class="text-primary mb-3">@(Model.LotTypeObject.Id != 0 ? "Update" : "Create") Lot Type</h2>
+
+                <h2 class="text-outline text-custom-blue-header mb-4">@(Model.LotTypeObject.Id == 0 ? "Create" : "Edit") Lot Type</h2>
                 <hr />
 
-                <input type="hidden" asp-for="LotTypeObject.ParkId" />
-
                 <div class="mb-3">
-                    <label asp-for="LotTypeObject.Name" class="form-label fw-bold">Lot Name</label>
+                    <label asp-for="LotTypeObject.Name" class="form-label fw-bold text-outline">Name</label>
                     <input asp-for="LotTypeObject.Name" class="form-control text-center" />
                     <span class="text-danger" asp-validation-for="LotTypeObject.Name"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="LotTypeObject.Rate" class="form-label fw-bold">Rate (Price)</label>
-                    <input asp-for="LotTypeObject.Rate" class="form-control text-center" step="0.01" min="0" />
+                    <label asp-for="LotTypeObject.Rate" class="form-label fw-bold text-outline">Rate</label>
+                    <input asp-for="LotTypeObject.Rate" class="form-control text-center" />
                     <span class="text-danger" asp-validation-for="LotTypeObject.Rate"></span>
                 </div>
 
-                <div class="d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> @(Model.LotTypeObject.Id != 0 ? "Update" : "Create")
-                    </button>
+                <div class="mb-3">
+                    <label asp-for="LotTypeObject.StartDate" class="form-label fw-bold text-outline">Start Date</label>
+                    <input asp-for="LotTypeObject.StartDate" class="form-control text-center" type="date" readonly />
+                </div>
 
-                    <a asp-page="./Index" asp-route-SelectedParkId="@Model.LotTypeObject.ParkId" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back To List
+                <div class="mb-3">
+                    <label asp-for="LotTypeObject.EndDate" class="form-label fw-bold text-outline">End Date</label>
+                    <input asp-for="LotTypeObject.EndDate" class="form-control text-center" type="date" />
+                </div>
+
+                @if (Model.LotTypeObject.Id != 0)
+                {
+                    <input type="hidden" asp-for="LotTypeObject.Id" />
+                }
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn btn-custom-blue-header">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <a asp-page="Index" asp-route-SelectedParkId="@Model.LotTypeObject.ParkId" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancel
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </form>
-
 
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

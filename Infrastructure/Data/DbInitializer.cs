@@ -1,6 +1,7 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,34 +24,92 @@ namespace Infrastructure
         {
             _db.Database.EnsureCreated();
 
-            try
+            if (_db.Database.GetPendingMigrations().Any())
             {
-                if (_db.Database.GetPendingMigrations().Any())
+                _db.Database.Migrate();
+            }
+
+            if (_db.Park.Any()) return;
+
+            // === 1. Create roles ===
+            var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
+            foreach (var role in roles)
+            {
+                if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
                 {
-                    _db.Database.Migrate();
+                    _roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
                 }
             }
-            catch (Exception ex)
+
+            // === 2. Create SuperAdmin (Employee only) ===
+            var superEmail = "tawnymcaleese@gmail.com";
+            var superUser = _userManager.FindByEmailAsync(superEmail).GetAwaiter().GetResult();
+            if (superUser == null)
             {
-                Console.WriteLine("Migration failed: " + ex.Message);
+                superUser = new IdentityUser
+                {
+                    UserName = superEmail,
+                    Email = superEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = _userManager.CreateAsync(superUser, "Admin123*").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
-            if (_db.Park.Any())
-                return;
-
-            _roleManager.CreateAsync(new IdentityRole("Admin")).GetAwaiter().GetResult();
-            _roleManager.CreateAsync(new IdentityRole("Manager")).GetAwaiter().GetResult();
-
-            var adminUser = new IdentityUser
+            if (!_userManager.IsInRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult())
             {
-                UserName = "admin@rvpark.com",
-                Email = "admin@rvpark.com",
-                EmailConfirmed = true
-            };
+                _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
+            }
 
-            _userManager.CreateAsync(adminUser, "Password123!").GetAwaiter().GetResult();
-            _userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
+            var customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower());
+            if (customUser == null)
+            {
+                customUser = new User
+                {
+                    FirstName = "Tawny",
+                    LastName = "McAleese",
+                    Email = superEmail,
+                    Phone = "555-9999",
+                    IsActive = true,
+                    IdentityUserId = superUser.Id
+                };
+                _db.User.Add(customUser);
+                _db.SaveChanges();
+            }
 
+            if (!_db.Employee.Any(e => e.UserID == customUser.UserID))
+            {
+                var emp = new Employee
+                {
+                    UserID = customUser.UserID,
+                    Role = SD.SuperAdminRole
+                };
+                _db.Employee.Add(emp);
+                _db.SaveChanges();
+            }
+
+            // === 3. Create Admin User ===
+            var adminEmail = SD.DefaultAdminEmail;
+            var adminUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
+            if (adminUser == null)
+            {
+                adminUser = new IdentityUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
+                if (result.Succeeded)
+                {
+                    _userManager.AddToRoleAsync(adminUser, SD.AdminRole).GetAwaiter().GetResult();
+                }
+            }
+
+            // === 4. Seed Park ===
             var park = new Park
             {
                 Name = "Desert Eagle Nellis AFB",
@@ -61,24 +120,50 @@ namespace Infrastructure
             };
             _db.Park.Add(park);
             _db.SaveChanges();
-            // Seed LotTypes
+
+            // === 5. Seed LotTypes and Lots ===
+            var today = DateTime.Today;
             var lotTypes = new List<LotType>
             {
-                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id },
-                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id },
-                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id }
+                new LotType
+                {
+                    Name = "Standard",
+                    Rate = 40.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                    IsArchived = false
+                },
+                new LotType
+                {
+                    Name = "Premium",
+                    Rate = 55.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                   IsArchived  = false
+                },
+                new LotType
+                {
+                    Name = "Deluxe",
+                    Rate = 70.00,
+                    ParkId = park.Id,
+                    StartDate = today,
+                    EndDate = today.AddYears(1),
+                    IsArchived = false
+                }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            // Seed Lots (15 total, 5 per LotType)
+
+
             var lots = new List<Lot>();
-            int lotCounter = 1;
             foreach (var lt in lotTypes)
             {
                 for (int i = 1; i <= 5; i++)
                 {
-                    var lot = new Lot
+                    lots.Add(new Lot
                     {
                         LotTypeId = lt.Id,
                         Description = $"{lt.Name} Lot {i}",
@@ -86,14 +171,13 @@ namespace Infrastructure
                         Width = 20,
                         Location = $"{lt.Name[0]}{i}",
                         IsAvailable = true
-                    };
-                    lots.Add(lot);
+                    });
                 }
             }
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            // Seed Users, Guests, RVs, and Reservations with variety
+            // === 6. Seed Guests ===
             var characterNames = new (string FirstName, string LastName)[]
             {
                 ("Sheldon", "Cooper"),
@@ -101,23 +185,35 @@ namespace Infrastructure
                 ("Penny", "Teller"),
                 ("Howard", "Wolowitz"),
                 ("Raj", "Koothrappali")
-                        };
+            };
 
-            var statuses = new[] { "Pending", "Confirmed", "Active", "Cancelled", "Completed" };
+            var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
             var rand = new Random();
-            var today = DateTime.Today;
 
             for (int i = 0; i < characterNames.Length; i++)
             {
                 var (first, last) = characterNames[i];
+                var email = $"guest{i + 1}@email.com";
+
+                var guestIdentity = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var result = _userManager.CreateAsync(guestIdentity, "Guest123!").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create guest: " + string.Join(", ", result.Errors.Select(e => e.Description)));
 
                 var user = new User
                 {
-                    Email = $"guest{i + 1}@email.com",
                     FirstName = first,
                     LastName = last,
+                    Email = email,
                     Phone = $"555-000{i + 1}",
-                    IsActive = true
+                    IsActive = true,
+                    IdentityUserId = guestIdentity.Id
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
@@ -142,7 +238,6 @@ namespace Infrastructure
                 _db.RV.Add(rv);
                 _db.SaveChanges();
 
-                // Add 3 reservations per guest
                 for (int j = 0; j < 3; j++)
                 {
                     var startOffset = rand.Next(-20, 10);
@@ -162,38 +257,55 @@ namespace Infrastructure
                         LotId = lot.Id,
                         RvId = rv.RvID,
                         OverrideReason = "Seeded for testing",
-                        CancellationDate = status == "Cancelled" ? endDate.AddDays(-1) : null,
-                        CancellationReason = status == "Cancelled" ? "No longer needed" : null
+                        CancellationDate = status == SD.StatusCancelled ? endDate.AddDays(-1) : null,
+                        CancellationReason = status == SD.StatusCancelled ? "No longer needed" : null
                     };
                     _db.Reservation.Add(reservation);
                     _db.SaveChanges();
                 }
-
-
             }
-            // Employee Users
-            var employeeUsers = new List<(User user, string role)>
+
+            // === 7. Seed Employees ===
+            var employees = new List<(string Email, string First, string Last, string Role)>
             {
-                (new User { FirstName = "Janet", LastName = "Walker", Email = "janet@rvpark.com", Phone = "555-0100", IsActive = true }, "Manager"),
-                (new User { FirstName = "Tom", LastName = "Barnes", Email = "tom@rvpark.com", Phone = "555-0101", IsActive = true }, "Maintenance"),
-                (new User { FirstName = "Maria", LastName = "Gonzalez", Email = "maria@rvpark.com", Phone = "555-0102", IsActive = true }, "Guest")
+                ("janet@rvpark.com", "Janet", "Walker", SD.ManagerRole),
+                ("tom@rvpark.com", "Tom", "Barnes", SD.MaintenanceRole),
+                ("maria@rvpark.com", "Maria", "Gonzalez", SD.GuestRole)
             };
 
-            foreach (var (empUser, role) in employeeUsers)
+            foreach (var (email, first, last, role) in employees)
             {
-                _db.User.Add(empUser);
+                var idUser = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var result = _userManager.CreateAsync(idUser, "Emp123!").GetAwaiter().GetResult();
+                if (!result.Succeeded)
+                    throw new Exception("Failed to create employee: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+
+                var user = new User
+                {
+                    FirstName = first,
+                    LastName = last,
+                    Email = email,
+                    Phone = "555-0100",
+                    IsActive = true,
+                    IdentityUserId = idUser.Id
+                };
+                _db.User.Add(user);
                 _db.SaveChanges();
 
                 var emp = new Employee
                 {
-                    UserID = empUser.UserID,
+                    UserID = user.UserID,
                     Role = role
                 };
-
                 _db.Employee.Add(emp);
                 _db.SaveChanges();
             }
-
         }
     }
 }

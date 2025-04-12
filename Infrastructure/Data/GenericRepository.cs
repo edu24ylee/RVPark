@@ -142,9 +142,28 @@ namespace Infrastructure.Data
 
         public void Update(T entity)
         {
+            var entry = _dbContext.Entry(entity);
+            var key = _dbContext.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.FirstOrDefault();
+
+            if (key == null)
+                throw new InvalidOperationException("No primary key defined for this entity.");
+
+            var keyValue = key.PropertyInfo.GetValue(entity);
+
+            var local = _dbContext.Set<T>().Local
+                .FirstOrDefault(e =>
+                    key.PropertyInfo.GetValue(e)?.Equals(keyValue) == true);
+
+            if (local != null)
+            {
+                _dbContext.Entry(local).State = EntityState.Detached;
+            }
+
             _dbContext.Entry(entity).State = EntityState.Modified;
             _dbContext.SaveChanges();
         }
+
+
 
         public IEnumerable<T> GetAll(Expression<Func<T, bool>>? predicate = null, Expression<Func<T, int>>? orderBy = null, string? includes = null)
         {

@@ -1,99 +1,134 @@
-﻿var dataTable;
+﻿let dataTable;
 
 $(document).ready(function () {
-    // Get selected park ID from query string (e.g., ?SelectedParkId=2)
-    const parkId = new URLSearchParams(window.location.search).get("SelectedParkId");
-
-    // If a park ID is present, load the lot list filtered by that park
-    if (parkId) {
-        loadList(parkId);
-    }
+    loadList(window.selectedParkId);
 });
 
 function loadList(parkId) {
-    // If the DataTable is already initialized, destroy it first to reinitialize with new data
-    if ($.fn.DataTable.isDataTable("#DT_load")) {
-        $('#DT_load').DataTable().destroy();
-    }
-
-    // Initialize the DataTable and populate it using an API call
     dataTable = $('#DT_load').DataTable({
         ajax: {
-            url: `/api/lot/bypark/${parkId}`, // API endpoint to get lots for a specific park
+            url: `/api/lot/bypark/${parkId}`,
             type: "GET",
-            datatype: "json",
-            dataSrc: "data",
-            cache: false
+            dataSrc: json => json?.data ?? []
         },
         columns: [
-            { data: "lotType.name", width: "15%" },     // Lot type (e.g., Premium, Standard)
-            { data: "park.name", width: "15%" },        // Associated park name
-            { data: "location", width: "10%" },         // Lot location/identifier
-            { data: "width", width: "10%" },            // Width of the lot
-            { data: "length", width: "10%" },           // Length of the lot
+            { data: "lotType.name", title: "Lot Type", width: "12%" },
+            { data: "park.name", title: "Park", width: "12%" },
+            { data: "location", title: "Location", width: "12%" },
+            { data: "width", title: "Width", width: "8%" },
+            { data: "length", title: "Length", width: "8%" },
             {
-                data: "isAvailable",                    // Boolean availability flag
-                render: data => data ? "Yes" : "No",    // Renders as "Yes"/"No"
-                width: "10%"
+                data: "isAvailable",
+                title: "Available",
+                width: "10%",
+                render: data => data ? "Yes" : "No"
             },
-            { data: "description", width: "15%" },      // Optional description
+            { data: "description", title: "Description", defaultContent: "", width: "15%" },
             {
-                data: "image",                          // Displays an image preview if available
-                render: function (data) {
-                    if (data) {
-                        return `<img src="${data}" alt="Lot Image" style="max-height: 60px;" class="img-fluid rounded shadow-sm"/>`;
-                    } else {
-                        return `<span class="text-muted">No image</span>`;
-                    }
-                },
-                width: "10%"
-            },
-            {
-                data: "id",                              // Action buttons for Edit/Delete
-                render: function (data) {
+                data: null,
+                title: "Image",
+                width: "12%",
+                render: function (data, type, row) {
+                    const featured = row.featuredImage;
+                    const allImages = (row.image || "").split(',').filter(x => x.trim() !== "");
+                    const count = allImages.length;
+
+                    const imageTag = (featured && featured.trim() !== "")
+                        ? `<img src="${featured.trim()}" class="img-thumbnail" style="max-height:60px;" alt="Featured Image" onerror="this.outerHTML='<span class=text-muted>No image</span>'" />`
+                        : `<span class="text-muted">No image</span>`;
+
                     return `
-                        <div class="text-center">
-                            <a href="/Admin/Lots/Upsert?id=${data}" class="btn btn-sm btn-custom-blue">
+                        <div class="d-flex flex-column align-items-center text-center" style="white-space: normal;">
+                            ${imageTag}
+                            <span class="fw-semibold text-custom-blue mt-1">${count} image${count !== 1 ? 's' : ''}</span>
+                        </div>`;
+                }
+            },
+            {
+                data: null,
+                title: "Actions",
+                orderable: false,
+                width: "13%",
+                render: function (data, type, row) {
+                    const isArchived = row.isArchived === true;
+                    const isSuperAdmin = window.isSuperAdmin === "true";
+
+                    const archiveBtn = isArchived
+                        ? (isSuperAdmin
+                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLot(${row.id})">
+                                   <i class="fas fa-box-open"></i> Unarchive
+                               </button>` : "")
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLot(${row.id})">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
+
+                    return `
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/Admin/Lots/Upsert?id=${row.id}" class="btn btn-sm btn-custom-blue text-white">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <button class="btn btn-sm btn-custom-grey" onclick="deleteLot(${data})">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                            ${archiveBtn}
                         </div>`;
-                },
-                orderable: false,
-                width: "15%"
+                }
             }
         ],
+        initComplete: function () {
+            this.api().columns([0, 1, 2, 3]).every(function () {
+                const column = this;
+                const columnIndex = column.index();
+                const originalTitle = $('#DT_load thead th').eq(columnIndex).text();
+
+                const $wrapper = $('<div class="d-flex flex-column align-items-start"></div>');
+                const $label = $(`<label class="fw-semibold small mb-1">${originalTitle}</label>`);
+                const $select = $(`<select class="form-select form-select-sm"><option value="">All ${originalTitle}</option></select>`);
+
+                column.data().unique().sort().each(function (d) {
+                    if (d || d === 0) {
+                        $select.append(`<option value="${d}">${d}</option>`);
+                    }
+                });
+
+                $select.on('change', function () {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search(val ? `^${val}$` : '', true, false).draw();
+                });
+
+                $wrapper.append($label).append($select);
+                $(column.header()).empty().append($wrapper);
+            });
+        }, // ✅ COMMA WAS MISSING HERE
+        dom: '<"top"f>rt<"bottom"lip><"clear">',
         language: {
-            emptyTable: "No lots found." // Fallback message when there is no data
+            emptyTable: "No lots found.",
+            search: "Search lots:"
         },
-        width: "100%" // Sets full width for the table
+        scrollX: true,
+        autoWidth: false,
+        responsive: true,
+        columnDefs: [
+            { targets: "_all", className: "text-nowrap" }
+        ]
     });
 }
 
-// Deletes a lot after user confirmation using SweetAlert
-function deleteLot(id) {
-    swal({
-        title: "Are you sure you want to delete?",
-        text: "This lot will be permanently removed.",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then((confirmed) => {
-        if (confirmed) {
-            $.ajax({
-                url: `/api/lot/${id}`,  // API endpoint to delete a lot
-                type: "DELETE",
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);      // Show success toast
-                        $('#DT_load').DataTable().ajax.reload(); // Refresh table
-                    } else {
-                        toastr.error(data.message);        // Show error toast
-                    }
-                }
-            });
+function archiveLot(id) {
+    $.post(`/api/lot/archive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload(null, false);
+        } else {
+            toastr.error(data.message);
+        }
+    });
+}
+
+function unarchiveLot(id) {
+    $.post(`/api/lot/unarchive/${id}`, function (data) {
+        if (data.success) {
+            toastr.success(data.message);
+            dataTable.ajax.reload(null, false);
+        } else {
+            toastr.error(data.message);
         }
     });
 }

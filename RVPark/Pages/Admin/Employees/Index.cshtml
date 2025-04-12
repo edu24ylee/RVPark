@@ -1,4 +1,7 @@
 ﻿@page
+@using Infrastructure.Utilities;
+@using System.Text.Json
+@inject UserManager<IdentityUser> UserManager
 @model RVPark.Pages.Admin.Employees.IndexModel
 @{
     ViewData["Title"] = "Employees";
@@ -8,8 +11,8 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center py-3">
-                <h2 class="text-primary mb-0">Employee List</h2>
-                <a asp-page="Upsert" class="btn btn-primary">
+                <h2 class="text-custom-blue-header mb-0">Employee List</h2>
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-custom-blue-header">
                     <i class="fas fa-plus"></i> Create New
                 </a>
             </div>
@@ -21,8 +24,7 @@
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Status</th>
-                            <th>Lock/Unlock</th>
+                            <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -33,6 +35,11 @@
 </div>
 
 @section Scripts {
+    <script>
+        window.isSuperAdmin = @User.IsInRole(SD.SuperAdminRole).ToString().ToLower();
+        window.isAdmin = @User.IsInRole(SD.AdminRole).ToString().ToLower();
+        window.isCampHost = @User.IsInRole(SD.CampHostRole).ToString().ToLower();
+    </script>
     <script src="~/js/employees.js" asp-append-version="true"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

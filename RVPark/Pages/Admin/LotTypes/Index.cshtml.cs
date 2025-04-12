@@ -3,6 +3,8 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RVPark.Pages.Admin.LotTypes
 {
@@ -15,21 +17,30 @@ namespace RVPark.Pages.Admin.LotTypes
             _unitOfWork = unitOfWork;
         }
 
-        // Used to filter lot types by a selected park
         [BindProperty(SupportsGet = true)]
         public int? SelectedParkId { get; set; }
 
-        // List of parks for dropdown filtering
         public List<SelectListItem> ParkList { get; set; } = new();
 
         public async Task OnGetAsync()
         {
             var parks = await _unitOfWork.Park.GetAllAsync();
+
             ParkList = parks.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
                 Text = p.Name
             }).ToList();
+
+            if (SelectedParkId == null)
+            {
+                var defaultPark = parks.FirstOrDefault(p => p.Name == "Desert Eagle Nellis AFB");
+                if (defaultPark != null)
+                {
+                    SelectedParkId = defaultPark.Id;
+                }
+            }
         }
+
     }
 }

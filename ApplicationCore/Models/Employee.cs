@@ -18,5 +18,6 @@ namespace ApplicationCore.Models
 
         [ForeignKey("UserID")]
         public virtual User User { get; set; }
+        public bool IsArchived { get; set; } = false;
     }
 }
