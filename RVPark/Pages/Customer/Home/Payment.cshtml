@@ -2,6 +2,22 @@
 @model PaymentModel
 @{
     ViewData["Title"] = "Payment";
+
+	var today = DateTime.Today.ToString("yyyy-MM-dd");
+	var firstName = Model.firstName;
+    var lastName = Model.lastName;
+	var trailerLength = Model.trailerLength;
+	var duration = Model.duration;
+	var trauilerLength = Model.trailerLength;
+	var adults = Model.adults;
+	var pets = Model.pets;
+	var specialRequests = Model.specialRequests;
+    
+	var lotType = Model.selectedLot.LotType;
+	var lotName = lotType?.Name ?? "Name unavailable";
+	var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
+    var lotLocation = Model.selectedLot.Location;
+
 }
 
 <div class="">
@@ -19,21 +35,21 @@
                         <!-- Reservation Summary -->
                         <div class="col-md-6 border-end">
                             <h5 class="fw-bold mb-3">Reservation Summary</h5>
-                            <p><strong>Name:</strong> Lexus</p>
-                            <p><strong>Dates:</strong> tusday Maybe?</p>
-                            <p><strong>Duration:</strong> 1000/p>
-                            <p><strong>Trailer:</strong> 9000</p>
-                            <p><strong>Adults:</strong> 0</p>
-                            <p><strong>Pets:</strong> 10</p>
+                            <p><strong>Full Name:</strong> @firstName @lastName </p>
+                            <p><strong>Dates:</strong> @today <p>
+                            <p><strong>Duration:</strong> @duration Days</p>
+                            <p><strong>Trailer Length:</strong> @trauilerLength </p>
+                            <p><strong>Adults:</strong> @adults </p>
+                            <p><strong>Pets:</strong> @pets </p>
                          
-                            <p><strong>Special Requests:</strong> idk</p>
+                            <p><strong>Special Requests:</strong> @specialRequests </p>
                             
 
                             <hr />
                             <h5 class="fw-bold">Lot Info</h5>
-                            <p><strong>Lot #:</strong>1</p>
-                            <p><strong>Type:</strong>Type/p>
-                            <p><strong>Location:</strong>Description</p>
+                            <p><strong>Lot #:</strong>@lotName</p>
+                            <p><strong>Location:</strong>@lotLocation</p>
+                            <p><strong>Rate:</strong> $@lotRate/night</p>
                         </div>
 
                         <!-- Payment Form -->

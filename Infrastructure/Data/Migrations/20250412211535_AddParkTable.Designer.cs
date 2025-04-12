@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250413153053_FeeModelupdateRedundantrequired")]
-    partial class FeeModelupdateRedundantrequired
+    [Migration("20250412211535_AddParkTable")]
+    partial class AddParkTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

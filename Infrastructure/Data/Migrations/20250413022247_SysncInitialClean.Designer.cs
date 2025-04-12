@@ -14,7 +14,7 @@ namespace Infrastructure.Data.Migrations
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20250413022247_SysncInitialClean")]
     partial class SysncInitialClean
-    {
+   {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

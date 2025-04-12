@@ -15,43 +15,66 @@ namespace RVPark.Pages.Customer.Home
             _unitOfWork = unitOfWork;
         }
 
-       public Lot SelectedLot { get; set; }
-       public Reservation Reservation { get; set; } = new();
+       public Lot selectedLot { get; set; }
 
        //[BindProperty, Required(ErrorMessage = "First name is required.")]
-       public string GuestFirstName { get; set; } = string.Empty;
+       public string guestFirstName { get; set; } = string.Empty;
 
        //[BindProperty, Required(ErrorMessage = "Last name is required.")]
-       public string GuestLastName { get; set; } = string.Empty;
+       public string guestLastName { get; set; } = string.Empty;
 
        //[BindProperty, Required(ErrorMessage = "Trailer length is required.")]
-        public decimal Length { get; set; }
+        public decimal length { get; set; }
 
         //[Range(1, 10, ErrorMessage = "Please enter at least 1 adult.")]
-        public int NumberOfAdults { get; set; }
+        public int numberOfAdults { get; set; }
 
        // [Range(0, 5, ErrorMessage = "Maximum 5 pets allowed.")]
-        public int NumberOfPets { get; set; }
+        public int numberOfPets { get; set; }
+        //[BindProperty, Required(ErrorMessage = "Starting Date is required.")]
+        public DateTime startDate { get; set; }
+        //[BindProperty, Required(ErrorMessage = "EndingDate is required.")]
+        public DateTime endDate { get; set; }
+        public int duration { get; set; }
 
-        public string? SpecialRequests { get; set; }
+        public string? specialRequests { get; set; }
 
-        public List<string> StatusOptions { get; } = new()
+        public List<string> statusOptions { get; } = new()
         {
             "Active", "Cancelled", "Confirmed", "Completed", "Pending"
         };
 
         public async Task<IActionResult> OnGetAsync(int id)
             {
-                SelectedLot = await _unitOfWork.Lot.GetAsync(
+                selectedLot = await _unitOfWork.Lot.GetAsync(
                     l => ((Lot)l).Id == id, includes: "LotType");
 
-                if (SelectedLot == null)
+               startDate = DateTime.UtcNow.Date; 
+                endDate = startDate.AddDays(1);
+                duration = 1;
+           
+            if (selectedLot == null)
                 {
                     return NotFound();
                 }
 
                 return Page();
             }
-        
+        public async Task<IActionResult> OnPostAsync()
+        {
+            TempData["FirstName"] = guestFirstName;
+            TempData["LastName"] = guestLastName;
+            TempData["TrailerLength"] = length;
+            TempData["Adults"] = numberOfAdults;
+            TempData["Pets"] = numberOfPets;
+            TempData["SpecialRequests"] = specialRequests;
+            TempData["StartDate"] = startDate;
+            TempData["SpecialRequests"] = endDate;
+            TempData["startDate"] = duration;
+            TempData["selectedLot"] = selectedLot;
+
+            return RedirectToPage("Payment");
+        }
+
     }
 }
