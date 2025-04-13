@@ -31,6 +31,9 @@ namespace ApplicationCore.Models
         public DateTime EndDate { get; set; }
 
         public string Status { get; set; }
+        public int NumberOfAdults { get; set; }
+        public int NumberOfPets { get; set; }
+        public string? SpecialRequests { get; set; }
 
         public string? OverrideReason { get; set; }
 
