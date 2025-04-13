@@ -1,4 +1,55 @@
 ﻿@page
 @model RVPark.Pages.Admin.Policies.UpsertModel
 @{
+    ViewData["Title"] = Model.PolicyObject.Id == 0 ? "Create Policy" : "Update Policy";
 }
+
+<form method="post">
+    <div class="container">
+        <div class="row px-2 mx-2 border">
+            <div class="col-12 px-3 py-3 border-bottom border-custom-blue">
+                <h2 class="text-custom-blue-header">@ViewData["Title"]</h2>
+            </div>
+
+            <div class="col-8 pt-3">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="PolicyObject.Id" />
+
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="PolicyObject.PolicyName" class="form-label"></label>
+                    </div>
+                    <div class="col-9">
+                        <input asp-for="PolicyObject.PolicyName" class="form-control" />
+                        <span asp-validation-for="PolicyObject.PolicyName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="PolicyObject.PolicyDescription" class="form-label"></label>
+                    </div>
+                    <div class="col-9">
+                        <textarea asp-for="PolicyObject.PolicyDescription" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="PolicyObject.PolicyDescription" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row pt-3">
+                    <div class="col-9 offset-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    @(Model.PolicyObject.Id == 0 ? "Create" : "Update")
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <a asp-page="./Index" class="btn btn-secondary w-100">Back to List</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

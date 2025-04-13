@@ -22,21 +22,26 @@ namespace Infrastructure
             _roleManager = roleManager;
         }
 
+        /*  public void Initialize()
+          {
+              _db.Database.Migrate();
+
+              if (!_db.Park.Any())
+              {
+                  SeedData();
+              }
+          }*/
         public void Initialize()
         {
             _db.Database.Migrate();
-
-            if (!_db.Park.Any() && !_db.Users.Any())
-            {
-                SeedData(); // ✅ This method now contains all the logic
-            }
+            SeedData(); 
         }
+
 
         private void SeedData()
         {
-            if (_db.Park.Any()) return; // double check
+            if (_db.Park.Any()) return;
 
-            // 🔽 All your original seeding logic goes here
             var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
 
             foreach (var role in roles)
@@ -118,176 +123,117 @@ namespace Infrastructure
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-           var feeTypes = new List<FeeType>
+            var policies = new List<Policy>
             {
-                new FeeType
-                {
-                    FeeTypeName = "Late Cancellation Fee",
-                    Description = "Applies when cancellation occurs too close to reservation start.",
-                    TriggerType = TriggerType.Triggered,
-                    TriggerRuleJson = "{\"DaysBefore\": 3, \"PenaltyPercent\": 50}",
-                    IsArchived = false
-                },
-                new FeeType
-                {
-                    FeeTypeName = "Pet Fee",
-                    Description = "Applied when guests bring pets.",
-                    TriggerType = TriggerType.Manual,
-                    TriggerRuleJson = null,
-                    IsArchived = false
-                },
-                new FeeType
-                {
-                    FeeTypeName = "Damage Fee",
-                    Description = "Manually applied for property damage.",
-                    TriggerType = TriggerType.Manual,
-                    TriggerRuleJson = null,
-                    IsArchived = false
-                },
-                new FeeType
-                {
-                    FeeTypeName = "Extra Vehicle Fee",
-                    Description = "Manually applied if guests bring more than one vehicle.",
-                    TriggerType = TriggerType.Manual,
-                    TriggerRuleJson = null,
-                    IsArchived = false
-                },
-                new FeeType
-                {
-                    FeeTypeName = "Holiday Premium",
-                    Description = "Automatically increases rate during holidays.",
-                    TriggerType = TriggerType.Triggered,
-                    TriggerRuleJson = "{\"HolidayRateMultiplier\": 1.25}",
-                    IsArchived = false
-                }
+                new Policy { PolicyName = "24-Hour Cancellation Policy", PolicyDescription = "Cancelling within 24 hours of the reservation start date will result in a penalty fee." },
+                new Policy { PolicyName = "Additional Adult Fee Policy", PolicyDescription = "Each adult guest beyond 3 incurs an additional daily fee." },
+                new Policy { PolicyName = "Pet Cleanup Policy", PolicyDescription = "Fee applied if pet waste is not cleaned up." }
+            };
+            _db.Policy.AddRange(policies);
+            _db.SaveChanges();
+            var feeTypes = new List<FeeType>
+            {
+                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
+                new FeeType { FeeTypeName = "Extra Adults Fee", Description = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
+                new FeeType { FeeTypeName = "Pet Cleanup Violation", Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
             };
             _db.FeeType.AddRange(feeTypes);
             _db.SaveChanges();
 
-            var lots = new List<Lot>();
-            foreach (var lt in lotTypes)
+            var lots = lotTypes.SelectMany(lt => Enumerable.Range(1, 5).Select(i => new Lot
             {
-                for (int i = 1; i <= 5; i++)
-                {
-                    lots.Add(new Lot
-                    {
-                        LotTypeId = lt.Id,
-                        Description = $"{lt.Name} Lot {i}",
-                        Length = new[] { 30.0, 35.0, 40.0 }[new Random().Next(0, 3)],
-                        Width = 20,
-                        Location = $"{lt.Name[0]}{i}",
-                        IsAvailable = true
-                    });
-                }
-            }
+                LotTypeId = lt.Id,
+                Location = $"{lt.Name[0]}-{i}",
+                Width = 20,
+                Length = 35,
+                IsAvailable = true
+            })).ToList();
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            var characterNames = new (string FirstName, string LastName)[]
+
+            // === Guests, Users, RVs, Reservations, Fees ===
+            var guestInfos = new List<(string First, string Last)>
             {
                 ("Sheldon", "Cooper"),
                 ("Leonard", "Hofstadter"),
-                ("Penny", "Teller"),
-                ("Howard", "Wolowitz"),
-                ("Raj", "Koothrappali")
+                ("Penny", "Teller")
             };
-            var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
-            var rand = new Random();
 
-            for (int i = 0; i < characterNames.Length; i++)
+            for (int i = 0; i < guestInfos.Count; i++)
             {
-                var (first, last) = characterNames[i];
-                var email = $"guest{i + 1}@email.com";
-                var guestIdentity = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+                var (first, last) = guestInfos[i];
+                var email = $"guest{last.ToLower()}@rv.com";
+                var identityUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
 
-                var result = _userManager.CreateAsync(guestIdentity, "Guest123!").GetAwaiter().GetResult();
-                if (!result.Succeeded)
-                    throw new Exception("Failed to create guest: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                var identityResult = _userManager.CreateAsync(identityUser, "Guest123!").GetAwaiter().GetResult();
+                if (identityResult.Succeeded)
+                {
+                    _userManager.AddToRoleAsync(identityUser, SD.GuestRole).GetAwaiter().GetResult();
+                }
+
 
                 var user = new User
                 {
                     FirstName = first,
                     LastName = last,
                     Email = email,
-                    Phone = $"555-000{i + 1}",
-                    IsActive = true,
-                    IdentityUserId = guestIdentity.Id
+                    Phone = "555-0101",
+                    IdentityUserId = identityUser.Id,
+                    IsActive = true
                 };
                 _db.User.Add(user);
                 _db.SaveChanges();
 
-                var guest = new Guest { DodId = 2000 + i, UserID = user.UserID };
+                var guest = new Guest
+                {
+                    UserID = user.UserID,
+                    DodId = 3000 + i
+                };
                 _db.Guest.Add(guest);
                 _db.SaveChanges();
 
                 var rv = new RV
                 {
                     GuestID = guest.GuestID,
-                    Description = $"RV Model {i + 1}",
-                    Length = 30 + i,
+                    Length = 32,
                     Make = "Winnebago",
-                    Model = $"Model-{i + 1}",
-                    LicensePlate = $"RV-00{i + 1}"
+                    Model = "Adventure",
+                    LicensePlate = $"ABC12{i}"
                 };
                 _db.RV.Add(rv);
                 _db.SaveChanges();
 
-                for (int j = 0; j < 3; j++)
+                var reservation = new Reservation
                 {
-                    var startOffset = rand.Next(-20, 10);
-                    var duration = rand.Next(2, 7);
-                    var startDate = today.AddDays(startOffset);
-                    var endDate = startDate.AddDays(duration);
-                    var status = statuses[rand.Next(statuses.Length)];
-                    var lot = lots[rand.Next(lots.Count)];
+                    GuestId = guest.GuestID,
+                    RvId = rv.RvID,
+                    LotId = lots[i].Id,
+                    StartDate = today.AddDays(1),
+                    EndDate = today.AddDays(5),
+                    Duration = 4,
+                    Status = SD.StatusConfirmed,
+                    OverrideReason = "Initial test"
+                };
+                _db.Reservation.Add(reservation);
+                _db.SaveChanges();
 
-                    var reservation = new Reservation
+                var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
+                if (cleanupPolicy != null)
+                {
+                    var fee = new Fee
                     {
-                        StartDate = startDate,
-                        EndDate = endDate,
-                        Duration = duration,
-                        Status = status,
-                        GuestId = guest.GuestID,
-                        LotId = lot.Id,
-                        RvId = rv.RvID,
-                        OverrideReason = "Seeded for testing",
-                        CancellationDate = status == SD.StatusCancelled ? endDate.AddDays(-1) : null,
-                        CancellationReason = status == SD.StatusCancelled ? "No longer needed" : null
+                        FeeTypeId = feeTypes.First().Id,
+                        TriggeringPolicyId = cleanupPolicy.Id,
+                        FeeTotal = 25.0M,
+                        AppliedDate = DateTime.UtcNow,
+                        Notes = "Auto-triggered on creation",
+                        ReservationId = reservation.ReservationId,
+                        TriggerType = TriggerType.Triggered
                     };
-                    _db.Reservation.Add(reservation);
+                    _db.Fee.Add(fee);
                     _db.SaveChanges();
                 }
-            }
-
-            var employees = new List<(string Email, string First, string Last, string Role)>
-            {
-                ("janet@rvpark.com", "Janet", "Walker", SD.ManagerRole),
-                ("tom@rvpark.com", "Tom", "Barnes", SD.MaintenanceRole),
-                ("maria@rvpark.com", "Maria", "Gonzalez", SD.GuestRole)
-            };
-
-            foreach (var (email, first, last, role) in employees)
-            {
-                var idUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
-                var result = _userManager.CreateAsync(idUser, "Emp123!").GetAwaiter().GetResult();
-                if (!result.Succeeded)
-                    throw new Exception("Failed to create employee: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-
-                var user = new User
-                {
-                    FirstName = first,
-                    LastName = last,
-                    Email = email,
-                    Phone = "555-0100",
-                    IsActive = true,
-                    IdentityUserId = idUser.Id
-                };
-                _db.User.Add(user);
-                _db.SaveChanges();
-
-                var emp = new Employee { UserID = user.UserID, Role = role };
-                _db.Employee.Add(emp);
-                _db.SaveChanges();
             }
         }
     }

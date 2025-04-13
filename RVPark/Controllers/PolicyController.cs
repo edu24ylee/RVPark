@@ -1,5 +1,7 @@
 ﻿using ApplicationCore.Models;
 using Infrastructure.Data;
+using Infrastructure.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RVPark.Controllers
@@ -14,64 +16,50 @@ namespace RVPark.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAllPolicies()
         {
             var policies = await _unitOfWork.Policy.GetAllAsync();
-            return Json(new { success = true, data = policies });
-        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetPolicyById(int id)
+            var result = policies.Select(p => new
+            {
+                id = p.Id,
+                policyName = p.PolicyName,
+                policyDescription = p.PolicyDescription,
+                isArchived = p.IsArchived 
+            });
+
+            return Json(new { data = result });
+        }
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> ArchivePolicy(int id)
         {
             var policy = await _unitOfWork.Policy.GetAsync(p => p.Id == id);
             if (policy == null)
-            {
-                return NotFound(new { success = false, message = "Policy not found." });
-            }
-            return Json(new { success = true, data = policy });
-        }
+                return Json(new { success = false, message = "Policy not found." });
 
-        [HttpPost]
-        public async Task<IActionResult> CreatePolicy([FromBody] Policy policy)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
-            _unitOfWork.Policy.Add(policy);
-            await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = policy });
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePolicy(int id, [FromBody] Policy policy)
-        {
-            if (id != policy.Id)
-            {
-                return BadRequest(new { success = false, message = "Policy ID mismatch." });
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid data." });
-            }
+            policy.IsArchived = true;
             _unitOfWork.Policy.Update(policy);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, data = policy });
+
+            return Json(new { success = true, message = "Policy archived." });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePolicy(int id)
+        [HttpPost("unarchive/{id}")]
+        [Authorize(Roles = SD.SuperAdminRole)]
+        public async Task<IActionResult> UnarchivePolicy(int id)
         {
             var policy = await _unitOfWork.Policy.GetAsync(p => p.Id == id);
             if (policy == null)
-            {
-                return NotFound(new { success = false, message = "Policy not found." });
-            }
-            _unitOfWork.Policy.Delete(policy);
+                return Json(new { success = false, message = "Policy not found." });
+
+            policy.IsArchived = false;
+            _unitOfWork.Policy.Update(policy);
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Policy deleted successfully." });
+
+            return Json(new { success = true, message = "Policy unarchived." });
         }
+
+
     }
 }

@@ -8,11 +8,18 @@ namespace ApplicationCore.Models
     public class FeeType
     {
         public int Id { get; set; }
+
+        [Required]
         public string FeeTypeName { get; set; } = string.Empty;
+
         public string? Description { get; set; }
+
         public TriggerType TriggerType { get; set; }
-        public string? TriggerRuleJson { get; set; }
+
+        public string? TriggerRuleJson { get; set; } 
         public bool IsArchived { get; set; }
+
+        public ICollection<Fee>? Fees { get; set; }
     }
 
 

@@ -1,4 +1,4 @@
-using ApplicationCore.Models;
+﻿using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -6,81 +6,62 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace RVPark.Pages.Admin.Fees
 {
-    // Handles both creation and editing of Fee records
     public class UpsertModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;
-
-        // This model is bound to form fields on the page
-        [BindProperty]
-        public Fee FeeObject { get; set; }
-
-        // Dropdown list of available FeeTypes
-        public IEnumerable<SelectListItem> FeeTypeList { get; set; }
-
-        // Dropdown list of available Policies
-        public IEnumerable<SelectListItem> PolicyList { get; set; }
 
         public UpsertModel(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        // Called when navigating to the form
-        public void OnGet(int? id)
-        {
-            // If editing, load existing fee
-            if (id != null)
-            {
-                FeeObject = _unitOfWork.Fee.Get(f => f.Id == id);
-            }
+        [BindProperty]
+        public Fee FeeObject { get; set; } = new();
 
-            // If no fee found (new record), initialize an empty one
-            if (FeeObject == null)
+        public List<SelectListItem> FeeTypeList { get; set; } = new();
+        public List<SelectListItem> PolicyList { get; set; } = new();
+
+        public List<(int FeeTypeId, TriggerType TriggerType)> FeeTypeTriggerTypes { get; set; } = new();
+
+        public async Task<IActionResult> OnGetAsync(int? id)
+        {
+            var feeTypes = await _unitOfWork.FeeType.GetAllAsync();
+            var policies = await _unitOfWork.Policy.GetAllAsync();
+
+            FeeTypeList = feeTypes
+                .Where(f => !f.IsArchived)
+                .Select(f => new SelectListItem { Text = f.FeeTypeName, Value = f.Id.ToString() })
+                .ToList();
+
+            PolicyList = policies
+                .Select(p => new SelectListItem { Text = p.PolicyName, Value = p.Id.ToString() })
+                .ToList();
+
+            FeeTypeTriggerTypes = feeTypes
+                .Select(f => (f.Id, f.TriggerType))
+                .ToList();
+
+            if (id == null || id == 0)
             {
                 FeeObject = new Fee();
             }
-
-            // Populate dropdowns
-            var feeTypes = _unitOfWork.FeeType.GetAll();
-            FeeTypeList = feeTypes.Select(ft => new SelectListItem
+            else
             {
-                Text = ft.FeeTypeName,
-                Value = ft.Id.ToString()
-            });
+                FeeObject = await _unitOfWork.Fee.GetAsync(f => f.Id == id.Value, includes: "FeeType,TriggeringPolicy");
+                if (FeeObject == null) return NotFound();
+            }
 
-            var policies = _unitOfWork.Policy.GetAll();
-            PolicyList = policies.Select(p => new SelectListItem
-            {
-                Text = p.PolicyName,
-                Value = p.Id.ToString()
-            });
+            return Page();
         }
 
-        // Called when submitting the form
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
-            // Re-populate dropdowns if validation fails
             if (!ModelState.IsValid)
             {
-                var feeTypes = _unitOfWork.FeeType.GetAll();
-                FeeTypeList = feeTypes.Select(ft => new SelectListItem
-                {
-                    Text = ft.FeeTypeName,
-                    Value = ft.Id.ToString()
-                });
-
-                var policies = _unitOfWork.Policy.GetAll();
-                PolicyList = policies.Select(p => new SelectListItem
-                {
-                    Text = p.PolicyName,
-                    Value = p.Id.ToString()
-                });
-
+                await OnGetAsync(FeeObject.Id);
                 return Page();
             }
 
-            // Insert or update based on whether an ID exists
             if (FeeObject.Id == 0)
             {
                 _unitOfWork.Fee.Add(FeeObject);
@@ -90,9 +71,7 @@ namespace RVPark.Pages.Admin.Fees
                 _unitOfWork.Fee.Update(FeeObject);
             }
 
-            // Save changes and redirect to index
-            _unitOfWork.Commit();
-            return RedirectToPage("./Index");
+            return RedirectToPage("Index");
         }
     }
 }

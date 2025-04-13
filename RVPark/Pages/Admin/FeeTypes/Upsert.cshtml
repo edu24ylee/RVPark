@@ -1,4 +1,5 @@
 ﻿@page
+@using ApplicationCore.Models
 @model RVPark.Pages.Admin.FeeTypes.UpsertModel
 @{
     ViewData["Title"] = Model.FeeTypeObject.Id != 0 ? "Update Fee Type" : "Create Fee Type";
@@ -28,13 +29,22 @@
 
                 <div class="form-group row mb-3">
                     <div class="col-3">
+                        <label asp-for="FeeTypeObject.Description" class="form-label"></label>
+                    </div>
+                    <div class="col-9">
+                        <textarea asp-for="FeeTypeObject.Description" class="form-control" rows="2"
+                                  placeholder="Optional: Description of the fee type"></textarea>
+                        <span asp-validation-for="FeeTypeObject.Description" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <div class="col-3">
                         <label asp-for="FeeTypeObject.TriggerType" class="form-label"></label>
                     </div>
                     <div class="col-9">
-                        <select asp-for="FeeTypeObject.TriggerType" class="form-select">
+                        <select asp-for="FeeTypeObject.TriggerType" class="form-select" asp-items="Html.GetEnumSelectList<TriggerType>()">
                             <option value="">-- Select Trigger Type --</option>
-                            <option value="Reservation">Reservation</option>
-                            <option value="Manual">Manual</option>
                         </select>
                         <span asp-validation-for="FeeTypeObject.TriggerType" class="text-danger"></span>
                     </div>
@@ -45,8 +55,8 @@
                         <label asp-for="FeeTypeObject.TriggerRuleJson" class="form-label"></label>
                     </div>
                     <div class="col-9">
-                        <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="3"
-                                  placeholder="Optional: JSON rules for triggering (e.g. cancellation window)"></textarea>
+                        <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="4"
+                                  placeholder="{ &quot;DaysBefore&quot;: 3, &quot;PenaltyPercent&quot;: 50 }"></textarea>
                         <span asp-validation-for="FeeTypeObject.TriggerRuleJson" class="text-danger"></span>
                     </div>
                 </div>

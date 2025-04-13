@@ -1,25 +1,31 @@
 ﻿@page
 @model RVPark.Pages.Admin.Fees.UpsertModel
 @{
+    ViewData["Title"] = Model.FeeObject.Id == 0 ? "Create Fee" : "Update Fee";
 }
-<form method="post" asp-action="Upsert">
+
+<form method="post">
     <div class="container">
         <div class="row px-2 mx-2 border">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="col-12 px-3" style="border-bottom: 1px solid #325d88">
-                <h2 class="text-primary">@(Model.FeeObject.Id != 0 ? "Update" : "Create") Fee</h2>
+            <div class="col-12 px-3 mb-3 border-bottom">
+                <h2 class="text-primary">@ViewData["Title"]</h2>
             </div>
+
             <div class="col-8 pt-3">
-                <div class="form-group row">
+                <!-- Fee Type -->
+                <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeObject.FeeTypeId"></label>
                     </div>
                     <div class="col-9">
-                        <select class="form-control" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList"></select>
+                        <select class="form-control" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList" id="FeeTypeDropdown" onchange="handleFeeTypeChange()"></select>
                         <span class="text-danger" asp-validation-for="FeeObject.FeeTypeId"></span>
                     </div>
                 </div>
-                <div class="form-group row">
+
+                <!-- Policy -->
+                <div class="form-group row mb-3" id="policyRow">
                     <div class="col-3">
                         <label asp-for="FeeObject.TriggeringPolicyId"></label>
                     </div>
@@ -28,7 +34,9 @@
                         <span class="text-danger" asp-validation-for="FeeObject.TriggeringPolicyId"></span>
                     </div>
                 </div>
-                <div class="form-group row">
+
+                <!-- Amount -->
+                <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeObject.FeeTotal"></label>
                     </div>
@@ -37,15 +45,19 @@
                         <span class="text-danger" asp-validation-for="FeeObject.FeeTotal"></span>
                     </div>
                 </div>
+
                 @if (Model.FeeObject.Id != 0)
                 {
                     <input type="hidden" asp-for="FeeObject.Id" />
                 }
-                <div class="form-group row">
+
+                <div class="form-group row mt-4">
                     <div class="col-9 offset-3">
                         <div class="row">
                             <div class="col-6">
-                                <button type="submit" class="btn btn-custom-blue form-control">@(Model.FeeObject.Id != 0 ? "Update" : "Create")</button>
+                                <button type="submit" class="btn btn-custom-blue form-control">
+                                    @(Model.FeeObject.Id != 0 ? "Update" : "Create")
+                                </button>
                             </div>
                             <div class="col-6">
                                 <a asp-page="./Index" class="btn btn-custom-grey form-control">Back to List</a>
@@ -57,11 +69,31 @@
         </div>
     </div>
 </form>
+
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+    <script>
+        const feeTypeTriggerMap = {
+        @foreach (var ft in Model.FeeTypeTriggerTypes)
+        {
+            <text>@ft.FeeTypeId: "@ft.TriggerType",</text>
+        }
+        };
+
+        function handleFeeTypeChange() {
+            const selectedId = parseInt($('#FeeTypeDropdown').val());
+            const triggerType = feeTypeTriggerMap[selectedId];
+
+            if (triggerType === "Triggered") {
+                $('#policyRow').show();
+            } else {
+                $('#policyRow').hide();
+                $('#FeeObject_TriggeringPolicyId').val('');
+            }
+        }
+
+        $(document).ready(function () {
+            handleFeeTypeChange();
+        });
+    </script>
 }

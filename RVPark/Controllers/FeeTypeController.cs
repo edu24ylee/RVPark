@@ -1,52 +1,63 @@
-﻿using ApplicationCore.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using ApplicationCore.Models;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace RVPark.Controllers
 {
-    [Route("api/feetypes")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class FeeTypeController : Controller
+    public class FeeTypesController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
 
-        public FeeTypeController(UnitOfWork unitOfWork)
+        public FeeTypesController(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllFeeTypes()
         {
-            var data = await _unitOfWork.FeeType.GetAllAsync();
-            return Json(new { success = true, data });
+            var feeTypes = await _unitOfWork.FeeType.GetAllAsync();
+
+            var result = feeTypes.Select(f => new
+            {
+                id = f.Id,
+                feeTypeName = f.FeeTypeName,
+                triggerType = f.TriggerType.ToString(),
+                isArchived = f.IsArchived
+            });
+
+            return Json(new { data = result });
         }
 
-        [HttpPost("archive/{id}")]
-        public async Task<IActionResult> Archive(int id)
-        {
-            var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
-            if (feeType == null) return NotFound();
 
-            feeType.IsArchived = true;
-            _unitOfWork.FeeType.Update(feeType);
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> ArchiveFeeType(int id)
+        {
+            var type = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
+            if (type == null) return NotFound(new { success = false, message = "Fee type not found." });
+
+            type.IsArchived = true;
+            _unitOfWork.FeeType.Update(type);
             await _unitOfWork.CommitAsync();
 
-            return Json(new { success = true, message = "Fee Type archived." });
+            return Json(new { success = true, message = "Fee type archived." });
         }
 
         [HttpPost("unarchive/{id}")]
-        public async Task<IActionResult> Unarchive(int id)
+        public async Task<IActionResult> UnarchiveFeeType(int id)
         {
-            var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
-            if (feeType == null) return NotFound();
+            var type = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
+            if (type == null) return NotFound(new { success = false, message = "Fee type not found." });
 
-            feeType.IsArchived = false;
-            _unitOfWork.FeeType.Update(feeType);
+            type.IsArchived = false;
+            _unitOfWork.FeeType.Update(type);
             await _unitOfWork.CommitAsync();
 
-            return Json(new { success = true, message = "Fee Type unarchived." });
+            return Json(new { success = true, message = "Fee type unarchived." });
         }
     }
 }
