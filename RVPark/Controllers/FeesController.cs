@@ -2,6 +2,7 @@
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace RVPark.Controllers
 {
@@ -20,8 +21,20 @@ namespace RVPark.Controllers
         public async Task<IActionResult> GetAllFees()
         {
             var fees = await _unitOfWork.Fee.GetAllAsync(null, null, "FeeType,TriggeringPolicy");
-            return Json(new { success = true, data = fees });
+
+            var result = fees.Select(f => new
+            {
+                id = f.Id,
+                feeType = new { feeTypeName = f.FeeType?.FeeTypeName ?? "N/A" },
+                triggeringPolicy = new { policyName = f.TriggeringPolicy?.PolicyName ?? "N/A" },
+                triggerType = f.TriggerType,
+                feeTotal = f.FeeTotal,
+                isArchived = f.IsArchived
+            });
+
+            return Json(new { success = true, data = result });
         }
+
 
         [HttpPost("archive/{id}")]
         public async Task<IActionResult> ArchiveFee(int id)

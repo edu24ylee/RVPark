@@ -24,10 +24,13 @@ namespace RVPark.Pages.Customer.Home
                 includes: "LotType"
             );
 
-            FeaturedLot = lots
-                .Where(l => l.LotType != null)
-                .OrderByDescending(l => l.LotType!.Rate)
-                .FirstOrDefault();
+            FeaturedLot = lots.FirstOrDefault(l => l.IsFeatured);
+            FeaturedLot = lots.FirstOrDefault(l => l.IsFeatured)
+           ?? lots.Where(l => l.LotType != null)
+                  .OrderByDescending(l => l.LotType!.Rate)
+                  .FirstOrDefault();
+
+
 
             AvailableLots = lots
                 .Where(l => l.Id != FeaturedLot?.Id)

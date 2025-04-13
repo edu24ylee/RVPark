@@ -2,7 +2,6 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Threading.Tasks;
 
 namespace RVPark.Pages.Admin.FeeTypes
 {
@@ -20,13 +19,15 @@ namespace RVPark.Pages.Admin.FeeTypes
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id is > 0)
+            if (id == null || id == 0)
             {
-                var fromDb = await _unitOfWork.FeeType.GetAsync(ft => ft.Id == id);
-                if (fromDb == null)
+                FeeTypeObject = new FeeType(); 
+            }
+            else
+            {
+                FeeTypeObject = await _unitOfWork.FeeType.GetAsync(f => f.Id == id);
+                if (FeeTypeObject == null)
                     return NotFound();
-
-                FeeTypeObject = fromDb;
             }
 
             return Page();
@@ -35,7 +36,9 @@ namespace RVPark.Pages.Admin.FeeTypes
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
+            {
                 return Page();
+            }
 
             if (FeeTypeObject.Id == 0)
             {
@@ -43,21 +46,11 @@ namespace RVPark.Pages.Admin.FeeTypes
             }
             else
             {
-                var existing = await _unitOfWork.FeeType.GetAsync(ft => ft.Id == FeeTypeObject.Id);
-                if (existing == null)
-                    return NotFound();
-
-                existing.FeeTypeName = FeeTypeObject.FeeTypeName;
-                existing.Description = FeeTypeObject.Description;
-                existing.TriggerType = FeeTypeObject.TriggerType;
-                existing.TriggerRuleJson = FeeTypeObject.TriggerRuleJson;
-                existing.IsArchived = FeeTypeObject.IsArchived;
-
-                _unitOfWork.FeeType.Update(existing);
+                _unitOfWork.FeeType.Update(FeeTypeObject);
             }
 
             await _unitOfWork.CommitAsync();
-            return RedirectToPage("./Index");
+            return RedirectToPage("Index");
         }
     }
 }

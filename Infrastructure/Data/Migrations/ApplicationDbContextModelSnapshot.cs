@@ -105,9 +105,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int?>("ReservationId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TransactionId")
-                        .HasColumnType("int");
-
                     b.Property<int>("TriggerType")
                         .HasColumnType("int");
 
@@ -319,6 +316,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
 
                     b.Property<string>("PolicyDescription")
                         .HasColumnType("nvarchar(max)");
@@ -756,7 +756,7 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Fee", b =>
                 {
                     b.HasOne("ApplicationCore.Models.FeeType", "FeeType")
-                        .WithMany()
+                        .WithMany("Fees")
                         .HasForeignKey("FeeTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -766,7 +766,7 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("ReservationId");
 
                     b.HasOne("ApplicationCore.Models.Policy", "TriggeringPolicy")
-                        .WithMany()
+                        .WithMany("Fees")
                         .HasForeignKey("TriggeringPolicyId");
 
                     b.Navigation("FeeType");
@@ -917,6 +917,11 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.FeeType", b =>
+                {
+                    b.Navigation("Fees");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
                     b.Navigation("DodAffiliation")
@@ -930,6 +935,11 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Park", b =>
                 {
                     b.Navigation("LotTypes");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Policy", b =>
+                {
+                    b.Navigation("Fees");
                 });
 
             modelBuilder.Entity("User", b =>

@@ -162,6 +162,16 @@ namespace Infrastructure.Data
             _dbContext.Entry(entity).State = EntityState.Modified;
             _dbContext.SaveChanges();
         }
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            foreach (var entity in entities)
+            {
+                var entry = _dbContext.Entry(entity);
+                entry.State = EntityState.Modified;
+            }
+
+            _dbContext.SaveChanges();
+        }
 
 
 

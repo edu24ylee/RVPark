@@ -29,19 +29,22 @@ function loadList(parkId) {
                 title: "Image",
                 width: "12%",
                 render: function (data, type, row) {
-                    const featured = row.featuredImage;
                     const allImages = (row.image || "").split(',').filter(x => x.trim() !== "");
-                    const count = allImages.length;
+                    const featuredImage = (row.featuredImage || "").trim();
 
-                    const imageTag = (featured && featured.trim() !== "")
-                        ? `<img src="${featured.trim()}" class="img-thumbnail" style="max-height:60px;" alt="Featured Image" onerror="this.outerHTML='<span class=text-muted>No image</span>'" />`
-                        : `<span class="text-muted">No image</span>`;
+                    const count = allImages.length;
+                    const imageSrc = featuredImage || (count > 0 ? allImages[0] : null);
+
+                    if (!imageSrc) {
+                        return `<span class="text-muted">No image</span>`;
+                    }
 
                     return `
-                        <div class="d-flex flex-column align-items-center text-center" style="white-space: normal;">
-                            ${imageTag}
-                            <span class="fw-semibold text-custom-blue mt-1">${count} image${count !== 1 ? 's' : ''}</span>
-                        </div>`;
+                    <div class="d-flex flex-column align-items-center text-center" style="white-space: normal;">
+                        <img src="${imageSrc}" class="img-thumbnail" style="max-height:60px;" alt="Lot Image"
+                             onerror="this.outerHTML='<span class=text-muted>No image</span>'" />
+                        <span class="fw-semibold text-custom-blue mt-1">${count} image${count !== 1 ? 's' : ''}</span>
+                    </div>`;
                 }
             },
             {
@@ -70,22 +73,22 @@ function loadList(parkId) {
                             ${archiveBtn}
                         </div>`;
                 }
-            }
+            },
             {
                 data: "isFeatured",
                 width: "10%",
+                title: "Featured",
                 render: function (data, type, row) {
-                    const icon = data ? "fas fa-star text-warning" : "far fa-star text-muted";
                     return `
-            <button class="btn btn-sm btn-outline-custom-blue" onclick="toggleFeatured(${row.id})">
-                <i class="${icon}"></i> ${data ? "Featured" : "Make Featured"}
-            </button>`;
+                        <div class="text-center">
+                            <input type="radio" name="featuredLot" value="${row.id}" ${data ? "checked" : ""}
+                                onchange="setFeatured(${row.id})" />
+                        </div>`;
                 }
             }
-
         ],
         initComplete: function () {
-            this.api().columns([0, 1, 2, 3]).every(function () {
+            this.api().columns([0, 1, 2, 3, 4, 5]).every(function () {
                 const column = this;
                 const columnIndex = column.index();
                 const originalTitle = $('#DT_load thead th').eq(columnIndex).text();
@@ -94,10 +97,20 @@ function loadList(parkId) {
                 const $label = $(`<label class="fw-semibold small mb-1">${originalTitle}</label>`);
                 const $select = $(`<select class="form-select form-select-sm"><option value="">All ${originalTitle}</option></select>`);
 
+                const uniqueValues = new Set();
+
                 column.data().unique().sort().each(function (d) {
                     if (d || d === 0) {
-                        $select.append(`<option value="${d}">${d}</option>`);
+                        if (columnIndex === 5) {
+                            uniqueValues.add(d === "Yes" ? "Yes" : "No");
+                        } else {
+                            uniqueValues.add(d.toString());
+                        }
                     }
+                });
+
+                uniqueValues.forEach(value => {
+                    $select.append(`<option value="${value}">${value}</option>`);
                 });
 
                 $select.on('change', function () {
@@ -108,7 +121,7 @@ function loadList(parkId) {
                 $wrapper.append($label).append($select);
                 $(column.header()).empty().append($wrapper);
             });
-        }, 
+        },
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         language: {
             emptyTable: "No lots found.",
@@ -144,13 +157,14 @@ function unarchiveLot(id) {
         }
     });
 }
-function toggleFeatured(id) {
-    $.post(`/api/lots/feature/${id}`, function (data) {
+
+function setFeatured(id) {
+    $.post(`/api/lot/feature/${id}`, function (data) {
         if (data.success) {
             toastr.success(data.message);
-            dataTable.ajax.reload();
+            dataTable.ajax.reload(null, false);
         } else {
-            toastr.error("Something went wrong.");
+            toastr.error(data.message || "Something went wrong.");
         }
     });
 }
