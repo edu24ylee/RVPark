@@ -1,4 +1,4 @@
-using ApplicationCore.Interfaces;
+﻿using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Infrastructure.Utilities;
@@ -24,16 +24,21 @@ namespace Infrastructure
 
         public void Initialize()
         {
-            _db.Database.EnsureCreated();
+            _db.Database.Migrate();
 
-            if (_db.Database.GetPendingMigrations().Any())
+            if (!_db.Park.Any() && !_db.Users.Any())
             {
-                _db.Database.Migrate();
+                SeedData(); // ✅ This method now contains all the logic
             }
+        }
 
-            if (_db.Park.Any()) return;
+        private void SeedData()
+        {
+            if (_db.Park.Any()) return; // double check
 
+            // 🔽 All your original seeding logic goes here
             var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
+
             foreach (var role in roles)
             {
                 if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())

@@ -31,6 +31,7 @@ namespace ApplicationCore.Interfaces
         // Includes allows JOINS
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? predicate = null, Expression<Func<T, int>>? orderBy = null, string? includes = null);
         Task ReloadAsync(T entity, string? includes = null);
+        void UpdateRange(IEnumerable<T> entities);
 
 
         // Same as above but Asynchronous action
