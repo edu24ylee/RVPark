@@ -1,7 +1,10 @@
-using ApplicationCore.Models;
+﻿using ApplicationCore.Models;
+using Infrastructure.Data;
+using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Infrastructure.Data;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace RVPark.Pages.Admin.Reservations
 {
@@ -14,100 +17,71 @@ namespace RVPark.Pages.Admin.Reservations
             _unitOfWork = unitOfWork;
         }
 
-        // ViewModel holds reservation info, guest name, RV, available lots/types, and original total
-        [BindProperty]
-        public ReservationUpdateModel ViewModel { get; set; }
+        [BindProperty] public ReservationUpdateModel ViewModel { get; set; } = null!;
+        [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
-        // GET: Load reservation data for update form
-        public async Task<IActionResult> OnGetAsync(int id)
+        public async Task<IActionResult> OnGetAsync(int id, string? returnUrl = null)
         {
-            // Fetch reservation with guest info, RV, and assigned lot (including its type)
+            ReturnUrl = returnUrl ?? Url.Page("/Admin/Reservations/Update", new { id });
+
             var reservation = await _unitOfWork.Reservation.GetAsync(
-                predicate: r => r.ReservationId == id,
-                includes: "Guest.User,Rv,Lot.LotType"
-            );
+                r => r.ReservationId == id,
+                includes: "Guest.User,Rv,Lot.LotType");
 
-            if (reservation == null)
-                return NotFound(); // Return 404 if reservation doesn't exist
+            if (reservation == null) return NotFound();
 
-            // Build guest's full name for display
-            var guestName = $"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}";
-
-            // Extract the RV
-            var rv = reservation.Rv;
-
-            // Fetch all lot types for dropdown population
             var lotTypes = await _unitOfWork.LotType.GetAllAsync();
-
-            // Get all lots that are available or currently assigned to this reservation
             var availableLots = await _unitOfWork.Lot.GetAllAsync(
-                predicate: l => l.IsAvailable || l.Id == reservation.LotId,
-                includes: "LotType"
-            );
+                l => l.IsAvailable || l.Id == reservation.LotId,
+                includes: "LotType");
 
-            // Construct ViewModel to send to Razor Page
+            var manualFees = await _unitOfWork.FeeType.GetAllAsync(f => f.TriggerType == TriggerType.Manual && !f.IsArchived);
+
+            reservation.Duration = (reservation.EndDate - reservation.StartDate).Days;
+
             ViewModel = new ReservationUpdateModel
             {
                 Reservation = reservation,
-                Rv = rv,
-                GuestName = guestName,
+                GuestName = $"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}",
+                Rv = reservation.Rv,
                 LotTypes = lotTypes.ToList(),
                 AvailableLots = availableLots.ToList(),
-                OriginalTotal = reservation.CalculateTotal((decimal)reservation.Lot.LotType.Rate)
+                OriginalTotal = reservation.CalculateTotal((decimal)(reservation.Lot?.LotType?.Rate ?? 0)),
+                ManualFeeOptions = manualFees.ToList()
             };
 
-            return Page(); // Render page with ViewModel data
+            return Page();
         }
 
-        // POST: Process updates to the reservation
         public async Task<IActionResult> OnPostAsync()
         {
-            // Fetch current reservation and associated lot/lot type
             var res = await _unitOfWork.Reservation.GetAsync(
-                predicate: r => r.ReservationId == ViewModel.Reservation.ReservationId,
-                includes: "Lot.LotType"
-            );
+                r => r.ReservationId == ViewModel.Reservation.ReservationId,
+                includes: "Lot.LotType");
 
-            if (res == null)
-                return NotFound(); // If reservation was deleted between load and submit
+            if (res == null) return NotFound();
 
-            // Track the currently assigned lot
             var oldLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
 
-            // Update fields from the posted form
             res.StartDate = ViewModel.Reservation.StartDate;
             res.EndDate = ViewModel.Reservation.EndDate;
             res.LotId = ViewModel.Reservation.LotId;
-            res.Status = ViewModel.Reservation.Status;
             res.OverrideReason = ViewModel.Reservation.OverrideReason;
             res.CancellationReason = ViewModel.Reservation.CancellationReason;
+            res.Duration = Math.Max(0, (res.EndDate - res.StartDate).Days);
 
-            // Update duration based on date changes
-            var newDuration = (res.EndDate - res.StartDate).Days;
-            res.UpdateDuration(newDuration);
 
             if (res.Status == "Cancelled")
             {
-                // If cancelled, mark as such and free up the old lot
                 res.CancelReservation();
-
-                if (oldLot != null)
-                {
-                    oldLot.IsAvailable = true;
-                    _unitOfWork.Lot.Update(oldLot);
-                }
+                if (oldLot != null) oldLot.IsAvailable = true;
+                if (oldLot != null) _unitOfWork.Lot.Update(oldLot);
             }
             else
             {
-                // Otherwise, reserve the newly selected lot
                 var newLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
-                if (newLot != null)
-                {
-                    newLot.IsAvailable = false;
-                    _unitOfWork.Lot.Update(newLot);
-                }
-
-                // If lot changed, make the old lot available again
+                if (newLot != null) newLot.IsAvailable = false;
+                if (newLot != null) _unitOfWork.Lot.Update(newLot);
                 if (oldLot != null && oldLot.Id != res.LotId)
                 {
                     oldLot.IsAvailable = true;
@@ -115,11 +89,120 @@ namespace RVPark.Pages.Admin.Reservations
                 }
             }
 
-            // Persist reservation updates to database
+            // Apply triggered fees
+            var triggeredFees = await _unitOfWork.FeeType.GetAllAsync(f => f.TriggerType == TriggerType.Triggered);
+
+            foreach (var feeType in triggeredFees)
+            {
+                if (string.IsNullOrWhiteSpace(feeType.TriggerRuleJson)) continue;
+                var policy = await _unitOfWork.Policy.GetAsync(p => p.Fees.Any(ft => ft.FeeTypeId == feeType.Id));
+
+                switch (feeType.FeeTypeName)
+                {
+                    case "Cancellation Fee":
+                        if (res.Status == "Cancelled")
+                        {
+                            var rules = JsonSerializer.Deserialize<List<CancellationFeeRule>>(feeType.TriggerRuleJson!);
+                            var daysBefore = (res.StartDate - DateTime.UtcNow).Days;
+                            var rule = rules?.FirstOrDefault(r => daysBefore <= r.DaysBefore);
+                            if (rule != null)
+                            {
+                                var rate = res.Lot?.LotType?.Rate ?? 0;
+                                var feeAmount = (double)rule.PenaltyPercent * rate * res.Duration;
+
+                                _unitOfWork.Fee.Add(new Fee
+                                {
+                                    FeeTypeId = feeType.Id,
+                                    TriggeringPolicyId = policy?.Id,
+                                    FeeTotal = (decimal)feeAmount,
+                                    ReservationId = res.ReservationId,
+                                    Notes = $"Cancellation within {daysBefore} days → {rule.PenaltyPercent:P0} penalty"
+                                });
+                            }
+                        }
+                        break;
+
+                    case "Extra Adult Fee":
+                        if (res.NumberOfAdults > 2 && decimal.TryParse(feeType.TriggerRuleJson, out var perAdultFee))
+                        {
+                            var extraCount = res.NumberOfAdults - 2;
+                            _unitOfWork.Fee.Add(new Fee
+                            {
+                                FeeTypeId = feeType.Id,
+                                TriggeringPolicyId = policy?.Id,
+                                FeeTotal = perAdultFee * extraCount,
+                                ReservationId = res.ReservationId,
+                                Notes = $"Extra adults: {extraCount} x {perAdultFee:C}"
+                            });
+                        }
+                        break;
+                }
+            }
+
+            var user = User.FindFirstValue(ClaimTypes.Role);
+            if ((user == SD.AdminRole || user == SD.CampHostRole || user == SD.SuperAdminRole) &&
+                ViewModel.ManualFeeTypeId.HasValue)
+            {
+                var manualFeeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == ViewModel.ManualFeeTypeId);
+                if (manualFeeType != null)
+                {
+                    _unitOfWork.Fee.Add(new Fee
+                    {
+                        FeeTypeId = manualFeeType.Id,
+                        FeeTotal = 0, 
+                        ReservationId = res.ReservationId,
+                        Notes = $"Manually added fee: {manualFeeType.FeeTypeName}"
+                    });
+                }
+            }
+
             _unitOfWork.Reservation.Update(res);
             await _unitOfWork.CommitAsync();
 
-            return RedirectToPage("./Index"); // Return to reservation list
+            return !string.IsNullOrEmpty(ReturnUrl) ? Redirect(ReturnUrl) : RedirectToPage("./Index");
+        }
+
+        public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
+        {
+            var existingReservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => !(r.EndDate < startDate || r.StartDate > endDate));
+
+            var reservedLotIds = existingReservations.Select(r => r.LotId).Distinct();
+
+            var lots = await _unitOfWork.Lot.GetAllAsync(
+                l => l.LotTypeId == lotTypeId &&
+                     l.Length >= trailerLength &&
+                     !reservedLotIds.Contains(l.Id) &&
+                     l.IsAvailable && !l.IsArchived,
+                includes: "LotType");
+
+            var result = lots.Select(l => new
+            {
+                id = l.Id,
+                location = l.Location,
+                description = l.Description,
+                featuredImageUrl = l.FeaturedImage,
+                lotTypeRate = l.LotType?.Rate ?? 0
+            });
+
+            return new JsonResult(result);
+        }
+
+        private async Task<List<Lot>> GetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
+        {
+            var existingReservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => !(r.EndDate < startDate || r.StartDate > endDate));
+
+            var reservedLotIds = existingReservations.Select(r => r.LotId).Distinct();
+
+            var lots = await _unitOfWork.Lot.GetAllAsync(
+                l => l.LotTypeId == lotTypeId &&
+                     l.Length >= trailerLength &&
+                     !reservedLotIds.Contains(l.Id) &&
+                     !l.IsArchived,
+                includes: "LotType");
+
+            return lots.ToList();
         }
     }
 }

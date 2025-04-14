@@ -34,7 +34,7 @@ namespace Infrastructure
         public void Initialize()
         {
             _db.Database.Migrate();
-            SeedData(); 
+            SeedData();
         }
 
 
@@ -151,14 +151,17 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-
-            // === Guests, Users, RVs, Reservations, Fees ===
             var guestInfos = new List<(string First, string Last)>
             {
                 ("Sheldon", "Cooper"),
                 ("Leonard", "Hofstadter"),
-                ("Penny", "Teller")
+                ("Penny", "Teller"),
+                ("Howard", "Wolowitz"),
+                ("Raj", "Koothrappali")
             };
+
+            var guestList = new List<Guest>();
+            var rvList = new List<RV>();
 
             for (int i = 0; i < guestInfos.Count; i++)
             {
@@ -171,7 +174,6 @@ namespace Infrastructure
                 {
                     _userManager.AddToRoleAsync(identityUser, SD.GuestRole).GetAwaiter().GetResult();
                 }
-
 
                 var user = new User
                 {
@@ -192,49 +194,130 @@ namespace Infrastructure
                 };
                 _db.Guest.Add(guest);
                 _db.SaveChanges();
+                guestList.Add(guest);
 
                 var rv = new RV
                 {
                     GuestID = guest.GuestID,
-                    Length = 32,
+                    LicensePlate = $"RV-{i + 1:000}",
                     Make = "Winnebago",
-                    Model = "Adventure",
-                    LicensePlate = $"ABC12{i}"
+                    Model = $"Model-{i + 1}",
+                    Description = $"Test RV {i + 1}",
+                    Length = 25 + i
                 };
                 _db.RV.Add(rv);
                 _db.SaveChanges();
-
-                var reservation = new Reservation
-                {
-                    GuestId = guest.GuestID,
-                    RvId = rv.RvID,
-                    LotId = lots[i].Id,
-                    StartDate = today.AddDays(1),
-                    EndDate = today.AddDays(5),
-                    Duration = 4,
-                    Status = SD.StatusConfirmed,
-                    OverrideReason = "Initial test"
-                };
-                _db.Reservation.Add(reservation);
-                _db.SaveChanges();
-
-                var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
-                if (cleanupPolicy != null)
-                {
-                    var fee = new Fee
-                    {
-                        FeeTypeId = feeTypes.First().Id,
-                        TriggeringPolicyId = cleanupPolicy.Id,
-                        FeeTotal = 25.0M,
-                        AppliedDate = DateTime.UtcNow,
-                        Notes = "Auto-triggered on creation",
-                        ReservationId = reservation.ReservationId,
-                        TriggerType = TriggerType.Triggered
-                    };
-                    _db.Fee.Add(fee);
-                    _db.SaveChanges();
-                }
+                rvList.Add(rv);
             }
+
+            var reservations = new List<Reservation>
+            {
+                new Reservation
+                {
+                    GuestId = guestList[0].GuestID,
+                    RvId = rvList[0].RvID,
+                    LotId = lots[0].Id,
+                    StartDate = today.AddDays(2),
+                    EndDate = today.AddDays(6),
+                    Duration = 4,
+                    Status = SD.StatusPending,
+                    NumberOfAdults = 2,
+                    NumberOfPets = 1
+                },
+                new Reservation
+                {
+                    GuestId = guestList[1].GuestID,
+                    RvId = rvList[1].RvID,
+                    LotId = lots[1].Id,
+                    StartDate = today.AddDays(3),
+                    EndDate = today.AddDays(6),
+                    Duration = 3,
+                    Status = SD.StatusActive,
+                    NumberOfAdults = 4,
+                    NumberOfPets = 0,
+                    OverrideReason = "Admin-approved exception: elderly family"
+                },
+                new Reservation
+                {
+                    GuestId = guestList[2].GuestID,
+                    RvId = rvList[2].RvID,
+                    LotId = lots[2].Id,
+                    StartDate = today.AddDays(7),
+                    EndDate = today.AddDays(12),
+                    Duration = 5,
+                    Status = SD.StatusConfirmed,
+                    NumberOfAdults = 3,
+                    NumberOfPets = 2
+                },
+                new Reservation
+                {
+                    GuestId = guestList[3].GuestID,
+                    RvId = rvList[3].RvID,
+                    LotId = lots[3].Id,
+                    StartDate = today.AddDays(-5),
+                    EndDate = today.AddDays(-1),
+                    Duration = 4,
+                    Status = SD.StatusCompleted,
+                    NumberOfAdults = 3,
+                    NumberOfPets = 0
+                },
+                new Reservation
+                {
+                    GuestId = guestList[4].GuestID,
+                    RvId = rvList[4].RvID,
+                    LotId = lots[4].Id,
+                    StartDate = today.AddDays(1),
+                    EndDate = today.AddDays(4),
+                    Duration = 3,
+                    Status = SD.StatusCancelled,
+                    NumberOfAdults = 5,
+                    NumberOfPets = 1,
+                    CancellationReason = "Medical emergency",
+                    OverrideReason = "Fee waived by admin due to proof provided"
+                }
+            };
+
+            _db.Reservation.AddRange(reservations);
+            _db.SaveChanges();
+
+
+            var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
+            if (cleanupPolicy != null)
+            {
+                var fee = new Fee
+                {
+                    FeeTypeId = feeTypes.First().Id,
+                    TriggeringPolicyId = cleanupPolicy.Id,
+                    FeeTotal = 25.0M,
+                    AppliedDate = DateTime.UtcNow,
+                    Notes = "Auto-triggered on creation",
+                    ReservationId = reservations[0].ReservationId,
+                    TriggerType = TriggerType.Triggered
+                };
+                _db.Fee.Add(fee);
+                _db.SaveChanges();
+            }
+            var triggeredPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Pet Cleanup"));
+            var feeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
+
+            if (triggeredPolicy != null && feeType != null)
+            {
+                var cleanupFee = new Fee
+                {
+                    FeeTypeId = feeType.Id,
+                    TriggeringPolicyId = triggeredPolicy.Id,
+                    FeeTotal = 25.00M,
+                    AppliedDate = DateTime.UtcNow,
+                    Notes = "Pet cleanup violation",
+                    ReservationId = reservations[0].ReservationId,
+                    TriggerType = TriggerType.Triggered
+                };
+
+                _db.Fee.Add(cleanupFee);
+                _db.SaveChanges();
+            }
+
+
         }
     }
 }

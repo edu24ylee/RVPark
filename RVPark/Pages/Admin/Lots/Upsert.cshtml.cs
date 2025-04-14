@@ -79,7 +79,8 @@ namespace RVPark.Pages.Admin.Lots
             if (!Directory.Exists(uploadDir))
                 Directory.CreateDirectory(uploadDir);
 
-            var existingImages = LotObject.Image?.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).ToList() ?? new();
+            var existingImages = LotObject.ImageList?.Split(',')
+                .Where(x => !string.IsNullOrWhiteSpace(x)).ToList() ?? new();
 
             if (DeleteImages.Any())
             {
@@ -90,7 +91,9 @@ namespace RVPark.Pages.Admin.Lots
                         System.IO.File.Delete(fullPath);
                 }
 
-                existingImages = existingImages.Where(img => !DeleteImages.Contains(img)).ToList();
+                existingImages = existingImages
+                    .Where(img => !DeleteImages.Contains(img))
+                    .ToList();
             }
 
             var newImagePaths = new List<string>();
@@ -107,26 +110,21 @@ namespace RVPark.Pages.Admin.Lots
             }
 
             var combinedImages = existingImages.Concat(newImagePaths).ToList();
-            LotObject.Image = string.Join(",", combinedImages);
+            LotObject.ImageList = string.Join(",", combinedImages);
+
+            if (string.IsNullOrEmpty(LotObject.FeaturedImage) && combinedImages.Count > 0)
+            {
+                LotObject.FeaturedImage = combinedImages[0];
+            }
 
             if (LotObject.Id == 0)
             {
-                if (string.IsNullOrEmpty(LotObject.FeaturedImage) && combinedImages.Count > 0)
-                {
-                    LotObject.FeaturedImage = combinedImages[0]; 
-                }
-
                 _unitOfWork.Lot.Add(LotObject);
             }
             else
             {
                 var objFromDb = _unitOfWork.Lot.Get(u => u.Id == LotObject.Id);
                 if (objFromDb == null) return NotFound();
-
-                if (string.IsNullOrEmpty(LotObject.FeaturedImage) && combinedImages.Count > 0)
-                {
-                    LotObject.FeaturedImage = combinedImages[0];
-                }
 
                 _unitOfWork.Lot.Update(LotObject);
             }

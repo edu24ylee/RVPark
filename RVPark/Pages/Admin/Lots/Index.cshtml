@@ -1,9 +1,8 @@
 ﻿@page
 @model RVPark.Pages.Admin.Lots.IndexModel
-@using System.Text.Json
+@using Infrastructure.Utilities
 @{
     ViewData["Title"] = "Lots";
-    var isSuperAdmin = User.IsInRole("SuperAdmin");
 }
 
 <div class="container my-4">
@@ -16,52 +15,44 @@
         </div>
     </form>
 
-    @if (Model.SelectedParkId.HasValue)
-    {
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center py-3">
-                    <h2 class="text-outline text-custom-blue-header mb-0">Lot List</h2>
-                    <a asp-page="Upsert" asp-route-parkId="@Model.SelectedParkId" class="btn btn-custom-blue-header">
-                        <i class="fas fa-plus"></i> Create New
-                    </a>
-                </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <h2 class="text-outline text-custom-blue-header mb-0">Lot List</h2>
+                <a asp-page="Upsert" asp-route-parkId="@Model.SelectedParkId" class="btn btn-custom-blue-header">
+                    <i class="fas fa-plus"></i> Create New
+                </a>
+            </div>
 
-                <div class="table-responsive">
-                    <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
-                        <thead class="table-primary">
-                            <tr>
-                                <th>Lot Type</th>
-                                <th>Park</th>
-                                <th>Location</th>
-                                <th>Width</th>
-                                <th>Length</th>
-                                <th>Available</th>
-                                <th>Description</th>
-                                <th>Image</th>
-                                <th>Actions</th>
-                                <th>Featured</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table id="DT_load" class="table table-striped table-hover table-bordered align-middle w-100">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Lot Type</th>
+                            <th>Park</th>
+                            <th>Location</th>
+                            <th>Width</th>
+                            <th>Length</th>
+                            <th>Available</th>
+                            <th>Description</th>
+                            <th>Image</th>
+                            <th>Actions</th>
+                            <th>Featured</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
-    }
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        window.isSuperAdmin = @User.IsInRole("SuperAdmin").ToString().ToLower();
         window.selectedParkId = @Model.SelectedParkId;
+        window.isSuperAdmin = '@User.IsInRole(SD.SuperAdminRole)'.toLowerCase();
     </script>
-
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/searchpanes/2.1.2/js/dataTables.searchPanes.min.js"></script>
-    <script src="https://cdn.datatables.net/searchpanes/2.1.2/js/searchPanes.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
-
     <script src="~/js/lots.js" asp-append-version="true"></script>
 }
-

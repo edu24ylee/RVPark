@@ -3,11 +3,11 @@
 $(document).ready(function () {
     loadList();
 
-    const rawToday = new Date();
-    const today = new Date(rawToday.getFullYear(), rawToday.getMonth(), rawToday.getDate());
+    const today = new Date();
     const fiscalStart = new Date(today.getFullYear(), 9, 1);
     const fiscalReminderStart = new Date(fiscalStart);
     fiscalReminderStart.setDate(fiscalStart.getDate() - 5);
+
     const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
 
     if (isSuperAdmin && today >= fiscalReminderStart && today <= fiscalStart) {
@@ -22,84 +22,47 @@ $(document).ready(function () {
 function loadList() {
     dataTable = $('#DT_load').DataTable({
         ajax: {
-            url: "/api/lottype",
+            url: "/api/lottypes",
             type: "GET",
-            dataType: "json",
-            dataSrc: "data",
-            complete: function (xhr) {
-                const today = new Date();
-                const data = xhr.responseJSON?.data ?? [];
-                const nameSet = new Set();
-
-                data.forEach(item => {
-                    if (item.name) nameSet.add(item.name);
-                    if (item.endDate) {
-                        const endDate = new Date(item.endDate);
-                        const warningStart = new Date(endDate);
-                        warningStart.setDate(endDate.getDate() - 5);
-
-                        if (today >= warningStart && today <= endDate) {
-                            toastr.warning(
-                                `Lot Type "${item.name}" is expiring on ${endDate.toLocaleDateString()}.`,
-                                "Expiration Warning",
-                                { toastClass: 'toast toast-custom-blue' }
-                            );
-                        }
-
-                        if (endDate < today) {
-                            toastr.error(
-                                `Lot Type "${item.name}" has expired.`,
-                                "Expired Lot Type",
-                                { toastClass: 'toast toast-custom-blue' }
-                            );
-                        }
-                    }
-                });
-
-                const $nameFilter = $('#nameFilter');
-                $nameFilter.find('option:not(:first)').remove();
-                [...nameSet].sort().forEach(val => {
-                    $nameFilter.append(`<option value="${val}">${val}</option>`);
-                });
-                $nameFilter.on('change', function () {
-                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                    dataTable.column(0).search(val ? `^${val}$` : '', true, false).draw();
-                });
-            }
+            dataSrc: "data"
         },
         columns: [
-            { data: "name", width: "20%" },
+            { data: "name", title: "Name", width: "20%" },
             {
                 data: "rate",
+                title: "Rate",
                 width: "15%",
                 render: $.fn.dataTable.render.number(',', '.', 2, '$')
             },
             {
                 data: "startDate",
+                title: "Start Date",
                 width: "15%",
                 render: data => data ? new Date(data).toLocaleDateString() : "—"
             },
             {
                 data: "endDate",
+                title: "End Date",
                 width: "15%",
                 render: data => data ? new Date(data).toLocaleDateString() : "—"
             },
             {
-                data: "id",
+                data: null,
+                title: "Actions",
                 width: "20%",
                 render: function (data, type, row) {
-                    const isArchived = row.isArchived;
-                    const archiveBtn = isArchived
-                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveLotType(${data})">
+                    const archiveBtn = row.isArchived
+                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="toggleArchive(${row.id}, true)">
                                <i class="fas fa-box-open"></i> Unarchive
                            </button>`
-                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="archiveLotType(${data})">
+                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="toggleArchive(${row.id}, false)">
                                <i class="fas fa-archive"></i> Archive
                            </button>`;
+
                     return `
                         <div class="text-center d-flex justify-content-center gap-2">
-                            <a href="/Admin/LotTypes/Upsert?id=${data}" class="btn btn-sm btn-custom-blue text-white">
-                                <i class="far fa-edit"></i> Edit
+                            <a href="/Admin/LotTypes/Upsert?id=${row.id}" class="btn btn-sm btn-custom-blue text-white">
+                                <i class="fas fa-edit"></i> Edit
                             </a>
                             ${archiveBtn}
                         </div>`;
@@ -111,86 +74,26 @@ function loadList() {
             emptyTable: "No lot types found.",
             search: "Search:"
         },
-        width: "100%"
-    });
-
-    dataTable.on('draw', function () {
-        const $rateFilter = $('#rateFilter');
-        if ($rateFilter.children('option').length <= 1) {
-            const values = new Set();
-            dataTable.column(1).nodes().each(cell => {
-                const val = $(cell).text().trim().replace('$', '');
-                if (val) values.add(val);
-            });
-            [...values].sort((a, b) => parseFloat(a) - parseFloat(b)).forEach(v => {
-                $rateFilter.append(`<option value="${v}">${v}</option>`);
-            });
-        }
-        $rateFilter.off('change').on('change', function () {
-            const val = $.fn.dataTable.util.escapeRegex($(this).val());
-            dataTable.column(1).search(val ? `^\\$?${val}$` : '', true, false).draw();
-        });
-
-        const $startDateFilter = $('#startDateFilter');
-        if ($startDateFilter.children('option').length <= 1) {
-            const values = new Set();
-            dataTable.column(2).nodes().each(cell => {
-                const val = $(cell).text().trim();
-                if (val && val !== "—") values.add(val);
-            });
-            [...values].sort().forEach(v => {
-                $startDateFilter.append(`<option value="${v}">${v}</option>`);
-            });
-        }
-        $startDateFilter.off('change').on('change', function () {
-            const val = $.fn.dataTable.util.escapeRegex($(this).val());
-            dataTable.column(2).search(val ? `^${val}$` : '', true, false).draw();
-        });
-
-        const $endDateFilter = $('#endDateFilter');
-        if ($endDateFilter.children('option').length <= 1) {
-            const values = new Set();
-            dataTable.column(3).nodes().each(cell => {
-                const val = $(cell).text().trim();
-                if (val && val !== "—") values.add(val);
-            });
-            [...values].sort().forEach(v => {
-                $endDateFilter.append(`<option value="${v}">${v}</option>`);
-            });
-        }
-        $endDateFilter.off('change').on('change', function () {
-            const val = $.fn.dataTable.util.escapeRegex($(this).val());
-            dataTable.column(3).search(val ? `^${val}$` : '', true, false).draw();
-        });
+        responsive: true,
+        autoWidth: false
     });
 }
 
-function archiveLotType(id) {
-    $.ajax({
-        url: `/api/lottypes/archive/${id}`,
-        type: "POST",
-        success: function (data) {
-            if (data.success) {
-                toastr.success(data.message);
-                dataTable.ajax.reload();
-            } else {
-                toastr.error(data.message);
-            }
-        }
-    });
-}
+function toggleArchive(id, isArchived) {
+    const url = isArchived
+        ? `/api/lottypes/unarchive/${id}`
+        : `/api/lottypes/archive/${id}`;
 
-function unarchiveLotType(id) {
-    $.ajax({
-        url: `/api/lottypes/unarchive/${id}`,
-        type: "POST",
-        success: function (data) {
-            if (data.success) {
-                toastr.success(data.message);
-                dataTable.ajax.reload();
-            } else {
-                toastr.error(data.message);
-            }
+    $.post(url, function (data) {
+        if (data.success) {
+            toastr.success(data.message, '', {
+                toastClass: 'toast toast-custom-blue',
+                timeOut: 2000,
+                progressBar: true
+            });
+        } else {
+            toastr.error(data.message || "Error toggling archive status.");
         }
+        dataTable.ajax.reload(null, false);
     });
 }

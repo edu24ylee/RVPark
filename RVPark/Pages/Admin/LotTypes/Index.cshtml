@@ -1,9 +1,10 @@
 ﻿@page
+@using Infrastructure.Utilities;
 @model RVPark.Pages.Admin.LotTypes.IndexModel
 @using System.Text.Json
 @{
     ViewData["Title"] = "Lot Types";
-    var isSuperAdmin = User.IsInRole("SuperAdmin");
+    var isSuperAdmin = User.IsInRole(SD.SuperAdminRole);
 }
 
 <div class="container my-4">
@@ -74,7 +75,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
     <script>
-        window.isSuperAdmin = @User.IsInRole("SuperAdmin").ToString().ToLower();
+        window.isSuperAdmin = @User.IsInRole(SD.SuperAdminRole).ToString().ToLower();
         window.selectedParkId = @Model.SelectedParkId;
     </script>
 }

@@ -24,6 +24,11 @@ builder.Services.AddRazorPages();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login"; 
+});
+
 
 
 builder.Services.AddSingleton<IEmailSender, EmailSender>();

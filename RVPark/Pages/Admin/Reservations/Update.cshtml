@@ -1,7 +1,14 @@
 ﻿@page "{id:int}"
+@using Microsoft.AspNetCore.Identity
+@using Infrastructure.Utilities
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
 @model RVPark.Pages.Admin.Reservations.UpdateModel
+
 @{
     ViewData["Title"] = "Update Reservation";
+    var returnUrl = Url.Page("/Admin/Reservations/Update", new { id = Model.ViewModel.Reservation.ReservationId });
+    bool isStaff = User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole);
 }
 
 <form method="post">
@@ -9,92 +16,116 @@
         <div class="card shadow-sm w-100" style="max-width: 700px;">
             <div class="card-body px-5 py-4">
                 <div asp-validation-summary="All" class="text-danger text-start small mb-3"></div>
-
                 <h2 class="text-primary text-center mb-4">Update Reservation</h2>
 
+                <input type="hidden" asp-for="ReturnUrl" />
                 <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
                 <input type="hidden" id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" />
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Guest Name</label>
-                    <input type="text" class="form-control text-center" value="@Model.ViewModel.GuestName" disabled />
+                <div class="row mb-3 align-items-end">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Guest Name</label>
+                        <input type="text" class="form-control text-center" value="@Model.ViewModel.GuestName" disabled />
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label fw-bold">RV Length</label>
+                        <input type="text" id="Rv_Length" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
+                    </div>
+                    <div class="col-2 p-0">
+                        <a asp-page="/Admin/RVs/Edit"
+                           asp-route-id="@Model.ViewModel.Rv.RvID"
+                           asp-route-returnUrl="@returnUrl"
+                           class="btn btn-custom-blue w-100">Edit</a>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">RV Length</label>
-                    <input type="text" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="ViewModel.Reservation.StartDate" class="form-label fw-bold"></label>
-                    <input asp-for="ViewModel.Reservation.StartDate" type="date" class="form-control text-center" />
-                </div>
-
-
-                <div class="mb-3">
-                    <label asp-for="ViewModel.Reservation.EndDate" class="form-label fw-bold"></label>
-                    <input asp-for="ViewModel.Reservation.EndDate" type="date" class="form-control text-center" />
+                <div class="row mb-3">
+                    <div class="col-5">
+                        <label asp-for="ViewModel.Reservation.StartDate" class="form-label fw-bold"></label>
+                        <input asp-for="ViewModel.Reservation.StartDate" type="date" class="form-control text-center" id="Reservation_StartDate" />
+                    </div>
+                    <div class="col-5">
+                        <label asp-for="ViewModel.Reservation.EndDate" class="form-label fw-bold"></label>
+                        <input asp-for="ViewModel.Reservation.EndDate" type="date" class="form-control text-center" id="Reservation_EndDate" />
+                    </div>
+                    <div class="col-2">
+                        <label asp-for="ViewModel.Duration" class="form-label fw-bold"></label>
+                        <input asp-for="ViewModel.Duration" class="form-control text-center" id="Reservation_Duration" readonly />
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Lot Type</label>
-                    <select id="lotTypeSelect" class="form-control text-center">
+                    <select asp-for="ViewModel.Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control text-center">
+                        <option disabled value="">-- Select Lot Type --</option>
                         @foreach (var lotType in Model.ViewModel.LotTypes)
                         {
-                            <option value="@lotType.Id">@lotType.Name - $@lotType.Rate/day</option>
+                            <option value="@lotType.Id" data-rate="@lotType.Rate">@lotType.Name - $@lotType.Rate/day</option>
                         }
                     </select>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="ViewModel.Reservation.LotId" class="form-label fw-bold"></label>
-                    <select asp-for="ViewModel.Reservation.LotId" id="lotSelect" class="form-control text-center">
+                    <select asp-for="ViewModel.Reservation.LotId" id="Reservation_LotId" class="form-control text-center">
+                        <option disabled value="">-- Select a Lot --</option>
                         @foreach (var lot in Model.ViewModel.AvailableLots)
                         {
-                            <option value="@lot.Id" data-rate="@lot.LotType.Rate">
-                                @lot.Location (Type: @lot.LotType.Name)
-                            </option>
+                            var rate = lot.LotType?.Rate ?? 0;
+                            <option value="@lot.Id" data-rate="@rate">Lot #@lot.Id - @lot.Location</option>
                         }
                     </select>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="ViewModel.Reservation.Duration" class="form-label fw-bold"></label>
-                    <input asp-for="ViewModel.Reservation.Duration" class="form-control text-center" readonly />
-                </div>
+                <div class="mb-3 text-center" id="LotThumbnailContainer"></div>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Updated Total ($)</label>
                     <input id="updatedTotalField" class="form-control text-center" readonly />
                 </div>
-
                 <div class="mb-3">
-                    <label asp-for="ViewModel.Reservation.Status" class="form-label fw-bold"></label>
-                    <select asp-for="ViewModel.Reservation.Status" class="form-control text-center">
-                        <option>Active</option>
-                        <option>Upcoming</option>
-                        <option>Completed</option>
-                        <option>Cancelled</option>
-                    </select>
+                    <label class="form-label fw-bold">Balance Difference</label>
+                    <input id="BalanceDifferenceDisplay" class="form-control text-center" readonly />
                 </div>
 
-                <div class="mb-3">
+                @if (isStaff)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Add Manual Fee</label>
+                        <select class="form-select" name="manualFeeTypeId">
+                            <option value="">-- Select Fee --</option>
+                            @foreach (var fee in Model.ViewModel.ManualFeeOptions)
+                            {
+                                <option value="@fee.Id">@fee.FeeTypeName - @fee.Description</option>
+                            }
+
+                        </select>
+                    </div>
+                }
+
+                <div class="mb-3" id="CancellationReasonContainer" style="display:none;">
                     <label asp-for="ViewModel.Reservation.CancellationReason" class="form-label fw-bold"></label>
                     <input asp-for="ViewModel.Reservation.CancellationReason" class="form-control text-center" />
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3" id="OverrideReasonContainer" style="display:none;">
                     <label asp-for="ViewModel.Reservation.OverrideReason" class="form-label fw-bold"></label>
                     <input asp-for="ViewModel.Reservation.OverrideReason" class="form-control text-center" />
                 </div>
 
-                <div class="d-flex justify-content-center gap-3 mt-4">
+                <div class="d-flex justify-content-between gap-3 mt-4">
                     <button type="submit" class="btn btn-custom-blue">
                         <i class="fas fa-save"></i> Save Changes
                     </button>
-                    <a asp-page="./Index" class="btn btn-secondary">
+                    <a asp-page="./Index" class="btn btn-custom-grey">
                         <i class="fas fa-arrow-left"></i> Back to List
                     </a>
+                    @if (isStaff)
+                    {
+                        <button type="submit" name="cancel" value="true" class="btn btn-danger">
+                            <i class="fas fa-times-circle"></i> Cancel Reservation
+                        </button>
+                    }
                 </div>
             </div>
         </div>

@@ -30,7 +30,7 @@ public class LotController : Controller
             length = l.Length,
             isAvailable = l.IsAvailable,
             description = l.Description,
-            image = string.Join(",", (l.ImageList ?? l.Image ?? "")
+            image = string.Join(",", (l.ImageList ?? l.ImageList ?? "")
                 .Split(',', ';')
                 .Select(s => s.Trim())
                 .Where(s => !string.IsNullOrEmpty(s))
@@ -48,19 +48,18 @@ public class LotController : Controller
         return Json(new { data = result });
     }
 
-
-
     [HttpPost("archive/{id}")]
     public async Task<IActionResult> Archive(int id)
     {
         var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
-        if (lot == null)
-            return Json(new { success = false, message = "Lot not found." });
+        if (lot == null) return Json(new { success = false, message = "Lot not found." });
+        if (lot.IsFeatured) return Json(new { success = false, message = "Cannot archive a featured lot." });
+        if ((await _unitOfWork.Reservation.GetAllAsync(r => r.LotId == id)).Any())
+            return Json(new { success = false, message = "Cannot archive a lot with active reservations." });
 
         lot.IsArchived = true;
         _unitOfWork.Lot.Update(lot);
         await _unitOfWork.CommitAsync();
-
         return Json(new { success = true, message = "Lot archived successfully." });
     }
 
@@ -68,15 +67,15 @@ public class LotController : Controller
     public async Task<IActionResult> Unarchive(int id)
     {
         var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == id);
-        if (lot == null)
-            return Json(new { success = false, message = "Lot not found." });
+        if (lot == null) return Json(new { success = false, message = "Lot not found." });
 
         lot.IsArchived = false;
         _unitOfWork.Lot.Update(lot);
         await _unitOfWork.CommitAsync();
-
         return Json(new { success = true, message = "Lot unarchived successfully." });
     }
+
+
     [HttpPost("feature/{id}")]
     public async Task<IActionResult> FeatureLot(int id)
     {

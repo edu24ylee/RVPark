@@ -1,0 +1,55 @@
+﻿@page "{id:int}"
+@model RVPark.Pages.Admin.RVs.EditModel
+@{
+    ViewData["Title"] = "Edit RV";
+}
+
+<h2 class="text-center text-primary mb-4">Edit RV</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="Rv.RvID" />
+    <input type="hidden" asp-for="ReturnUrl" />
+
+    <div class="mb-3">
+        <label asp-for="Rv.Make" class="form-label fw-bold"></label>
+        <input asp-for="Rv.Make" class="form-control text-center" />
+        <span asp-validation-for="Rv.Make" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Rv.Model" class="form-label fw-bold"></label>
+        <input asp-for="Rv.Model" class="form-control text-center" />
+        <span asp-validation-for="Rv.Model" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Rv.LicensePlate" class="form-label fw-bold"></label>
+        <input asp-for="Rv.LicensePlate" class="form-control text-center" />
+        <span asp-validation-for="Rv.LicensePlate" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Rv.Length" class="form-label fw-bold"></label>
+        <input asp-for="Rv.Length" class="form-control text-center" />
+        <span asp-validation-for="Rv.Length" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Rv.Description" class="form-label fw-bold"></label>
+        <textarea asp-for="Rv.Description" class="form-control text-center" rows="3"></textarea>
+        <span asp-validation-for="Rv.Description" class="text-danger small"></span>
+    </div>
+
+    <div class="d-flex justify-content-center gap-3">
+        <button type="submit" class="btn btn-custom-blue">
+            <i class="fas fa-save"></i> Save
+        </button>
+        <a href="@Model.ReturnUrl ?? Url.Page(" /Admin/RVs/Index")" class="btn btn-custom-grey">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

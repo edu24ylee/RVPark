@@ -37,6 +37,11 @@ namespace ApplicationCore.Models
         public DateTime? CancellationDate { get; set; }
 
         public string? CancellationReason { get; set; }
+        public int NumberOfAdults { get; set; }
+        public int NumberOfPets { get; set; }
+
+        public int LotTypeId { get; set; }
+
 
         public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)
         {

@@ -26,16 +26,8 @@ namespace RVPark.Pages.Customer.Home
             if (SelectedLot == null)
                 return NotFound();
 
-            if (!string.IsNullOrEmpty(SelectedLot.ImageList))
-            {
-                SelectedLot.Images = SelectedLot.ImageList
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(i => i.Trim())
-                    .ToList();
-            }
-
-
             return Page();
         }
+
     }
 }

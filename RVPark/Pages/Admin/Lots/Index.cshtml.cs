@@ -3,6 +3,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace RVPark.Pages.Admin.Lots
 {
@@ -19,6 +20,7 @@ namespace RVPark.Pages.Admin.Lots
         public int? SelectedParkId { get; set; }
 
         public List<SelectListItem> ParkList { get; set; } = new();
+        public List<Lot> Lots { get; set; } = new();
 
         public async Task OnGetAsync()
         {
@@ -37,7 +39,14 @@ namespace RVPark.Pages.Admin.Lots
                     SelectedParkId = defaultPark.Id;
                 }
             }
+
+            if (SelectedParkId.HasValue)
+            {
+                Lots = (await _unitOfWork.Lot.GetAllAsync(
+                 l => l.LotType.ParkId == SelectedParkId.Value,
+                includes: "LotType.Park,Reservations")).ToList();
+
+            }
         }
     }
-
 }

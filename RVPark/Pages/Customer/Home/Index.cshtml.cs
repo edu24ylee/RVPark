@@ -1,5 +1,6 @@
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace RVPark.Pages.Customer.Home
@@ -13,26 +14,46 @@ namespace RVPark.Pages.Customer.Home
             _unitOfWork = unitOfWork;
         }
 
-        public List<Lot> AvailableLots { get; set; } = new List<Lot>();
-
+        public List<Lot> AvailableLots { get; set; } = new();
         public Lot? FeaturedLot { get; set; }
+        public List<LotType> AllLotTypes { get; set; } = new();
+
+        [BindProperty(SupportsGet = true)]
+        public DateTime? FilterStartDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public DateTime? FilterEndDate { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int? LotTypeId { get; set; }
+
+        public int? SelectedLotTypeId => LotTypeId;
 
         public async Task OnGetAsync()
         {
-            var lots = await _unitOfWork.Lot.GetAllAsync(
-                l => l.IsAvailable,
-                includes: "LotType"
-            );
+            AllLotTypes = (await _unitOfWork.LotType.GetAllAsync()).ToList();
 
-            FeaturedLot = lots.FirstOrDefault(l => l.IsFeatured);
-            FeaturedLot = lots.FirstOrDefault(l => l.IsFeatured)
-           ?? lots.Where(l => l.LotType != null)
-                  .OrderByDescending(l => l.LotType!.Rate)
-                  .FirstOrDefault();
+            var allLots = await _unitOfWork.Lot.GetAllAsync(
+                l => !l.IsArchived && l.IsAvailable,
+                includes: "LotType");
 
+            if (FilterStartDate.HasValue && FilterEndDate.HasValue)
+            {
+                var reservedLotIds = (await _unitOfWork.Reservation.GetAllAsync(
+                    r => !(r.EndDate < FilterStartDate || r.StartDate > FilterEndDate)))
+                    .Select(r => r.LotId)
+                    .ToHashSet();
 
+                allLots = allLots.Where(l => !reservedLotIds.Contains(l.Id)).ToList();
+            }
 
-            AvailableLots = lots
+            if (LotTypeId.HasValue)
+                allLots = allLots.Where(l => l.LotTypeId == LotTypeId).ToList();
+
+            FeaturedLot = allLots.FirstOrDefault(l => l.IsFeatured)
+                          ?? allLots.OrderByDescending(l => l.LotType?.Rate).FirstOrDefault();
+
+            AvailableLots = allLots
                 .Where(l => l.Id != FeaturedLot?.Id)
                 .ToList();
         }
