@@ -26,32 +26,41 @@
 }
 
 <div class="container mt-5">
-    <div class="row align-items-center">
-        <div class="col-12 text-center mb-4">
+    <div class="row mb-5">
+        <!-- Left: Main Image -->
+        <div class="col-md-8 text-center">
             <img id="mainImage"
                  src="@mainImagePath"
-                 class="lot-main-img"
+                 class="lot-main-img w-100"
                  alt="Main Lot Image"
+                 style="max-height: 500px; object-fit: cover;"
+                 onclick="openFullscreen(this)"
                  onerror="this.onerror=null;this.src='/Images/default.jpg';">
         </div>
 
-        @if (Model.SelectedLot.Images != null && Model.SelectedLot.Images.Count > 1)
+        <!-- Right: Thumbnails -->
+        @if (Model.SelectedLot.Images?.Any() == true)
         {
-            <div class="col-12 d-flex justify-content-center flex-wrap gap-2 mb-5">
-                @foreach (var image in Model.SelectedLot.Images)
-                {
-                    var thumbPath = image.StartsWith("/Images/")
-                    ? image
-                    : $"/Images/lots/{image}";
+            <div class="col-md-4">
+                <div class="d-flex flex-md-column flex-row flex-wrap gap-2 justify-content-center">
+                    @foreach (var image in Model.SelectedLot.Images)
+                    {
+                        var thumbPath = image.StartsWith("/Images/")
+                        ? image
+                        : $"/Images/lots/{image}";
 
-                    <img src="@thumbPath"
-                         class="lot-thumb-img"
-                         alt="Thumbnail"
-                         onclick="setMainImage('@thumbPath')"
-                         onerror="this.onerror=null;this.src='/Images/default.jpg';">
-                }
+                        <img src="@thumbPath"
+                             class="lot-thumb-img"
+                             style="max-width: 100px; max-height: 100px; object-fit: cover; cursor: pointer;"
+                             alt="Thumbnail"
+                             onclick="setMainImage('@thumbPath')"
+                             onerror="this.onerror=null;this.src='/Images/default.jpg';">
+                    }
+                </div>
             </div>
         }
+    </div>
+
 
         <div class="col-md-12">
             <h1 class="display-4 text-custom-blue-header fw-bold mb-3">Lot Information</h1>
@@ -82,11 +91,14 @@
                     <p><strong>Office Hours:</strong> Mon–Sat: 9AM–4PM, Sun: Closed</p>
                 </div>
             </div>
-
-            <div class="mt-4">
-                <a asp-page="Schedule" asp-route-id="@Model.SelectedLot.Id" class="btn btn-custom-blue btn-lg">
+            <div>
+                <a asp-page="/Customer/Home/Schedule"
+                   asp-route-id="@Model.SelectedLot.Id"
+                   asp-route-returnUrl="@Url.Page("Details", new { id = Model.SelectedLot.Id })"
+                   class="btn btn-custom-blue btn-lg">
                     <i class="fas fa-calendar-check"></i> Schedule Your Stay
                 </a>
+
                 <a asp-page="./Index" class="btn btn-custom-grey btn-lg ms-3">Back to Campsites</a>
             </div>
         </div>

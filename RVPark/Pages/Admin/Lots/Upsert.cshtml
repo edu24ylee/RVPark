@@ -15,7 +15,7 @@
                 </h2>
 
                 <input type="hidden" asp-for="LotObject.Id" />
-                <input type="hidden" asp-for="LotObject.Image" />
+                <input type="hidden" asp-for="LotObject.ImageList" />
                 <input type="hidden" name="LotObject.FeaturedImage" id="FeaturedImageInput" value="@Model.LotObject.FeaturedImage" />
 
                 <!-- Location -->
@@ -70,9 +70,9 @@
                 </div>
 
                 <!-- Existing Images -->
-                @if (!string.IsNullOrWhiteSpace(Model.LotObject.Image))
+                @if (!string.IsNullOrWhiteSpace(Model.LotObject.ImageList))
                 {
-                    var imagePaths = Model.LotObject.Image.Split(',');
+                    var imagePaths = Model.LotObject.ImageList.Split(',');
                     <div class="mb-3">
                         <label class="form-label fw-bold">Existing Images</label>
                         <div class="d-flex flex-wrap gap-3">

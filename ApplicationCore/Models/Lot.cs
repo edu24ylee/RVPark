@@ -29,18 +29,23 @@ namespace ApplicationCore.Models
         [ForeignKey("LotTypeId")]
         [ValidateNever]
         public virtual LotType LotType { get; set; } = null!;
-        public string? Image { get; set; }
+
         public string? ImageList { get; set; }
 
         public string? FeaturedImage { get; set; }
 
         [NotMapped]
-        public List<string> Images { get; set; } = new();
+        public List<string> Images =>
+            string.IsNullOrWhiteSpace(ImageList)
+                ? new List<string>()
+                : ImageList.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                           .Select(i => i.Trim())
+                           .ToList();
 
         public bool IsFeatured { get; set; } = false;
 
         public bool IsArchived { get; set; } = false;
-        public ICollection<Reservation>? Reservations { get; set; }
 
+        public ICollection<Reservation>? Reservations { get; set; }
     }
 }

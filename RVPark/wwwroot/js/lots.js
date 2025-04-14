@@ -26,11 +26,24 @@ function loadList(parkId) {
             {
                 data: null,
                 title: "Image",
+                width: "160px", 
                 render: function (data, type, row) {
-                    const img = row.featuredImage || row.image?.split(',')[0];
-                    return img
-                        ? `<img src="${img}" class="img-thumbnail" style="max-height:60px;" />`
-                        : `<span class="text-muted">No image</span>`;
+                    const imageListRaw = row.imageList || row.image || "";
+                    const images = imageListRaw.split(',').map(i => i.trim()).filter(i => i);
+                    const img = row.featuredImage || images[0];
+
+                    if (!img) {
+                        return `<span class="text-muted">No image</span>`;
+                    }
+
+                    const imageCount = images.length;
+
+                    return `
+            <div class="d-flex align-items-center gap-2" style="white-space: nowrap;">
+                <img src="${img}" class="img-thumbnail" style="max-height:60px; width:auto;" />
+                <span class="badge bg-custom-blue">${imageCount}</span>
+            </div>
+        `;
                 }
             },
             {

@@ -30,7 +30,7 @@ public class LotController : Controller
             length = l.Length,
             isAvailable = l.IsAvailable,
             description = l.Description,
-            image = string.Join(",", (l.ImageList ?? l.Image ?? "")
+            image = string.Join(",", (l.ImageList ?? l.ImageList ?? "")
                 .Split(',', ';')
                 .Select(s => s.Trim())
                 .Where(s => !string.IsNullOrEmpty(s))
