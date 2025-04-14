@@ -5,7 +5,7 @@
 namespace Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class FeeModelupdateRedundantrequired : Migration
+    public partial class UpdateReservationModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

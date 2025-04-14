@@ -2,6 +2,35 @@
 @model PaymentModel
 @{
     ViewData["Title"] = "Payment";
+
+    var today = DateTime.Today.ToString("MM-dd-yyyy");
+    var firstName = Model.guestFirstName;
+    var lastName = Model.guestLastName;
+
+    var rvLength = Model.length;
+    var rvMake = Model.make;
+    var rvModel = Model.model;
+    var rvLicensePlate = Model.licensePlate;
+	var rvDescription = Model.rvDescription;
+
+
+    var adults = Model.numberOfAdults;
+    var pets = Model.numberOfPets;
+    var specialRequests = Model.specialRequests;
+    var startDate = Model.startDate.ToString("MM-dd-yyyy"); ;
+    var endDate = Model.endDate.ToString("MM-dd-yyyy"); ;
+    var duration = Model.duration;
+
+    var lotType = Model.selectedLot?.LotType;
+    var lotName = lotType?.Name ?? "Name unavailable";
+    var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
+    var lotRateValue = lotType?.Rate ?? 0;
+    var lotLocatoion = Model.selectedLot?.Location ?? "Location unavailable";
+
+	var subtotal = lotRateValue * duration;
+	var tax = subtotal * 0.08;
+	var total = subtotal + tax;
+
 }
 
 <div class="">
@@ -19,21 +48,33 @@
                         <!-- Reservation Summary -->
                         <div class="col-md-6 border-end">
                             <h5 class="fw-bold mb-3">Reservation Summary</h5>
-                            <p><strong>Name:</strong> Lexus</p>
-                            <p><strong>Dates:</strong> tusday Maybe?</p>
-                            <p><strong>Duration:</strong> 1000/p>
-                            <p><strong>Trailer:</strong> 9000</p>
-                            <p><strong>Adults:</strong> 0</p>
-                            <p><strong>Pets:</strong> 10</p>
-                         
-                            <p><strong>Special Requests:</strong> idk</p>
+                            <p><strong>Full Name:</strong> @firstName @lastName </p>
+                            <p><strong>Date Scheduled:</strong> @today <p>
+                            <p><strong>Check In Date:</strong> @startDate <p>
+                            <p><strong>Check Out Date:</strong> @endDate <p>
+                            <p><strong>Duration:</strong> @duration Days</p>
+                            <p><strong>Trailer Length:</strong> @rvLength </p>
+                            <p><strong>Adults:</strong> @adults </p>
+                            <p><strong>Pets:</strong> @pets </p>
+                            <p><strong>Special Requests:</strong> @specialRequests </p>
                             
 
                             <hr />
                             <h5 class="fw-bold">Lot Info</h5>
-                            <p><strong>Lot #:</strong>1</p>
-                            <p><strong>Type:</strong>Type/p>
-                            <p><strong>Location:</strong>Description</p>
+                            <p><strong>Lot Name:</strong> @lotName</p>
+                            <p><strong>Location:</strong> @lotLocatoion</p>
+                            <p><strong>Rate:</strong> @lotRate/night</p>
+
+
+                            <!-- RV Information Section -->
+                            <hr />
+                            <h5 class="fw-bold">RV Info</h5>
+                            <p><strong>License Plate:</strong> @rvLicensePlate</p>
+                            <p><strong>Make:</strong> @rvMake</p>
+                            <p><strong>Make:</strong> @rvModel</p>
+                            <p><strong>Length:</strong> @rvLength</p>
+                            <p><strong>Description:</strong> @rvDescription</p>
+
                         </div>
 
                         <!-- Payment Form -->
@@ -68,10 +109,33 @@
                                 </div>
 
                                 <hr />
+                  
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-3">Price Breakdown</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Nightly Rate:</span>
+                                            <span>@lotRate</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Total Nights:</span>
+                                            <span> @duration night(s)</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Subtotal:</span>
+                                            <span>$@subtotal.ToString("F2")</</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Taxes (8%):</span>
+                                            <span>@tax.ToString("F2")</</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h5>Total:</h5>
-                                        <h4 class="text-success">12</h4>
+                                        <h4 class="text-success">@total.ToString("F2")</h4>
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="fas fa-lock"></i> Pay Now

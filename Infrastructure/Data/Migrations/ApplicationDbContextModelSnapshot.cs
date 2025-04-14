@@ -50,7 +50,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("GuestID")
                         .IsUnique();
 
-                    b.ToTable("DodAffiliation");
+                    b.ToTable("DodAffiliation", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Employee", b =>
@@ -76,7 +76,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("UserID")
                         .IsUnique();
 
-                    b.ToTable("Employee");
+                    b.ToTable("Employee", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Fee", b =>
@@ -87,25 +87,13 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AppliedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<decimal>("FeeTotal")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("FeeTypeId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ReservationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TriggerType")
+                    b.Property<int?>("TransactionId")
                         .HasColumnType("int");
 
                     b.Property<int?>("TriggeringPolicyId")
@@ -115,11 +103,9 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("FeeTypeId");
 
-                    b.HasIndex("ReservationId");
-
                     b.HasIndex("TriggeringPolicyId");
 
-                    b.ToTable("Fee");
+                    b.ToTable("Fee", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.FeeType", b =>
@@ -130,25 +116,13 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FeeTypeName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("TriggerRuleJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TriggerType")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.ToTable("FeeType");
+                    b.ToTable("FeeType", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.FinancialReport", b =>
@@ -165,7 +139,7 @@ namespace Infrastructure.Data.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.ToTable("FinancialReport");
+                    b.ToTable("FinancialReport", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
@@ -187,7 +161,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("UserID")
                         .IsUnique();
 
-                    b.ToTable("Guest");
+                    b.ToTable("Guest", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Lot", b =>
@@ -213,9 +187,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
-
                     b.Property<double>("Length")
                         .HasColumnType("float");
 
@@ -233,7 +204,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("LotTypeId");
 
-                    b.ToTable("Lot");
+                    b.ToTable("Lot", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.LotType", b =>
@@ -267,7 +238,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("ParkId");
 
-                    b.ToTable("LotType");
+                    b.ToTable("LotType", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Park", b =>
@@ -303,7 +274,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Park");
+                    b.ToTable("Park", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Policy", b =>
@@ -314,9 +285,6 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PolicyDescription")
                         .HasColumnType("nvarchar(max)");
 
@@ -326,7 +294,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Policy");
+                    b.ToTable("Policy", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.RV", b =>
@@ -367,7 +335,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("GuestID");
 
-                    b.ToTable("RV");
+                    b.ToTable("RV", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Reservation", b =>
@@ -396,13 +364,12 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("LotId1")
-                        .HasColumnType("int");
-
                     b.Property<int>("LotTypeId")
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfAdults")
+                    
+                    
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfPets")
@@ -413,6 +380,9 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<int>("RvId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SpecialRequests")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -427,11 +397,9 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("LotId");
 
-                    b.HasIndex("LotId1");
-
                     b.HasIndex("RvId");
 
-                    b.ToTable("Reservation");
+                    b.ToTable("Reservation", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.ReservationReport", b =>
@@ -481,7 +449,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("ReportId");
 
-                    b.ToTable("ReservationReports");
+                    b.ToTable("ReservationReports", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
@@ -509,7 +477,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("RvID");
 
-                    b.ToTable("ReservationUpdateModel");
+                    b.ToTable("ReservationUpdateModel", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -749,7 +717,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("UserID");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.DodAffiliation", b =>
@@ -777,22 +745,16 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Fee", b =>
                 {
                     b.HasOne("ApplicationCore.Models.FeeType", "FeeType")
-                        .WithMany("Fees")
+                        .WithMany()
                         .HasForeignKey("FeeTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApplicationCore.Models.Reservation", "Reservation")
-                        .WithMany()
-                        .HasForeignKey("ReservationId");
-
                     b.HasOne("ApplicationCore.Models.Policy", "TriggeringPolicy")
-                        .WithMany("Fees")
+                        .WithMany()
                         .HasForeignKey("TriggeringPolicyId");
 
                     b.Navigation("FeeType");
-
-                    b.Navigation("Reservation");
 
                     b.Navigation("TriggeringPolicy");
                 });
@@ -854,10 +816,6 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("LotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("ApplicationCore.Models.Lot", null)
-                        .WithMany("Reservations")
-                        .HasForeignKey("LotId1");
 
                     b.HasOne("ApplicationCore.Models.RV", "Rv")
                         .WithMany()
@@ -942,11 +900,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ApplicationCore.Models.FeeType", b =>
-                {
-                    b.Navigation("Fees");
-                });
-
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
                     b.Navigation("DodAffiliation")
@@ -965,11 +918,6 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Park", b =>
                 {
                     b.Navigation("LotTypes");
-                });
-
-            modelBuilder.Entity("ApplicationCore.Models.Policy", b =>
-                {
-                    b.Navigation("Fees");
                 });
 
             modelBuilder.Entity("User", b =>

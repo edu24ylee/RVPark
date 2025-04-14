@@ -27,7 +27,7 @@ namespace RVPark.Pages.Customer.Home
         public string GuestLastName { get; set; } = string.Empty;
 
         [BindProperty, Required(ErrorMessage = "Trailer length is required.")]
-        public decimal Length { get; set; }
+        public int Length { get; set; }
 
         [BindProperty, Range(1, 10, ErrorMessage = "Please enter at least 1 adult.")]
         public int NumberOfAdults { get; set; }
@@ -35,26 +35,72 @@ namespace RVPark.Pages.Customer.Home
         [BindProperty, Range(0, 5, ErrorMessage = "Maximum 5 pets allowed.")]
         public int NumberOfPets { get; set; }
 
+        [BindProperty, Required(ErrorMessage = "Start date is required.")]
+        public DateTime StartDate { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "End date is required.")]
+        public DateTime EndDate { get; set; }
+
+        [BindProperty]
+        public int Duration { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "License plate is required.")]
+        public string? LicensePlate { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "Make is required.")]
+        public string? Make { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "Model is required.")]
+        public string? Model { get; set; }
+
+        [BindProperty]
+        public string? RvDescription { get; set; }
+
         [BindProperty]
         public string? SpecialRequests { get; set; }
 
-        public List<string> StatusOptions { get; } = new()
-        {
-            "Active", "Cancelled", "Confirmed", "Completed", "Pending"
-        };
+        public string StatusOptions { get; } = "Pending";
 
-        public async Task<IActionResult> OnGetAsync(int id, string? returnUrl = null)
+        [BindProperty]
+        public int LotId { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int id)
         {
             SelectedLot = await _unitOfWork.Lot.GetAsync(
-                l => ((Lot)l).Id == id,
-                includes: "LotType");
+                l => l.Id == id, includes: "LotType");
 
             if (SelectedLot == null)
             {
                 return NotFound();
             }
 
+            LotId = SelectedLot.Id;
+            StartDate = DateTime.UtcNow.Date;
+            EndDate = StartDate.AddDays(1);
+            Duration = 1;
+
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            return RedirectToPage("Payment", new
+            {
+                guestFirstName = GuestFirstName,
+                guestLastName = GuestLastName,
+                licensePlate = LicensePlate,
+                make = Make,
+                model = Model,
+                rvDescription = RvDescription,
+                length = Length,
+                numberOfAdults = NumberOfAdults,
+                numberOfPets = NumberOfPets,
+                specialRequests = SpecialRequests,
+                startDate = StartDate,
+                endDate = EndDate,
+                duration = Duration,
+                id = LotId
+            });
         }
     }
 }
