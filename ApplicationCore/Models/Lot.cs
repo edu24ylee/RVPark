@@ -40,5 +40,7 @@ namespace ApplicationCore.Models
         public bool IsFeatured { get; set; } = false;
 
         public bool IsArchived { get; set; } = false;
+        public ICollection<Reservation>? Reservations { get; set; }
+
     }
 }

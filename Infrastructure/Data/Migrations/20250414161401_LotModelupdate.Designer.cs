@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250414161401_LotModelupdate")]
+    partial class LotModelupdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -394,9 +397,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("LotId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
 
@@ -415,8 +415,6 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("GuestId");
 
                     b.HasIndex("LotId");
-
-                    b.HasIndex("LotId1");
 
                     b.HasIndex("RvId");
 
@@ -838,10 +836,6 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ApplicationCore.Models.Lot", null)
-                        .WithMany("Reservations")
-                        .HasForeignKey("LotId1");
-
                     b.HasOne("ApplicationCore.Models.RV", "Rv")
                         .WithMany()
                         .HasForeignKey("RvId")
@@ -937,11 +931,6 @@ namespace Infrastructure.Data.Migrations
 
                     b.Navigation("RVs");
 
-                    b.Navigation("Reservations");
-                });
-
-            modelBuilder.Entity("ApplicationCore.Models.Lot", b =>
-                {
                     b.Navigation("Reservations");
                 });
 

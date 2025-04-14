@@ -23,7 +23,7 @@ namespace ApplicationCore.Models
         [Required]
         public string Model { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public int Length { get; set; }
         public static RV GetGuestRV(List<RV> rvList, int guestId)
