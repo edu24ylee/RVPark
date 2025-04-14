@@ -178,9 +178,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("FeaturedImage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ImageList")
                         .HasColumnType("nvarchar(max)");
 
@@ -310,7 +307,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("GuestID")
                         .HasColumnType("int");
@@ -320,15 +318,18 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Make")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("RvID");
 
@@ -363,7 +364,12 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
+                    b.Property<int>("LotTypeId")
+                        .HasColumnType("int");
+
                     b.Property<int>("NumberOfAdults")
+                    
+                    
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfPets")
@@ -448,9 +454,15 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
                 {
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
                     b.Property<string>("GuestName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ManualFeeTypeId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("OriginalTotal")
                         .HasColumnType("decimal(18,2)");
@@ -895,6 +907,11 @@ namespace Infrastructure.Data.Migrations
 
                     b.Navigation("RVs");
 
+                    b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Lot", b =>
+                {
                     b.Navigation("Reservations");
                 });
 

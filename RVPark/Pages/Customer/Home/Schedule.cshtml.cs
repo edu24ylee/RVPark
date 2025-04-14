@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using ApplicationCore.Models;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace RVPark.Pages.Customer.Home
 {
+    [Authorize]
     public class ScheduleModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;
@@ -15,57 +17,67 @@ namespace RVPark.Pages.Customer.Home
             _unitOfWork = unitOfWork;
         }
 
-        public Lot selectedLot { get; set; }
+        public Lot SelectedLot { get; set; } = null!;
+        public Reservation Reservation { get; set; } = new();
 
         [BindProperty, Required(ErrorMessage = "First name is required.")]
-        public string guestFirstName { get; set; } = string.Empty;
+        public string GuestFirstName { get; set; } = string.Empty;
 
         [BindProperty, Required(ErrorMessage = "Last name is required.")]
-        public string guestLastName { get; set; } = string.Empty;
+        public string GuestLastName { get; set; } = string.Empty;
+
+        [BindProperty, Required(ErrorMessage = "Trailer length is required.")]
+        public int Length { get; set; }
 
         [BindProperty, Range(1, 10, ErrorMessage = "Please enter at least 1 adult.")]
-        public int numberOfAdults { get; set; }
+        public int NumberOfAdults { get; set; }
 
         [BindProperty, Range(0, 5, ErrorMessage = "Maximum 5 pets allowed.")]
-        public int numberOfPets { get; set; }
-        [BindProperty, Required(ErrorMessage = "Starting Date is required.")]
-        public DateTime startDate { get; set; }
-        [BindProperty, Required(ErrorMessage = "EndingDate is required.")]
-        public DateTime endDate { get; set; }
-        [BindProperty]
-        public int duration { get; set; }
+        public int NumberOfPets { get; set; }
 
-        [BindProperty, Required(ErrorMessage = "License Plate is required.")]
-        public string? licensePlate { get; set; }
+        [BindProperty, Required(ErrorMessage = "Start date is required.")]
+        public DateTime StartDate { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "End date is required.")]
+        public DateTime EndDate { get; set; }
+
+        [BindProperty]
+        public int Duration { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "License plate is required.")]
+        public string? LicensePlate { get; set; }
+
         [BindProperty, Required(ErrorMessage = "Make is required.")]
-        public string? make { get; set; }
-        [BindProperty, Required(ErrorMessage = "Model Plate is required.")]
-        public string? model { get; set; }
-        [BindProperty]
-        public string? rvDescription { get; set; }
-        //[BindProperty, Required(ErrorMessage = "Trailer length is required.")]
-        [BindProperty, Required(ErrorMessage = "Length is required.")]
-        public int length { get; set; }
+        public string? Make { get; set; }
+
+        [BindProperty, Required(ErrorMessage = "Model is required.")]
+        public string? Model { get; set; }
 
         [BindProperty]
-        public string? specialRequests { get; set; }
+        public string? RvDescription { get; set; }
 
-        public string statusOptions { get; } = "Pending";
         [BindProperty]
-        public int lotId { get; set; }
+        public string? SpecialRequests { get; set; }
+
+        public string StatusOptions { get; } = "Pending";
+
+        [BindProperty]
+        public int LotId { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            selectedLot = await _unitOfWork.Lot.GetAsync(
-                l => ((Lot)l).Id == id, includes: "LotType");
-            lotId = selectedLot.Id;
-            startDate = DateTime.UtcNow.Date;
-            endDate = startDate.AddDays(1);
-            duration = 1;
+            SelectedLot = await _unitOfWork.Lot.GetAsync(
+                l => l.Id == id, includes: "LotType");
 
-            if (selectedLot == null)
+            if (SelectedLot == null)
             {
                 return NotFound();
             }
+
+            LotId = SelectedLot.Id;
+            StartDate = DateTime.UtcNow.Date;
+            EndDate = StartDate.AddDays(1);
+            Duration = 1;
 
             return Page();
         }
@@ -74,24 +86,21 @@ namespace RVPark.Pages.Customer.Home
         {
             return RedirectToPage("Payment", new
             {
-                guestFirstName,
-                guestLastName,
-                licensePlate,
-                make,
-                model,
-                rvDescription,
-                length,
-                numberOfAdults,
-                numberOfPets,
-                specialRequests,
-                startDate,
-                endDate,
-                duration,
-                id = lotId
+                guestFirstName = GuestFirstName,
+                guestLastName = GuestLastName,
+                licensePlate = LicensePlate,
+                make = Make,
+                model = Model,
+                rvDescription = RvDescription,
+                length = Length,
+                numberOfAdults = NumberOfAdults,
+                numberOfPets = NumberOfPets,
+                specialRequests = SpecialRequests,
+                startDate = StartDate,
+                endDate = EndDate,
+                duration = Duration,
+                id = LotId
             });
         }
     }
-
-
 }
-

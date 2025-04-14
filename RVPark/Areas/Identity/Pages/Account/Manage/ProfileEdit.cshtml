@@ -4,7 +4,7 @@
     ViewData["Title"] = "Edit Profile";
 }
 
-<h2>@ViewData["Title"]</h2>
+<h2 class="mb-4">@ViewData["Title"]</h2>
 
 <partial name="_StatusMessage" for="StatusMessage" />
 
@@ -22,26 +22,43 @@
         <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
     </div>
 
-    <h4>RV Information</h4>
+    <hr class="my-4" />
+    <h4 class="mb-3">RV Information</h4>
 
     <div class="form-floating mb-3">
         <input asp-for="Input.Make" class="form-control" />
         <label asp-for="Input.Make"></label>
         <span asp-validation-for="Input.Make" class="text-danger"></span>
     </div>
+
     <div class="form-floating mb-3">
         <input asp-for="Input.Model" class="form-control" />
         <label asp-for="Input.Model"></label>
         <span asp-validation-for="Input.Model" class="text-danger"></span>
     </div>
+
     <div class="form-floating mb-3">
         <input asp-for="Input.LicensePlate" class="form-control" />
         <label asp-for="Input.LicensePlate"></label>
         <span asp-validation-for="Input.LicensePlate" class="text-danger"></span>
     </div>
-    <div class="form-floating mb-3">
-        <input asp-for="Input.Length" class="form-control" />
-        <label asp-for="Input.Length"></label>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Trailer Length</label>
+        <select class="form-select mb-2" asp-for="Input.Length" onchange="toggleCustomLength(this)">
+            <option value="">-- Select Length --</option>
+            <option value="20">20 ft</option>
+            <option value="25">25 ft</option>
+            <option value="30">30 ft</option>
+            <option value="35">35 ft</option>
+            <option value="40">40 ft</option>
+            <option value="custom">Custom</option>
+        </select>
+
+        <div id="customLengthContainer" class="form-floating mt-2" style="display:none;">
+            <input asp-for="Input.Length" class="form-control" id="customLengthInput" />
+            <label for="customLengthInput">Enter Custom Length (in ft)</label>
+        </div>
         <span asp-validation-for="Input.Length" class="text-danger"></span>
     </div>
 
@@ -50,4 +67,28 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleCustomLength(select) {
+            const customContainer = document.getElementById("customLengthContainer");
+            const customInput = document.getElementById("customLengthInput");
+
+            if (select.value === "custom") {
+                customContainer.style.display = "block";
+                customInput.value = ""; 
+            } else {
+                customContainer.style.display = "none";
+                customInput.value = select.value;
+            }
+        }
+
+        // Ensure correct visibility on page load (for model binding)
+        document.addEventListener("DOMContentLoaded", function () {
+            const lengthValue = "@Model.Input.Length";
+            if (!["20", "25", "30", "35", "40"].includes(lengthValue)) {
+                document.querySelector("select[asp-for='Input.Length']").value = "custom";
+                document.getElementById("customLengthContainer").style.display = "block";
+                document.getElementById("customLengthInput").value = lengthValue;
+            }
+        });
+    </script>
 }

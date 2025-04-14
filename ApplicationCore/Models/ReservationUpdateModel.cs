@@ -21,5 +21,13 @@ namespace ApplicationCore.Models
         public List<LotType> LotTypes { get; set; }
  
         public decimal OriginalTotal { get; set; }
+        public List<FeeType>? ManualFeeOptions { get; set; }
+        public int? ManualFeeTypeId { get; set; }
+
+        public int Duration
+        {
+            get => (Reservation.EndDate - Reservation.StartDate).Days;
+            set => Reservation.Duration = value;
+        }
     }
 }

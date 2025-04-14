@@ -11,16 +11,37 @@
         </div>
 
         <div class="card-body px-4 pt-4 pb-5">
+            <form method="get" class="row g-3 mb-4" id="filterForm">
+                <div class="col-md-3">
+                    <label for="StartDate" class="form-label">Start Date</label>
+                    <input type="date" id="StartDate" name="StartDate" class="form-control" value="@Model.FilterStartDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="EndDate" class="form-label">End Date</label>
+                    <input type="date" id="EndDate" name="EndDate" class="form-control" value="@Model.FilterEndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="LotTypeId" class="form-label">Lot Type</label>
+                    <select id="LotTypeId" name="LotTypeId" class="form-select">
+                        <option value="">All Lot Types</option>
+                        @foreach (var lt in Model.AllLotTypes)
+                        {
+                            <option value="@lt.Id" selected="@(Model.SelectedLotTypeId == lt.Id)">
+                                @lt.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-custom-blue w-100">Apply Filters</button>
+                </div>
+            </form>
+
             @* Featured Lot *@
             @if (Model.FeaturedLot != null)
             {
-                var featuredImage = !string.IsNullOrWhiteSpace(Model.FeaturedLot.FeaturedImage)
-                ? Model.FeaturedLot.FeaturedImage
-                : Model.FeaturedLot.Image?.Split(',').FirstOrDefault()?.Trim();
-
-                var featuredPath = !string.IsNullOrWhiteSpace(featuredImage)
-                ? featuredImage
-                : "/images/default.jpg";
+                var featuredImage = Model.FeaturedLot.FeaturedImage ?? Model.FeaturedLot.ImageList?.Split(',').FirstOrDefault();
+                var featuredPath = !string.IsNullOrWhiteSpace(featuredImage) ? featuredImage : "/images/default.jpg";
 
                 <div class="card mb-5 border-0 shadow-lg p-4 bg-light rounded-4">
                     <div class="row g-4 align-items-center">
@@ -40,7 +61,6 @@
                 </div>
             }
 
-            @* Sorting *@
             <div class="d-flex justify-content-end mb-4">
                 <select id="sortOptions" class="form-select w-auto border-custom-blue text-custom-blue">
                     <option value="az">Sort: A - Z</option>
@@ -53,25 +73,19 @@
             <div id="lotContainer" class="row g-4">
                 @foreach (var lot in Model.AvailableLots)
                 {
-                    var lotName = lot.LotType?.Name ?? "Name unavailable";
-                    var lotRate = lot.LotType?.Rate.ToString("C") ?? "Rate unavailable";
-                    var lotRateValue = lot.LotType?.Rate ?? 0;
+                    var lotRate = lot.LotType?.Rate ?? 0;
+                    var img = lot.ImageList?.Split(',').FirstOrDefault()?.Trim() ?? "/images/default.jpg";
 
-                    var firstImage = lot.Image?.Split(',').FirstOrDefault()?.Trim();
-                    var imagePath = !string.IsNullOrWhiteSpace(firstImage)
-                    ? firstImage
-                    : "/images/default.jpg";
-
-                    <div class="col-lg-4 col-md-6 lot-card" data-name="@lot.Location" data-price="@lotRateValue">
+                    <div class="col-lg-4 col-md-6 lot-card" data-name="@lot.Location" data-price="@lotRate">
                         <div class="card h-100 border-0 shadow-sm rounded-3">
-                            <img src="@imagePath" class="card-img-top rounded-top lot-img" alt="@lot.Location" />
+                            <img src="@img" class="card-img-top rounded-top" alt="@lot.Location" />
                             <div class="card-body d-flex flex-column">
-                                <h4 class="card-title text-custom-blue mb-2"><strong>@lotName</strong></h4>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="badge bg-custom-blue px-3 py-2">@lot.Location</span>
-                                    <span class="text-danger fs-5 fw-bold">@lotRate/night</span>
+                                <h4 class="card-title text-custom-blue mb-2"><strong>@lot.LotType?.Name</strong></h4>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="badge bg-custom-blue">@lot.Location</span>
+                                    <span class="text-danger fs-5 fw-bold">@lotRate.ToString("C")/night</span>
                                 </div>
-                                <p class="card-text text-muted mb-4">@lot.Description</p>
+                                <p class="text-muted mb-4">@lot.Description</p>
                                 <a asp-page="Details" asp-route-id="@lot.Id" class="btn btn-outline-custom-blue mt-auto w-100">View Details</a>
                             </div>
                         </div>
@@ -82,28 +96,30 @@
     </div>
 </div>
 
-<script>
-    document.getElementById("sortOptions").addEventListener("change", function () {
-        const sortValue = this.value;
-        const container = document.getElementById("lotContainer");
-        const cards = Array.from(container.getElementsByClassName("lot-card"));
+@section Scripts {
+    <script>
+        document.getElementById("sortOptions").addEventListener("change", function () {
+            const sort = this.value;
+            const container = document.getElementById("lotContainer");
+            const cards = Array.from(container.getElementsByClassName("lot-card"));
 
-        cards.sort((a, b) => {
-            const nameA = a.dataset.name.toLowerCase();
-            const nameB = b.dataset.name.toLowerCase();
-            const priceA = parseFloat(a.dataset.price);
-            const priceB = parseFloat(b.dataset.price);
+            cards.sort((a, b) => {
+                const nameA = a.dataset.name.toLowerCase();
+                const nameB = b.dataset.name.toLowerCase();
+                const priceA = parseFloat(a.dataset.price);
+                const priceB = parseFloat(b.dataset.price);
 
-            switch (sortValue) {
-                case "az": return nameA.localeCompare(nameB);
-                case "za": return nameB.localeCompare(nameA);
-                case "high": return priceB - priceA;
-                case "low": return priceA - priceB;
-                default: return 0;
-            }
+                switch (sort) {
+                    case "az": return nameA.localeCompare(nameB);
+                    case "za": return nameB.localeCompare(nameA);
+                    case "high": return priceB - priceA;
+                    case "low": return priceA - priceB;
+                    default: return 0;
+                }
+            });
+
+            cards.forEach(card => container.appendChild(card));
         });
-
-        container.innerHTML = "";
-        cards.forEach(card => container.appendChild(card));
-    });
-</script>
+    </script>
+    <script src="~/js/home.js"></script>
+}
