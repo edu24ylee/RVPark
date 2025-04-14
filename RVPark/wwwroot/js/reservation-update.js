@@ -2,7 +2,12 @@
     $('#Reservation_StartDate, #Reservation_EndDate').on('change', updateLotsAndCosts);
     $('#Reservation_LotTypeId, #Rv_Length').on('change', updateLotsAndCosts);
     $('#Reservation_LotId').on('change', updateCostsOnly);
-    updateLotsAndCosts();
+
+    if (!$('#Reservation_LotTypeId').val()) {
+        $('#Reservation_LotId').prop('disabled', true);
+    }
+
+    updateCostsOnly();
 });
 
 function updateLotsAndCosts() {
@@ -13,7 +18,9 @@ function updateLotsAndCosts() {
 
     if (!lotTypeId || !trailerLength || !startDate || !endDate) return;
 
-    $.get('/Admin/Reservations/GetAvailableLots', {
+    $('#Reservation_LotId').prop('disabled', false);
+
+    $.get('/Admin/Reservations/Update?handler=AvailableLots', {
         lotTypeId,
         trailerLength,
         startDate,
@@ -54,10 +61,24 @@ function updateCostsOnly() {
     const end = new Date(endDateStr);
     const duration = Math.max(0, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
 
-    const updatedTotal = duration * selectedRate;
+    let updatedTotal = duration * selectedRate;
+    const extraAdultFee = calculateExtraAdultFee();
+    const cancellationFee = calculateCancellationFee();
+
+    updatedTotal += extraAdultFee + cancellationFee;
     const balanceDiff = updatedTotal - originalTotal;
 
     $('#Reservation_Duration').val(duration);
     $('#updatedTotalField').val(`$${updatedTotal.toFixed(2)}`);
     $('#BalanceDifferenceDisplay').val(`$${balanceDiff.toFixed(2)}`);
+}
+
+function calculateExtraAdultFee() {
+    const adults = parseInt($('#NumberOfAdults').val()) || 0;
+    const perExtraFee = 10;
+    return adults > 2 ? (adults - 2) * perExtraFee : 0;
+}
+
+function calculateCancellationFee() {
+    return 0; // Can be implemented if needed
 }
