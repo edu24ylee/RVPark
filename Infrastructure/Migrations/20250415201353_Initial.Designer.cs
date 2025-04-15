@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Data.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250414161401_LotModelupdate")]
-    partial class LotModelupdate
+    [Migration("20250415201353_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -207,9 +207,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("FeaturedImage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ImageList")
                         .HasColumnType("nvarchar(max)");
 
@@ -344,7 +341,9 @@ namespace Infrastructure.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RvID"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("GuestID")
                         .HasColumnType("int");
@@ -354,15 +353,18 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Make")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("RvID");
 
@@ -397,11 +399,26 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("LotId1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LotTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfAdults")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumberOfPets")
+                        .HasColumnType("int");
+
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RvId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SpecialRequests")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -415,6 +432,8 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("GuestId");
 
                     b.HasIndex("LotId");
+
+                    b.HasIndex("LotId1");
 
                     b.HasIndex("RvId");
 
@@ -473,9 +492,15 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
                 {
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
                     b.Property<string>("GuestName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ManualFeeTypeId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("OriginalTotal")
                         .HasColumnType("decimal(18,2)");
@@ -836,6 +861,10 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ApplicationCore.Models.Lot", null)
+                        .WithMany("Reservations")
+                        .HasForeignKey("LotId1");
+
                     b.HasOne("ApplicationCore.Models.RV", "Rv")
                         .WithMany()
                         .HasForeignKey("RvId")
@@ -931,6 +960,11 @@ namespace Infrastructure.Data.Migrations
 
                     b.Navigation("RVs");
 
+                    b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Lot", b =>
+                {
                     b.Navigation("Reservations");
                 });
 
