@@ -4,28 +4,28 @@
     ViewData["Title"] = "Payment";
 
     var today = DateTime.Today.ToString("MM-dd-yyyy");
-    var firstName = Model.guestFirstName;
-    var lastName = Model.guestLastName;
+    var firstName = Model.GuestFirstName;
+    var lastName = Model.GuestLastName;
 
-    var rvLength = Model.length;
-    var rvMake = Model.make;
-    var rvModel = Model.model;
-    var rvLicensePlate = Model.licensePlate;
-	var rvDescription = Model.rvDescription;
+    var rvLength = Model.Length;
+    var rvMake = Model.Make;
+    var rvModel = Model.Model;
+    var rvLicensePlate = Model.LicensePlate;
+	var rvDescription = Model.RvDescription;
 
 
-    var adults = Model.numberOfAdults;
-    var pets = Model.numberOfPets;
-    var specialRequests = Model.specialRequests;
-    var startDate = Model.startDate.ToString("MM-dd-yyyy"); ;
-    var endDate = Model.endDate.ToString("MM-dd-yyyy"); ;
-    var duration = Model.duration;
+    var adults = Model.NumberOfAdults;
+    var pets = Model.NumberOfPets;
+    var specialRequests = Model.SpecialRequests;
+    var startDate = Model.StartDate.ToString("MM-dd-yyyy"); ;
+    var endDate = Model.EndDate.ToString("MM-dd-yyyy"); ;
+    var duration = Model.Duration;
 
-    var lotType = Model.selectedLot?.LotType;
+    var lotType = Model.SelectedLot?.LotType;
     var lotName = lotType?.Name ?? "Name unavailable";
     var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
     var lotRateValue = lotType?.Rate ?? 0;
-    var lotLocatoion = Model.selectedLot?.Location ?? "Location unavailable";
+    var lotLocatoion = Model.SelectedLot?.Location ?? "Location unavailable";
 
 	var subtotal = lotRateValue * duration;
 	var tax = subtotal * 0.08;

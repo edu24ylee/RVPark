@@ -16,20 +16,20 @@ namespace RVPark.Pages.Customer.Home
         {
             _unitOfWork = unitOfWork;
         }
-        public Lot selectedLot { get; set; }
-        public string guestFirstName { get; set; }
-        public string guestLastName { get; set; }
-        public string licensePlate { get; set; }
-        public string make { get; set; }
-        public string model { get; set; }
-        public string rvDescription { get; set; }
-        public int length { get; set; }
-        public int numberOfAdults { get; set; }
-        public int numberOfPets { get; set; }
-        public string specialRequests { get; set; }
-        public DateTime startDate { get; set; }
-        public DateTime endDate { get; set; }
-        public int duration { get; set; }
+        public Lot SelectedLot { get; set; }
+        public string GuestFirstName { get; set; }
+        public string GuestLastName { get; set; }
+        public string LicensePlate { get; set; }
+        public string Make { get; set; }
+        public string Model { get; set; }
+        public string RvDescription { get; set; }
+        public int Length { get; set; }
+        public int NumberOfAdults { get; set; }
+        public int NumberOfPets { get; set; }
+        public string SpecialRequests { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int Duration { get; set; }
 
         public async Task<IActionResult> OnGetAsync(
         string guestFirstName, string guestLastName, string licensePlate, string make,
@@ -37,23 +37,23 @@ namespace RVPark.Pages.Customer.Home
         int numberOfAdults, int numberOfPets, string specialRequests,
         DateTime startDate, DateTime endDate, int duration, int id)
         {
-            selectedLot = await _unitOfWork.Lot.GetAsync(
+            SelectedLot = await _unitOfWork.Lot.GetAsync(
                    l => ((Lot)l).Id == id, includes: "LotType");
 
 
-            this.guestFirstName = guestFirstName;
-            this.guestLastName = guestLastName;
-            this.licensePlate = licensePlate;
-            this.make = make;
-            this.model = model;
-            this.rvDescription = rvDescription;
-            this.length = length;
-            this.numberOfAdults = numberOfAdults;
-            this.numberOfPets = numberOfPets;
-            this.specialRequests = specialRequests;
-            this.startDate = startDate;
-            this.endDate = endDate;
-            this.duration = duration;
+            this.GuestFirstName = guestFirstName;
+            this.GuestLastName = guestLastName;
+            this.LicensePlate = licensePlate;
+            this.Make = make;
+            this.Model = model;
+            this.RvDescription = rvDescription;
+            this.Length = length;
+            this.NumberOfAdults = numberOfAdults;
+            this.NumberOfPets = numberOfPets;
+            this.SpecialRequests = specialRequests;
+            this.StartDate = startDate;
+            this.EndDate = endDate;
+            this.Duration = duration;
 
             return Page();
         }
