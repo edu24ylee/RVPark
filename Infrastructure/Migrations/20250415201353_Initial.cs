@@ -262,6 +262,112 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LotType",
                 columns: table => new
                 {
@@ -338,8 +444,13 @@ namespace Infrastructure.Migrations
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LotTypeId = table.Column<int>(type: "int", nullable: false),
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                     ImageList = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FeaturedImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+========
+                    ImageList = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FeaturedImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                     IsFeatured = table.Column<bool>(type: "bit", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -382,13 +493,21 @@ namespace Infrastructure.Migrations
                 {
                     RvId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                     GuestId = table.Column<int>(type: "int", nullable: false),
+========
+                    GuestID = table.Column<int>(type: "int", nullable: false),
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                     LicensePlate = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Make = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                     Length = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
+========
+                    Length = table.Column<int>(type: "int", nullable: false)
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                 },
                 constraints: table =>
                 {
@@ -417,10 +536,19 @@ namespace Infrastructure.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumberOfAdults = table.Column<int>(type: "int", nullable: false),
                     NumberOfPets = table.Column<int>(type: "int", nullable: false),
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                     SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OverrideReason = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CancellationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: false)
+========
+                    SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OverrideReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CancellationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LotTypeId = table.Column<int>(type: "int", nullable: false),
+                    LotId1 = table.Column<int>(type: "int", nullable: true)
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                 },
                 constraints: table =>
                 {
@@ -444,7 +572,16 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                         name: "FK_Reservation_RVs_RvId",
+========
+                        name: "FK_Reservation_Lot_LotId1",
+                        column: x => x.LotId1,
+                        principalTable: "Lot",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Reservation_RV_RvId",
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                         column: x => x.RvId,
                         principalTable: "RVs",
                         principalColumn: "RvId",
@@ -487,12 +624,48 @@ namespace Infrastructure.Migrations
                         principalColumn: "ReservationId");
                 });
 
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+========
+            migrationBuilder.CreateTable(
+                name: "ReservationUpdateModel",
+                columns: table => new
+                {
+                    ReservationId = table.Column<int>(type: "int", nullable: false),
+                    RvID = table.Column<int>(type: "int", nullable: false),
+                    GuestName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OriginalTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ManualFeeTypeId = table.Column<int>(type: "int", nullable: true),
+                    Duration = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.ForeignKey(
+                        name: "FK_ReservationUpdateModel_RV_RvID",
+                        column: x => x.RvID,
+                        principalTable: "RV",
+                        principalColumn: "RvID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReservationUpdateModel_Reservation_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservation",
+                        principalColumn: "ReservationId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
@@ -527,7 +700,11 @@ namespace Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                 name: "IX_DodAffiliation_GuestId",
+========
+                name: "IX_DodAffiliation_GuestID",
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
                 table: "DodAffiliation",
                 column: "GuestId",
                 unique: true);
@@ -580,9 +757,15 @@ namespace Infrastructure.Migrations
                 column: "LotId");
 
             migrationBuilder.CreateIndex(
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.cs
                 name: "IX_Reservation_LotTypeId",
                 table: "Reservation",
                 column: "LotTypeId");
+========
+                name: "IX_Reservation_LotId1",
+                table: "Reservation",
+                column: "LotId1");
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.cs
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservation_RvId",
@@ -627,6 +810,12 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "ReservationReports");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

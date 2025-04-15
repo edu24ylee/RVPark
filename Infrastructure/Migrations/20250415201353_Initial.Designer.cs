@@ -12,7 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.Designer.cs
     [Migration("20250417033041_Initial")]
+========
+    [Migration("20250415201353_Initial")]
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.Designer.cs
     partial class Initial
     {
         /// <inheritdoc />
@@ -427,7 +431,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("SpecialRequests")
+<<<<<<<< HEAD:Infrastructure/Migrations/20250417033041_Initial.Designer.cs
                         .IsRequired()
+========
+>>>>>>>> b4089ff (Fixed Issue With Migrations):Infrastructure/Migrations/20250415201353_Initial.Designer.cs
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")

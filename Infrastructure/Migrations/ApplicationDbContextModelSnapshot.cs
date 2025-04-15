@@ -407,6 +407,9 @@ namespace Infrastructure.Migrations
                     b.Property<int>("LotId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("LotId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("LotTypeId")
                         .HasColumnType("int");
 
