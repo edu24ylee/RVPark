@@ -4,13 +4,13 @@
     var today = DateTime.Today.ToString("MM-dd-yyyy");
     var tomorrow = DateTime.Today.AddDays(1).ToString("MM-dd-yyyy");
 
-    var lotType = Model.selectedLot.LotType;
+    var lotType = Model.SelectedLot.LotType;
     var lotName = lotType?.Name ?? "Name unavailable";
     var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
     var lotRateValue = lotType?.Rate ?? 0;
 
     var allowedLengths = new List<int> { 20, 25, 30, 35, 40 };
-    var maxAllowed = Model.selectedLot.Length;
+    var maxAllowed = Model.SelectedLot.Length;
     var availableLengths = allowedLengths.Where(l => l <= maxAllowed);
 }
 
@@ -45,14 +45,14 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="guestFirstName" class="form-label">First Name</label>
-                            <input asp-for="guestFirstName" class="form-control" />
-                            <span class="text-danger" asp-validation-for="guestFirstName"></span>
+                            <label asp-for="GuestFirstName" class="form-label">First Name</label>
+                            <input asp-for="GuestFirstName" class="form-control" />
+                            <span class="text-danger" asp-validation-for="GuestFirstName"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="guestLastName" class="form-label">Last Name</label>
-                            <input asp-for="guestLastName" class="form-control" />
-                            <span class="text-danger" asp-validation-for="guestLastName"></span>
+                            <label asp-for="GuestLastName" class="form-label">Last Name</label>
+                            <input asp-for="GuestLastName" class="form-control" />
+                            <span class="text-danger" asp-validation-for="GuestLastName"></span>
                         </div>
                     </div>
                 </div>
@@ -63,40 +63,40 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="length" class="form-label">Trailer Length</label>
-                            <select asp-for="length" class="form-select">
+                            <label asp-for="Length" class="form-label">Trailer Length</label>
+                            <select asp-for="Length" class="form-select">
                                 <option value="">-- Select Length --</option>
                                 @foreach (var length in availableLengths)
                                 {
                                     <option value="@length">@length ft</option>
                                 }
                             </select>
-                            <span class="text-danger" asp-validation-for="length"></span>
+                            <span class="text-danger" asp-validation-for="Length"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="licensePlate" class="form-label">License Plate</label>
-                            <input asp-for="licensePlate" class="form-control" />
-                            <span class="text-danger" asp-validation-for="licensePlate"></span>
+                            <label asp-for="LicensePlate" class="form-label">License Plate</label>
+                            <input asp-for="LicensePlate" class="form-control" />
+                            <span class="text-danger" asp-validation-for="LicensePlate"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="make" class="form-label">RV Make</label>
-                            <input asp-for="make" class="form-control" />
-                            <span class="text-danger" asp-validation-for="make"></span>
+                            <label asp-for="Make" class="form-label">RV Make</label>
+                            <input asp-for="Make" class="form-control" />
+                            <span class="text-danger" asp-validation-for="Make"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="model" class="form-label">RV Model</label>
-                            <input asp-for="model" class="form-control" />
-                            <span class="text-danger" asp-validation-for="model"></span>
+                            <label asp-for="Model" class="form-label">RV Model</label>
+                            <input asp-for="Model" class="form-control" />
+                            <span class="text-danger" asp-validation-for="Model"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="rvDescription" class="form-label">RV Description</label>
-                        <textarea asp-for="rvDescription" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
-                        <span class="text-danger" asp-validation-for="rvDescription"></span>
+                        <label asp-for="RvDescription" class="form-label">RV Description</label>
+                        <textarea asp-for="RvDescription" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
+                        <span class="text-danger" asp-validation-for="RvDescription"></span>
                     </div>
                 </div>
 
@@ -106,19 +106,19 @@
 
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label asp-for="startDate" class="form-label">Start Date</label>
-                            <input asp-for="startDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                            <span class="text-danger" asp-validation-for="startDate"></span>
+                            <label asp-for="StartDate" class="form-label">Start Date</label>
+                            <input asp-for="StartDate" type="date" class="form-control" required onchange="calculateDuration()" />
+                            <span class="text-danger" asp-validation-for="StartDate"></span>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label asp-for="endDate" class="form-label">End Date</label>
-                            <input asp-for="endDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                            <span class="text-danger" asp-validation-for="endDate"></span>
+                            <label asp-for="EndDate" class="form-label">End Date</label>
+                            <input asp-for="EndDate" type="date" class="form-control" required onchange="calculateDuration()" />
+                            <span class="text-danger" asp-validation-for="EndDate"></span>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label asp-for="duration" class="form-label">Duration (Days)</label>
-                            <input asp-for="duration" class="form-control" readonly />
-                            <span class="text-danger" asp-validation-for="duration"></span>
+                            <label asp-for="Duration" class="form-label">Duration (Days)</label>
+                            <input asp-for="Duration" class="form-control" readonly />
+                            <span class="text-danger" asp-validation-for="Duration"></span>
                         </div>
                     </div>
                 </div>
@@ -129,25 +129,25 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="numberOfAdults" class="form-label">Number of Adults</label>
-                            <input asp-for="numberOfAdults" type="number" min="1" class="form-control" />
-                            <span class="text-danger" asp-validation-for="numberOfAdults"></span>
+                            <label asp-for="NumberOfAdults" class="form-label">Number of Adults</label>
+                            <input asp-for="NumberOfAdults" type="number" min="1" class="form-control" />
+                            <span class="text-danger" asp-validation-for="NumberOfAdults"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="numberOfPets" class="form-label">Number of Pets</label>
-                            <input asp-for="numberOfPets" type="number" min="0" class="form-control" />
-                            <span class="text-danger" asp-validation-for="numberOfPets"></span>
+                            <label asp-for="NumberOfAdults" class="form-label">Number of Pets</label>
+                            <input asp-for="NumberOfAdults" type="number" min="0" class="form-control" />
+                            <span class="text-danger" asp-validation-for="NumberOfAdults"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="specialRequests" class="form-label">Special Requests</label>
-                        <textarea asp-for="specialRequests" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
-                        <span class="text-danger" asp-validation-for="specialRequests"></span>
+                        <label asp-for="SpecialRequests" class="form-label">Special Requests</label>
+                        <textarea asp-for="SpecialRequests" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
+                        <span class="text-danger" asp-validation-for="SpecialRequests"></span>
                     </div>
                 </div>
                 <!-- Hidden IDs -->
-                <input type="hidden" asp-for="lotId" />
+                <input type="hidden" asp-for="LotId" />
 
                 <div class="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
                     <button type="submit" class="btn btn-success">
