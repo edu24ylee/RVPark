@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Data.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250413044158_UpdateReservationModel")]
-    partial class UpdateReservationModel
+    [Migration("20250415195155_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -90,13 +90,25 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("AppliedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("FeeTotal")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("FeeTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TransactionId")
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TriggerType")
                         .HasColumnType("int");
 
                     b.Property<int?>("TriggeringPolicyId")
@@ -105,6 +117,8 @@ namespace Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FeeTypeId");
+
+                    b.HasIndex("ReservationId");
 
                     b.HasIndex("TriggeringPolicyId");
 
@@ -119,9 +133,21 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FeeTypeName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TriggerRuleJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TriggerType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -181,9 +207,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("FeaturedImage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ImageList")
                         .HasColumnType("nvarchar(max)");
 
@@ -191,6 +214,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
                         .HasColumnType("bit");
 
                     b.Property<double>("Length")
@@ -291,6 +317,9 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PolicyDescription")
                         .HasColumnType("nvarchar(max)");
 
@@ -313,7 +342,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("GuestID")
                         .HasColumnType("int");
@@ -323,15 +353,18 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Make")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("RvID");
 
@@ -364,6 +397,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("LotId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LotTypeId")
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfAdults")
@@ -451,9 +487,15 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.ReservationUpdateModel", b =>
                 {
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
                     b.Property<string>("GuestName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ManualFeeTypeId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("OriginalTotal")
                         .HasColumnType("decimal(18,2)");
@@ -736,16 +778,22 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Fee", b =>
                 {
                     b.HasOne("ApplicationCore.Models.FeeType", "FeeType")
-                        .WithMany()
+                        .WithMany("Fees")
                         .HasForeignKey("FeeTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApplicationCore.Models.Policy", "TriggeringPolicy")
+                    b.HasOne("ApplicationCore.Models.Reservation", "Reservation")
                         .WithMany()
+                        .HasForeignKey("ReservationId");
+
+                    b.HasOne("ApplicationCore.Models.Policy", "TriggeringPolicy")
+                        .WithMany("Fees")
                         .HasForeignKey("TriggeringPolicyId");
 
                     b.Navigation("FeeType");
+
+                    b.Navigation("Reservation");
 
                     b.Navigation("TriggeringPolicy");
                 });
@@ -803,7 +851,7 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("ApplicationCore.Models.Lot", "Lot")
-                        .WithMany()
+                        .WithMany("Reservations")
                         .HasForeignKey("LotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -891,6 +939,11 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.FeeType", b =>
+                {
+                    b.Navigation("Fees");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
                     b.Navigation("DodAffiliation")
@@ -901,9 +954,19 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Reservations");
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.Lot", b =>
+                {
+                    b.Navigation("Reservations");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Park", b =>
                 {
                     b.Navigation("LotTypes");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Policy", b =>
+                {
+                    b.Navigation("Fees");
                 });
 
             modelBuilder.Entity("User", b =>

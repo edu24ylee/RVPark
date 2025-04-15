@@ -46,6 +46,6 @@ namespace ApplicationCore.Models
 
         public bool IsArchived { get; set; } = false;
 
-        public ICollection<Reservation>? Reservations { get; set; }
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }
