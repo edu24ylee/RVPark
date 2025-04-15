@@ -32,15 +32,22 @@ namespace Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Lot>()
+                .HasMany(l => l.Reservations)
+                .WithOne(r => r.Lot)
+                .HasForeignKey(r => r.LotId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Guest)
-                .WithMany(g => g.Reservations)
+                .WithMany(r => r.Reservations)
                 .HasForeignKey(r => r.GuestId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Lot)
-                .WithMany()
+                .WithMany(l => l.Reservations)
                 .HasForeignKey(r => r.LotId)
                 .OnDelete(DeleteBehavior.Restrict);
 

@@ -24,9 +24,10 @@ namespace ApplicationCore.Models
  
         [Required]
         public int DodId { get; set; }
- 
-        public ICollection<Reservation> Reservations { get; set; }
- 
+
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+
         public ICollection<RV> RVs { get; set; }
         public DodAffiliation DodAffiliation { get; set; }
 
