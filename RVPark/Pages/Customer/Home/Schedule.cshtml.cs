@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -63,6 +64,7 @@ namespace RVPark.Pages.Customer.Home
 
         [BindProperty]
         public int LotId { get; set; }
+        public int GuestId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -78,12 +80,18 @@ namespace RVPark.Pages.Customer.Home
             StartDate = DateTime.UtcNow.Date;
             EndDate = StartDate.AddDays(1);
             Duration = 1;
-
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            var claimsIdentity = User.Identity as ClaimsIdentity;
+            var claims = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier);
+            if (claims != null)
+            {
+                var userId = claims.Value;  
+            }
+
             return RedirectToPage("Payment", new
             {
                 guestFirstName = GuestFirstName,
@@ -99,7 +107,8 @@ namespace RVPark.Pages.Customer.Home
                 startDate = StartDate,
                 endDate = EndDate,
                 duration = Duration,
-                id = LotId
+                id = LotId,
+                guestID = GuestId
             });
         }
     }

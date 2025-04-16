@@ -3,7 +3,6 @@ using ApplicationCore.Models;
 using Infrastructure.Data;
 using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Azure.Documents;
 using Microsoft.EntityFrameworkCore;
 using TriggerType = ApplicationCore.Models.TriggerType;
 
