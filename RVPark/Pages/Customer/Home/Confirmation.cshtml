@@ -1,0 +1,30 @@
+﻿@page
+@model RVPark.Pages.Customer.Home.ConfirmationModel
+@{
+    ViewData["Title"] = "Confirmation";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-success text-center" role="alert">
+        <h2>Your reservation is confirmed!</h2>
+        <p>Thank you for choosing Desert Eagle Nellis AFB RV Park.</p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white text-center">
+            Reservation Details
+        </div>
+        <div class="card-body">
+            <p><strong>Guest Name:</strong> @Model.GuestName</p>
+            <p><strong>Reservation Date:</strong> @Model.ReservationDate.ToString("MM-dd-yyyy")</p>
+            <p><strong>Check In Date:</strong> @Model.CheckInDate.ToString("MM-dd-yyyy")</p>
+            <p><strong>Check Out Date:</strong> @Model.CheckOutDate.ToString("MM-dd-yyyy")</p>
+            <p><strong>Duration:</strong> @Model.Duration days</p>
+            <p><strong>Lot Name:</strong> @Model.LotName</p>
+            <p><strong>Total Paid:</strong> @Model.TotalPaid.ToString("C")</p>
+        </div>
+        <div class="card-footer text-center">
+            <a asp-page="/Customer/Home/Index" class="btn btn-primary">Return to Home</a>
+        </div>
+    </div>
+</div>
