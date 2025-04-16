@@ -14,7 +14,7 @@ namespace ApplicationCore.Models
         public string Name { get; set; } = string.Empty;
 
         [Required]
-        public double Rate { get; set; }
+        public decimal Rate { get; set; }
 
         public int ParkId { get; set; }
 

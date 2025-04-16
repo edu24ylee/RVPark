@@ -115,9 +115,9 @@ namespace Infrastructure
             var today = DateTime.Today;
             var lotTypes = new List<LotType>
             {
-                new LotType { Name = "Standard", Rate = 40.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
-                new LotType { Name = "Premium", Rate = 55.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
-                new LotType { Name = "Deluxe", Rate = 70.00, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false }
+                new LotType { Name = "Standard", Rate = 40.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
+                new LotType { Name = "Premium", Rate = 55.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
+                new LotType { Name = "Deluxe", Rate = 70.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
