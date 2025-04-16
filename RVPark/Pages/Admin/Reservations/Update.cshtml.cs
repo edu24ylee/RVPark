@@ -108,7 +108,7 @@ namespace RVPark.Pages.Admin.Reservations
                             if (rule != null)
                             {
                                 var rate = res.Lot?.LotType?.Rate ?? 0;
-                                var feeAmount = (double)rule.PenaltyPercent * rate * res.Duration;
+                                var feeAmount = (decimal)rule.PenaltyPercent * rate * res.Duration;
 
                                 _unitOfWork.Fee.Add(new Fee
                                 {

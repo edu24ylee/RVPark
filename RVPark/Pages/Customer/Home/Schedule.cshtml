@@ -134,9 +134,9 @@
                             <span class="text-danger" asp-validation-for="NumberOfAdults"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="NumberOfAdults" class="form-label">Number of Pets</label>
-                            <input asp-for="NumberOfAdults" type="number" min="0" class="form-control" />
-                            <span class="text-danger" asp-validation-for="NumberOfAdults"></span>
+                            <label asp-for="NumberOfPets" class="form-label">Number of Pets</label>
+                            <input asp-for="NumberOfPets" type="number" min="0" class="form-control" />
+                            <span class="text-danger" asp-validation-for="NumberOfPets"></span>
                         </div>
                     </div>
 
@@ -169,9 +169,9 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         function calculateDuration() {
-            const start = new Date(document.querySelector('[name="startDate"]').value);
-            const end = new Date(document.querySelector('[name="endDate"]').value);
-            const durationInput = document.querySelector('[name="duration"]');
+            const start = new Date(document.querySelector('[name="StartDate"]').value);
+            const end = new Date(document.querySelector('[name="EndDate"]').value);
+            const durationInput = document.querySelector('[name="Duration"]');
 
             if (!isNaN(start) && !isNaN(end)) {
                 const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
