@@ -34,6 +34,7 @@ namespace RVPark.Pages.Customer.Home
         public DateTime EndDate { get; set; }
         public int Duration { get; set; }
         public decimal TotalAmount { get; set; }
+        public int GuestId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(
         string guestFirstName, string guestLastName, string licensePlate, string make,
@@ -61,6 +62,7 @@ namespace RVPark.Pages.Customer.Home
             StartDate = startDate;
             EndDate = endDate;
             Duration = duration;
+            GuestId = guestId;
 
             decimal lotRate = SelectedLot.LotType?.Rate ?? 0;
             decimal subtotal = lotRate * Duration;
