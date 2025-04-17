@@ -1,23 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ApplicationCore.Models
 {
-    [Table("RVs")]
     public class RV
     {
         [Key]
-        public int RvId { get; set; }
+        public int RvID { get; set; }
 
         [Required]
-        public int GuestId { get; set; }
+        public int GuestID { get; set; }
 
-        [ForeignKey(nameof(GuestId))]
+        [ForeignKey("GuestID")]
         [ValidateNever]
-        [Required]
-        public Guest Guest { get; set; } = null!;
+        public Guest Guest { get; set; } = new();
 
         [Required(ErrorMessage = "License Plate is required.")]
         [StringLength(100)]
@@ -34,16 +31,12 @@ namespace ApplicationCore.Models
         [StringLength(500)]
         public string Description { get; set; } = string.Empty;
 
-        [Required]
         [Range(1, 100, ErrorMessage = "Length must be between 1 and 100.")]
-        public int Length { get; set; } = 1;
+        public int Length { get; set; }
 
-        public bool IsArchived { get; set; } = false;
-
-        public ICollection<Reservation> Reservations { get; set; }
-            = new List<Reservation>();
-
-        public static RV? GetGuestRV(IEnumerable<RV> rvList, int guestId)
-            => rvList.FirstOrDefault(rv => rv.GuestId == guestId);
+        public static RV GetGuestRV(List<RV> rvList, int guestId)
+        {
+            return rvList.FirstOrDefault(rv => rv.GuestID == guestId);
+        }
     }
 }

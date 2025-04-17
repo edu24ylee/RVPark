@@ -18,7 +18,7 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
 
         var result = employees.Select(e => new
         {
-            e.EmployeeId,
+            e.EmployeeID,
             e.Role,
             user = new
             {
@@ -38,7 +38,7 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
     [HttpPost("lockunlock/{id}")]
     public async Task<IActionResult> LockUnlock(int id)
     {
-        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeId == id, includes: "User");
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
         if (employee == null || employee.User == null)
             return NotFound(new { success = false, message = "Employee or user not found." });
 
@@ -53,7 +53,7 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
     [HttpPost("archive/{id}")]
     public async Task<IActionResult> Archive(int id)
     {
-        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeId == id, includes: "User");
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
         if (employee == null || employee.User == null)
             return NotFound(new { success = false, message = "Employee or user not found." });
 
@@ -66,7 +66,7 @@ public class EmployeesController(UnitOfWork unitOfWork) : Controller
     [HttpPost("unarchive/{id}")]
     public async Task<IActionResult> Unarchive(int id)
     {
-        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeId == id, includes: "User");
+        var employee = await _unitOfWork.Employee.GetAsync(e => e.EmployeeID == id, includes: "User");
         if (employee == null || employee.User == null)
             return NotFound(new { success = false, message = "Employee or user not found." });
 

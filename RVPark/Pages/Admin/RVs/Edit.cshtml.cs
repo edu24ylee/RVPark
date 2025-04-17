@@ -25,7 +25,7 @@ namespace RVPark.Pages.Admin.RVs
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            Rv = await _unitOfWork.RV.GetAsync(r => r.RvId == id, includes: "Guest");
+            Rv = await _unitOfWork.RV.GetAsync(r => r.RvID == id, includes: "Guest");
 
             if (Rv == null)
                 return NotFound();
@@ -38,7 +38,7 @@ namespace RVPark.Pages.Admin.RVs
             if (!ModelState.IsValid)
                 return Page();
 
-            var existingRv = await _unitOfWork.RV.GetAsync(r => r.RvId == Rv.RvId);
+            var existingRv = await _unitOfWork.RV.GetAsync(r => r.RvID == Rv.RvID);
             if (existingRv == null)
                 return NotFound();
 

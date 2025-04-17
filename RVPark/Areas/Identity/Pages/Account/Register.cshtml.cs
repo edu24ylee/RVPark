@@ -146,7 +146,7 @@ namespace RVPark.Areas.Identity.Pages.Account
 
                 var employee = new Employee
                 {
-                    UserId = user.UserId,
+                    UserID = user.UserID,
                     Role = Input.SelectedRole
                 };
                 _unitOfWork.Employee.Add(employee);
@@ -156,7 +156,7 @@ namespace RVPark.Areas.Identity.Pages.Account
             {
                 var guest = new Guest
                 {
-                    UserId = user.UserId,
+                    UserID = user.UserID,
                     DodId = Input.DodId ?? 0,
                     DodAffiliation = new DodAffiliation
                     {
