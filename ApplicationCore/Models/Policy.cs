@@ -1,20 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ApplicationCore.Models
 {
+
     public class Policy
     {
-        [Key]
         public int Id { get; set; }
 
         [Required]
-        public string PolicyName { get; set; } = string.Empty;
+        public string PolicyName { get; set; }
 
-        public string PolicyDescription { get; set; } = string.Empty;
+        public string? PolicyDescription { get; set; }
 
-        public ICollection<Fee> Fees { get; set; } = new List<Fee>();
-
-        public bool IsArchived { get; set; } = false;
+        public ICollection<Fee>? Fees { get; set; }
+        public bool IsArchived { get; set; }    
     }
+
 }

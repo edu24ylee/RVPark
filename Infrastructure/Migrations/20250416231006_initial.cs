@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
     public partial class initial : Migration
-========
-    public partial class Initial : Migration
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -61,9 +57,9 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
-                    TriggerRuleJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TriggerRuleJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -109,7 +105,7 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PolicyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PolicyDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PolicyDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -143,7 +139,7 @@ namespace Infrastructure.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -156,113 +152,7 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User", x => x.UserId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
-                columns: table => new
-                {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_User", x => x.UserID);
                 });
 
             migrationBuilder.CreateTable(
@@ -399,41 +289,41 @@ namespace Infrastructure.Migrations
                 name: "Employee",
                 columns: table => new
                 {
-                    EmployeeId = table.Column<int>(type: "int", nullable: false)
+                    EmployeeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Employee", x => x.EmployeeId);
+                    table.PrimaryKey("PK_Employee", x => x.EmployeeID);
                     table.ForeignKey(
-                        name: "FK_Employee_User_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Employee_User_UserID",
+                        column: x => x.UserID,
                         principalTable: "User",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Guest",
                 columns: table => new
                 {
-                    GuestId = table.Column<int>(type: "int", nullable: false)
+                    GuestID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    DodId = table.Column<int>(type: "int", nullable: true)
+                    UserID = table.Column<int>(type: "int", nullable: false),
+                    DodId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Guest", x => x.GuestId);
+                    table.PrimaryKey("PK_Guest", x => x.GuestID);
                     table.ForeignKey(
-                        name: "FK_Guest_User_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Guest_User_UserID",
+                        column: x => x.UserID,
                         principalTable: "User",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -446,15 +336,10 @@ namespace Infrastructure.Migrations
                     Length = table.Column<double>(type: "float", nullable: false),
                     Width = table.Column<double>(type: "float", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LotTypeId = table.Column<int>(type: "int", nullable: false),
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                     ImageList = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FeaturedImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
-========
-                    ImageList = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FeaturedImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                     IsFeatured = table.Column<bool>(type: "bit", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -478,49 +363,40 @@ namespace Infrastructure.Migrations
                     Branch = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Rank = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    GuestId = table.Column<int>(type: "int", nullable: false)
+                    GuestID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DodAffiliation", x => x.DodAffiliationId);
                     table.ForeignKey(
-                        name: "FK_DodAffiliation_Guest_GuestId",
-                        column: x => x.GuestId,
+                        name: "FK_DodAffiliation_Guest_GuestID",
+                        column: x => x.GuestID,
                         principalTable: "Guest",
-                        principalColumn: "GuestId",
+                        principalColumn: "GuestID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "RVs",
+                name: "RV",
                 columns: table => new
                 {
-                    RvId = table.Column<int>(type: "int", nullable: false)
+                    RvID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                     GuestID = table.Column<int>(type: "int", nullable: false),
-========
-                    GuestId = table.Column<int>(type: "int", nullable: false),
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                     LicensePlate = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Make = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                     Length = table.Column<int>(type: "int", nullable: false)
-========
-                    Length = table.Column<int>(type: "int", nullable: false),
-                    IsArchived = table.Column<bool>(type: "bit", nullable: false)
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RVs", x => x.RvId);
+                    table.PrimaryKey("PK_RV", x => x.RvID);
                     table.ForeignKey(
-                        name: "FK_RVs_Guest_GuestId",
-                        column: x => x.GuestId,
+                        name: "FK_RV_Guest_GuestID",
+                        column: x => x.GuestID,
                         principalTable: "Guest",
-                        principalColumn: "GuestId",
+                        principalColumn: "GuestID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -533,26 +409,18 @@ namespace Infrastructure.Migrations
                     GuestId = table.Column<int>(type: "int", nullable: false),
                     RvId = table.Column<int>(type: "int", nullable: false),
                     LotId = table.Column<int>(type: "int", nullable: false),
-                    LotTypeId = table.Column<int>(type: "int", nullable: false),
                     Duration = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumberOfAdults = table.Column<int>(type: "int", nullable: false),
                     NumberOfPets = table.Column<int>(type: "int", nullable: false),
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                     SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OverrideReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CancellationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LotTypeId = table.Column<int>(type: "int", nullable: false),
                     LotId1 = table.Column<int>(type: "int", nullable: true)
-========
-                    SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OverrideReason = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CancellationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: false)
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                 },
                 constraints: table =>
                 {
@@ -561,14 +429,8 @@ namespace Infrastructure.Migrations
                         name: "FK_Reservation_Guest_GuestId",
                         column: x => x.GuestId,
                         principalTable: "Guest",
-                        principalColumn: "GuestId",
+                        principalColumn: "GuestID",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Reservation_LotType_LotTypeId",
-                        column: x => x.LotTypeId,
-                        principalTable: "LotType",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Reservation_Lot_LotId",
                         column: x => x.LotId,
@@ -576,19 +438,15 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                         name: "FK_Reservation_Lot_LotId1",
                         column: x => x.LotId1,
                         principalTable: "Lot",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Reservation_RV_RvId",
-========
-                        name: "FK_Reservation_RVs_RvId",
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                         column: x => x.RvId,
-                        principalTable: "RVs",
-                        principalColumn: "RvId",
+                        principalTable: "RV",
+                        principalColumn: "RvID",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -601,7 +459,7 @@ namespace Infrastructure.Migrations
                     FeeTypeId = table.Column<int>(type: "int", nullable: false),
                     TriggeringPolicyId = table.Column<int>(type: "int", nullable: true),
                     FeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AppliedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false),
@@ -615,7 +473,7 @@ namespace Infrastructure.Migrations
                         column: x => x.FeeTypeId,
                         principalTable: "FeeType",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Fee_Policy_TriggeringPolicyId",
                         column: x => x.TriggeringPolicyId,
@@ -628,7 +486,6 @@ namespace Infrastructure.Migrations
                         principalColumn: "ReservationId");
                 });
 
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
             migrationBuilder.CreateTable(
                 name: "ReservationUpdateModel",
                 columns: table => new
@@ -662,14 +519,6 @@ namespace Infrastructure.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-========
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetRoleClaims_RoleId",
-                table: "AspNetRoleClaims",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
@@ -704,19 +553,15 @@ namespace Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                 name: "IX_DodAffiliation_GuestID",
-========
-                name: "IX_DodAffiliation_GuestId",
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
                 table: "DodAffiliation",
-                column: "GuestId",
+                column: "GuestID",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Employee_UserId",
+                name: "IX_Employee_UserID",
                 table: "Employee",
-                column: "UserId",
+                column: "UserID",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -735,9 +580,9 @@ namespace Infrastructure.Migrations
                 column: "TriggeringPolicyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Guest_UserId",
+                name: "IX_Guest_UserID",
                 table: "Guest",
-                column: "UserId",
+                column: "UserID",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -761,15 +606,9 @@ namespace Infrastructure.Migrations
                 column: "LotId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< HEAD:Infrastructure/Migrations/20250416231006_initial.cs
                 name: "IX_Reservation_LotId1",
                 table: "Reservation",
                 column: "LotId1");
-========
-                name: "IX_Reservation_LotTypeId",
-                table: "Reservation",
-                column: "LotTypeId");
->>>>>>>> origin/main:Infrastructure/Migrations/20250417033041_Initial.cs
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservation_RvId",
@@ -777,9 +616,19 @@ namespace Infrastructure.Migrations
                 column: "RvId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RVs_GuestId",
-                table: "RVs",
-                column: "GuestId");
+                name: "IX_ReservationUpdateModel_ReservationId",
+                table: "ReservationUpdateModel",
+                column: "ReservationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationUpdateModel_RvID",
+                table: "ReservationUpdateModel",
+                column: "RvID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RV_GuestID",
+                table: "RV",
+                column: "GuestID");
         }
 
         /// <inheritdoc />
@@ -816,10 +665,7 @@ namespace Infrastructure.Migrations
                 name: "ReservationReports");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "ReservationUpdateModel");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -840,7 +686,7 @@ namespace Infrastructure.Migrations
                 name: "Lot");
 
             migrationBuilder.DropTable(
-                name: "RVs");
+                name: "RV");
 
             migrationBuilder.DropTable(
                 name: "LotType");

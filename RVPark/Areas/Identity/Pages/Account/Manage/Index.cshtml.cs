@@ -36,10 +36,10 @@ namespace RVPark.Areas.Identity.Pages.Account.Manage
             var appUser = _unitOfWork.User.Get(u => u.Email == Email);
             if (appUser != null)
             {
-                var guest = _unitOfWork.Guest.Get(g => g.UserId == appUser.UserId);
+                var guest = _unitOfWork.Guest.Get(g => g.UserID == appUser.UserID);
                 if (guest != null)
                 {
-                    RV = _unitOfWork.RV.Get(r => r.GuestId == guest.GuestId, trackChanges: true);
+                    RV = _unitOfWork.RV.Get(r => r.GuestID == guest.GuestID, trackChanges: true);
                 }
             }
 
