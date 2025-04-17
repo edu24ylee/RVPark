@@ -1,17 +1,22 @@
-﻿// Standard namespace for date/time and numeric types
-using System;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationCore.Models
 {
-     public class FinancialReport
+    [NotMapped]
+    public class FinancialReport
     {
- 
-        public DateTime StartDate { get; set; }
- 
-        public DateTime EndDate { get; set; }
+        [Required]
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
 
-        public decimal CollectedRevenue { get; set; }
- 
-        public decimal AnticipatedRevenue { get; set; }
+        [Required]
+        public DateTime EndDate { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        public decimal CollectedRevenue { get; set; } = 0m;
+
+        [Required]
+        public decimal AnticipatedRevenue { get; set; } = 0m;
     }
 }
