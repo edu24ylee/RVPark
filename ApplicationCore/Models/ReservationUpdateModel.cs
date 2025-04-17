@@ -1,27 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationCore.Models
 {
- 
+    [NotMapped]
     public class ReservationUpdateModel
     {
- 
-        public Reservation Reservation { get; set; }
- 
-        public RV Rv { get; set; }
- 
-        public string GuestName { get; set; }
- 
-        public List<Lot> AvailableLots { get; set; }
+        [Required]
+        public Reservation Reservation { get; set; } = new Reservation();
 
-        public List<LotType> LotTypes { get; set; }
- 
-        public decimal OriginalTotal { get; set; }
-        public List<FeeType>? ManualFeeOptions { get; set; }
+        [Required]
+        public RV Rv { get; set; } = new RV();
+
+        [Required]
+        public string GuestName { get; set; } = string.Empty;
+
+        public List<Lot> AvailableLots { get; set; } = new List<Lot>();
+        public List<LotType> LotTypes { get; set; } = new List<LotType>();
+
+        public decimal OriginalTotal { get; set; } = 0m;
+
+        public List<FeeType> ManualFeeOptions { get; set; } = new List<FeeType>();
         public int? ManualFeeTypeId { get; set; }
 
         public int Duration

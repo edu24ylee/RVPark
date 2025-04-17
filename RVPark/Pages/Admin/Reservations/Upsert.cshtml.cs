@@ -107,8 +107,8 @@ namespace RVPark.Pages.Admin.Reservations
                 _unitOfWork.RV.Add(rv);
                 await _unitOfWork.CommitAsync();
 
-                Reservation.GuestId = guest.GuestID;
-                Reservation.RvId = rv.RvID;
+                Reservation.GuestId = guest.GuestId;
+                Reservation.RvId = rv.RvId;
             }
             else
             {

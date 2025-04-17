@@ -3,21 +3,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationCore.Models
 {
-  
     public class Employee
     {
-
         [Key]
-        public int EmployeeID { get; set; }
+        public int EmployeeId { get; set; }
 
         [Required]
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         [Required]
-        public int UserID { get; set; }
+        public int UserId { get; set; }
 
-        [ForeignKey("UserID")]
-        public virtual User User { get; set; }
+        [ForeignKey(nameof(UserId))]
+        [Required]
+        public virtual User User { get; set; } = null!;
+
         public bool IsArchived { get; set; } = false;
     }
 }
