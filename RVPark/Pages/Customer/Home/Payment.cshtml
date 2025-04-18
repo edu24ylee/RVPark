@@ -1,44 +1,42 @@
 ﻿@page
 @model PaymentModel
-@using Microsoft.Extensions.Options
-@inject IOptions<Infrastructure.Services.StripeSettings> Stripe
-
 @{
     ViewData["Title"] = "Payment";
 
     var today = DateTime.Today.ToString("MM-dd-yyyy");
-    var firstName = Model.GuestFirstName;
-    var lastName = Model.GuestLastName;
+    var firstName = Model.guestFirstName;
+    var lastName = Model.guestLastName;
 
-    var rvLength = Model.Length;
-    var rvMake = Model.Make;
-    var rvModel = Model.Model;
-    var rvLicensePlate = Model.LicensePlate;
-    var rvDescription = Model.RvDescription;
+    var rvLength = Model.length;
+    var rvMake = Model.make;
+    var rvModel = Model.model;
+    var rvLicensePlate = Model.licensePlate;
+	var rvDescription = Model.rvDescription;
 
-    var adults = Model.NumberOfAdults;
-    var pets = Model.NumberOfPets;
-    var specialRequests = Model.SpecialRequests;
-    var startDate = Model.StartDate.ToString("MM-dd-yyyy");
-    var endDate = Model.EndDate.ToString("MM-dd-yyyy");
-    var duration = Model.Duration;
 
-    var lotType = Model.SelectedLot?.LotType;
+    var adults = Model.numberOfAdults;
+    var pets = Model.numberOfPets;
+    var specialRequests = Model.specialRequests;
+    var startDate = Model.startDate.ToString("MM-dd-yyyy"); ;
+    var endDate = Model.endDate.ToString("MM-dd-yyyy"); ;
+    var duration = Model.duration;
+
+    var lotType = Model.selectedLot?.LotType;
     var lotName = lotType?.Name ?? "Name unavailable";
     var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
     var lotRateValue = lotType?.Rate ?? 0;
-    var lotLocatoion = Model.SelectedLot?.Location ?? "Location unavailable";
+    var lotLocatoion = Model.selectedLot?.Location ?? "Location unavailable";
 
-    var subtotal = lotRateValue * duration;
-    var tax = subtotal * 0.08m;
-    var total = subtotal + tax;
+	var subtotal = lotRateValue * duration;
+	var tax = subtotal * 0.08;
+	var total = subtotal + tax;
+
 }
-
-<script src="https://js.stripe.com/v3/"></script>
 
 <div class="">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-primary text-white text-center py-3">
                     <h3 class="mb-0">Complete Your Reservation</h3>
@@ -51,14 +49,15 @@
                         <div class="col-md-6 border-end">
                             <h5 class="fw-bold mb-3">Reservation Summary</h5>
                             <p><strong>Full Name:</strong> @firstName @lastName </p>
-                            <p><strong>Date Scheduled:</strong> @today</p>
-                            <p><strong>Check In Date:</strong> @startDate</p>
-                            <p><strong>Check Out Date:</strong> @endDate</p>
+                            <p><strong>Date Scheduled:</strong> @today <p>
+                            <p><strong>Check In Date:</strong> @startDate <p>
+                            <p><strong>Check Out Date:</strong> @endDate <p>
                             <p><strong>Duration:</strong> @duration Days</p>
                             <p><strong>Trailer Length:</strong> @rvLength </p>
                             <p><strong>Adults:</strong> @adults </p>
                             <p><strong>Pets:</strong> @pets </p>
                             <p><strong>Special Requests:</strong> @specialRequests </p>
+                            
 
                             <hr />
                             <h5 class="fw-bold">Lot Info</h5>
@@ -66,21 +65,23 @@
                             <p><strong>Location:</strong> @lotLocatoion</p>
                             <p><strong>Rate:</strong> @lotRate/night</p>
 
+
                             <!-- RV Information Section -->
                             <hr />
                             <h5 class="fw-bold">RV Info</h5>
                             <p><strong>License Plate:</strong> @rvLicensePlate</p>
                             <p><strong>Make:</strong> @rvMake</p>
-                            <p><strong>Model:</strong> @rvModel</p>
+                            <p><strong>Make:</strong> @rvModel</p>
                             <p><strong>Length:</strong> @rvLength</p>
                             <p><strong>Description:</strong> @rvDescription</p>
+
                         </div>
 
                         <!-- Payment Form -->
                         <div class="col-md-6">
                             <h5 class="fw-bold mb-3">Payment Details</h5>
 
-                            <form id="payment-form" method="post">
+                            <form method="post">
                                 <div class="mb-3">
                                     <label class="form-label">Cardholder Name</label>
                                     <input type="text" name="CardholderName" class="form-control" required />
@@ -107,15 +108,8 @@
                                     <input type="text" name="ZipCode" class="form-control" required />
                                 </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Card Details</label>
-                                    <div id="card-element" class="form-control"></div>
-                                    <div id="card-errors" class="text-danger"></div>
-                                </div>
-
                                 <hr />
-
-
+                  
                                 <div class="mb-4">
                                     <h5 class="fw-bold mb-3">Price Breakdown</h5>
                                     <ul class="list-group list-group-flush">
@@ -125,15 +119,15 @@
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between">
                                             <span>Total Nights:</span>
-                                            <span>@duration night(s)</span>
+                                            <span> @duration night(s)</span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between">
                                             <span>Subtotal:</span>
-                                            <span>$@subtotal.ToString("F2")</span>
+                                            <span>$@subtotal.ToString("F2")</</span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between">
                                             <span>Taxes (8%):</span>
-                                            <span>@tax.ToString("F2")</span>
+                                            <span>@tax.ToString("F2")</</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -159,35 +153,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        const stripe = Stripe('@Stripe.Value.PublishableKey');
-        const elements = stripe.elements();
-        const cardElement = elements.create('card');
-        cardElement.mount('#card-element');
-
-        document.getElementById('payment-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const { error, paymentMethod } = await stripe.createPaymentMethod({
-                type: 'card',
-                card: cardElement,
-                billing_details: {
-                    name: document.querySelector('[name="CardholderName"]').value,
-                },
-            });
-
-            if (error) {
-                document.getElementById('card-errors').textContent = error.message;
-            } else {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'StripePaymentMethodId');
-                hiddenInput.setAttribute('value', paymentMethod.id);
-                document.getElementById('payment-form').appendChild(hiddenInput);
-                document.getElementById('payment-form').submit();
-            }
-        });
-    </script>
-}

@@ -169,9 +169,9 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         function calculateDuration() {
-            const start = new Date(document.querySelector('[name="StartDate"]').value);
-            const end = new Date(document.querySelector('[name="EndDate"]').value);
-            const durationInput = document.querySelector('[name="Duration"]');
+            const start = new Date(document.querySelector('[name="startDate"]').value);
+            const end = new Date(document.querySelector('[name="endDate"]').value);
+            const durationInput = document.querySelector('[name="duration"]');
 
             if (!isNaN(start) && !isNaN(end)) {
                 const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
