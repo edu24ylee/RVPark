@@ -10,18 +10,19 @@ namespace ApplicationCore.Models
 
         [Required]
         [Display(Name = "Military Branch")]
-        public string Branch { get; set; }
+        public string Branch { get; set; } = string.Empty;
 
         [Required]
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
 
         [Required]
-        public string Rank { get; set; }
+        public string Rank { get; set; } = string.Empty;
 
         [Required]
-        public int GuestID { get; set; }
+        public int GuestId { get; set; }
 
-        [ForeignKey("GuestID")]
-        public Guest Guest { get; set; }
+        [ForeignKey(nameof(GuestId))]
+        [Required]
+        public Guest Guest { get; set; } = null!;
     }
 }
