@@ -38,7 +38,7 @@ namespace RVPark.Pages.Admin.Employees
             EmployeeVM = new EmployeeViewModel
             {
                 EmployeeID = employee.EmployeeID,
-                UserID = employee.User.UserID,
+                UserID = employee.User.UserId,
                 FirstName = employee.User.FirstName,
                 LastName = employee.User.LastName,
                 Email = employee.User.Email,
@@ -69,7 +69,7 @@ namespace RVPark.Pages.Admin.Employees
 
                 var employee = new Employee
                 {
-                    UserID = user.UserID,
+                    UserId = user.UserId,
                     Role = EmployeeVM.Role
                 };
 

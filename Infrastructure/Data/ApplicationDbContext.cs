@@ -53,7 +53,7 @@ namespace Infrastructure.Data
             modelBuilder.Entity<RV>()
                 .HasOne(rv => rv.Guest)
                 .WithMany(g => g.RVs)
-                .HasForeignKey(rv => rv.GuestID)
+                .HasForeignKey(rv => rv.GuestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FinancialReport>().HasNoKey();

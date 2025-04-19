@@ -1,159 +1,60 @@
-﻿@page
-@model PaymentModel
-@using Microsoft.Extensions.Options
-@inject IOptions<Infrastructure.Services.StripeSettings> Stripe
-
+﻿@page "{id:int?}"
+@model RVPark.Pages.Customer.Home.PaymentModel
 @{
     ViewData["Title"] = "Payment";
 
-    var today = DateTime.Today.ToString("MM-dd-yyyy");
-    var firstName = Model.GuestFirstName;
-    var lastName = Model.GuestLastName;
-
-    var rvLength = Model.Length;
-    var rvMake = Model.Make;
-    var rvModel = Model.Model;
-    var rvLicensePlate = Model.LicensePlate;
-    var rvDescription = Model.RvDescription;
-
-    var adults = Model.NumberOfAdults;
-    var pets = Model.NumberOfPets;
-    var specialRequests = Model.SpecialRequests;
-    var startDate = Model.StartDate.ToString("MM-dd-yyyy");
-    var endDate = Model.EndDate.ToString("MM-dd-yyyy");
-    var duration = Model.Duration;
-
-    var lotType = Model.SelectedLot?.LotType;
-    var lotName = lotType?.Name ?? "Name unavailable";
-    var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
-    var lotRateValue = lotType?.Rate ?? 0;
-    var lotLocatoion = Model.SelectedLot?.Location ?? "Location unavailable";
-
-    var subtotal = lotRateValue * duration;
+    var rate = Model.SelectedLot.LotType?.Rate ?? 0m;
+    var subtotal = rate * Model.Duration;
     var tax = subtotal * 0.08m;
     var total = subtotal + tax;
 }
 
-<script src="https://js.stripe.com/v3/"></script>
-
-<div class="">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h3 class="mb-0">Complete Your Reservation</h3>
-                    <small>Desert Eagle Nellis AFB RV Park</small>
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center py-3">
+            <h3 class="mb-0">Complete Your Reservation</h3>
+            <small>Desert Eagle Nellis AFB RV Park</small>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6 border-end">
+                    <h5 class="fw-bold mb-3">Reservation Summary</h5>
+                    <p><strong>Guest:</strong> @Model.GuestFirstName @Model.GuestLastName</p>
+                    <p><strong>Check‑in:</strong> @Model.StartDate:MM-dd-yyyy</p>
+                    <p><strong>Check‑out:</strong> @Model.EndDate:MM-dd-yyyy</p>
+                    <p><strong>Duration:</strong> @Model.Duration days</p>
+                    <p><strong>Adults:</strong> @Model.NumberOfAdults</p>
+                    <p><strong>Pets:</strong> @Model.NumberOfPets</p>
+                    <hr />
+                    <h5 class="fw-bold">Lot Info</h5>
+                    <p>
+                        <strong>Lot:</strong>
+                        @Model.SelectedLot.LotType?.Name (@Model.SelectedLot.Location)
+                    </p>
+                    <p><strong>Rate:</strong> @rate.ToString("C") / night</p>
+                    <hr />
+                    <h5 class="fw-bold">RV Info</h5>
+                    <p><strong>License Plate:</strong> @Model.LicensePlate</p>
+                    <p><strong>Make:</strong> @Model.Make</p>
+                    <p><strong>Model:</strong> @Model.Model</p>
+                    <p><strong>Length:</strong> @Model.Length ft</p>
+                    <p><strong>Description:</strong> @Model.RvDescription</p>
                 </div>
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-3">Payment Details</h5>
+                    <form id="payment-form" method="post">
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="StartDate" type="hidden" />
+                        <input asp-for="EndDate" type="hidden" />
+                        <input asp-for="Duration" type="hidden" />
+                        <input asp-for="NumberOfAdults" type="hidden" />
+                        <input asp-for="NumberOfPets" type="hidden" />
 
-                <div class="card-body p-4">
-                    <div class="row">
-                        <!-- Reservation Summary -->
-                        <div class="col-md-6 border-end">
-                            <h5 class="fw-bold mb-3">Reservation Summary</h5>
-                            <p><strong>Full Name:</strong> @firstName @lastName </p>
-                            <p><strong>Date Scheduled:</strong> @today</p>
-                            <p><strong>Check In Date:</strong> @startDate</p>
-                            <p><strong>Check Out Date:</strong> @endDate</p>
-                            <p><strong>Duration:</strong> @duration Days</p>
-                            <p><strong>Trailer Length:</strong> @rvLength </p>
-                            <p><strong>Adults:</strong> @adults </p>
-                            <p><strong>Pets:</strong> @pets </p>
-                            <p><strong>Special Requests:</strong> @specialRequests </p>
-
-                            <hr />
-                            <h5 class="fw-bold">Lot Info</h5>
-                            <p><strong>Lot Name:</strong> @lotName</p>
-                            <p><strong>Location:</strong> @lotLocatoion</p>
-                            <p><strong>Rate:</strong> @lotRate/night</p>
-
-                            <!-- RV Information Section -->
-                            <hr />
-                            <h5 class="fw-bold">RV Info</h5>
-                            <p><strong>License Plate:</strong> @rvLicensePlate</p>
-                            <p><strong>Make:</strong> @rvMake</p>
-                            <p><strong>Model:</strong> @rvModel</p>
-                            <p><strong>Length:</strong> @rvLength</p>
-                            <p><strong>Description:</strong> @rvDescription</p>
-                        </div>
-
-                        <!-- Payment Form -->
-                        <div class="col-md-6">
-                            <h5 class="fw-bold mb-3">Payment Details</h5>
-
-                            <form id="payment-form" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Cardholder Name</label>
-                                    <input type="text" name="CardholderName" class="form-control" required />
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Card Number</label>
-                                    <input type="text" name="CardNumber" class="form-control" inputmode="numeric" pattern="[0-9\s]{13,19}" maxlength="19" required />
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Expiry Date</label>
-                                        <input type="text" name="Expiry" class="form-control" placeholder="MM/YY" required />
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">CVV</label>
-                                        <input type="text" name="CVV" class="form-control" maxlength="4" required />
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Billing Zip Code</label>
-                                    <input type="text" name="ZipCode" class="form-control" required />
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Card Details</label>
-                                    <div id="card-element" class="form-control"></div>
-                                    <div id="card-errors" class="text-danger"></div>
-                                </div>
-
-                                <hr />
-
-
-                                <div class="mb-4">
-                                    <h5 class="fw-bold mb-3">Price Breakdown</h5>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Nightly Rate:</span>
-                                            <span>@lotRate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Total Nights:</span>
-                                            <span>@duration night(s)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Subtotal:</span>
-                                            <span>$@subtotal.ToString("F2")</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Taxes (8%):</span>
-                                            <span>@tax.ToString("F2")</span>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5>Total:</h5>
-                                        <h4 class="text-success">@total.ToString("F2")</h4>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-lock"></i> Pay Now
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-footer text-muted text-center small">
-                    Your payment is secure and encrypted.
+                        <div id="card-element" class="mb-4"></div>
+                        <button id="pay-button" class="btn btn-primary btn-lg w-100">
+                            Pay @total.ToString("C")
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -161,33 +62,29 @@
 </div>
 
 @section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        const stripe = Stripe('@Stripe.Value.PublishableKey');
+        const stripe   = Stripe('@Model.StripePublishableKey');
         const elements = stripe.elements();
-        const cardElement = elements.create('card');
-        cardElement.mount('#card-element');
+        const card     = elements.create('card');
+        card.mount('#card-element');
 
-        document.getElementById('payment-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const { error, paymentMethod } = await stripe.createPaymentMethod({
-                type: 'card',
-                card: cardElement,
-                billing_details: {
-                    name: document.querySelector('[name="CardholderName"]').value,
-                },
-            });
-
-            if (error) {
-                document.getElementById('card-errors').textContent = error.message;
-            } else {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.setAttribute('type', 'hidden');
-                hiddenInput.setAttribute('name', 'StripePaymentMethodId');
-                hiddenInput.setAttribute('value', paymentMethod.id);
-                document.getElementById('payment-form').appendChild(hiddenInput);
-                document.getElementById('payment-form').submit();
-            }
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async e => {
+          e.preventDefault();
+          const { paymentMethod, error } = await stripe.createPaymentMethod({
+            type: 'card', card
+          });
+          if (error) {
+            alert(error.message);
+            return;
+          }
+          const input = document.createElement('input');
+          input.type  = 'hidden';
+          input.name  = 'stripeToken';
+          input.value = paymentMethod.id;
+          form.appendChild(input);
+          form.submit();
         });
     </script>
 }

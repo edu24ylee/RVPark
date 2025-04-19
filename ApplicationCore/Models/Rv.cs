@@ -7,10 +7,10 @@ namespace ApplicationCore.Models
     public class RV
     {
         [Key]
-        public int RvID { get; set; }
+        public int RvId { get; set; }
 
         [Required]
-        public int GuestID { get; set; }
+        public int GuestId { get; set; }
 
         [ForeignKey("GuestID")]
         [ValidateNever]
@@ -36,7 +36,7 @@ namespace ApplicationCore.Models
 
         public static RV GetGuestRV(List<RV> rvList, int guestId)
         {
-            return rvList.FirstOrDefault(rv => rv.GuestID == guestId);
+            return rvList.FirstOrDefault(rv => rv.GuestId == guestId);
         }
     }
 }

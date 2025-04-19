@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 public class User
 {
     [Key]
-    public int UserID { get; set; }
+    public int UserId { get; set; }
 
     [Required]
     [EmailAddress]
