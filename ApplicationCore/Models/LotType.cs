@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
@@ -17,12 +16,10 @@ namespace ApplicationCore.Models
         [Required]
         public decimal Rate { get; set; } = 0.00m;
 
-        [Required]
         public int ParkId { get; set; }
 
-        [ForeignKey(nameof(ParkId))]
+        [ForeignKey("ParkId")]
         [ValidateNever]
-        [Required]
         public virtual Park Park { get; set; } = null!;
 
         [Required]
@@ -33,9 +30,6 @@ namespace ApplicationCore.Models
         [DataType(DataType.Date)]
         [Display(Name = "End Date")]
         public DateTime? EndDate { get; set; } = DateTime.Today;
-
         public bool IsArchived { get; set; } = false;
-
-        public ICollection<Lot> Lots { get; set; } = new List<Lot>();
     }
 }

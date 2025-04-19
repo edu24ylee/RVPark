@@ -64,6 +64,8 @@ namespace RVPark.Pages.Customer.Home
 
         [BindProperty]
         public int LotId { get; set; }
+        [BindProperty]
+        public int GuestId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {

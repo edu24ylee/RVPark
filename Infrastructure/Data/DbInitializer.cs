@@ -4,9 +4,6 @@ using Infrastructure.Data;
 using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using TriggerType = ApplicationCore.Models.TriggerType;
 
 namespace Infrastructure
@@ -17,62 +14,59 @@ namespace Infrastructure
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public DbInitializer(
-            ApplicationDbContext db,
-            UserManager<IdentityUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+        public DbInitializer(ApplicationDbContext db, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _db = db;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
+        /*  public void Initialize()
+          {
+              _db.Database.Migrate();
+
+              if (!_db.Park.Any())
+              {
+                  SeedData();
+              }
+          }*/
         public void Initialize()
         {
             _db.Database.Migrate();
             SeedData();
         }
 
+
         private void SeedData()
         {
             if (_db.Park.Any()) return;
 
-            var roles = new[]
-            {
-                SD.AdminRole,
-                SD.ManagerRole,
-                SD.SuperAdminRole,
-                SD.GuestRole,
-                SD.MaintenanceRole,
-                SD.CampHostRole
-            };
+            var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
+
             foreach (var role in roles)
             {
                 if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                {
                     _roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+                }
             }
 
             var superEmail = "tawnymcaleese@gmail.com";
             var superUser = _userManager.FindByEmailAsync(superEmail).GetAwaiter().GetResult();
             if (superUser == null)
             {
-                superUser = new IdentityUser
-                {
-                    UserName = superEmail,
-                    Email = superEmail,
-                    EmailConfirmed = true
-                };
+                superUser = new IdentityUser { UserName = superEmail, Email = superEmail, EmailConfirmed = true };
                 var result = _userManager.CreateAsync(superUser, "Admin123*").GetAwaiter().GetResult();
                 if (!result.Succeeded)
-                    throw new Exception(
-                        "Failed to create SuperAdmin: " +
-                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-            if (!_userManager.IsInRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult())
-                _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
 
-            var customUser = _db.User
-                .FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower());
+            if (!_userManager.IsInRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult())
+            {
+                _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
+            }
+
+            var customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower());
             if (customUser == null)
             {
                 customUser = new User
@@ -87,13 +81,11 @@ namespace Infrastructure
                 _db.User.Add(customUser);
                 _db.SaveChanges();
             }
+
             if (!_db.Employee.Any(e => e.UserId == customUser.UserId))
             {
-                _db.Employee.Add(new Employee
-                {
-                    UserId = customUser.UserId,
-                    Role = SD.SuperAdminRole
-                });
+                var emp = new Employee { UserId = customUser.UserId, Role = SD.SuperAdminRole };
+                _db.Employee.Add(emp);
                 _db.SaveChanges();
             }
 
@@ -101,15 +93,12 @@ namespace Infrastructure
             var adminUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
             if (adminUser == null)
             {
-                adminUser = new IdentityUser
+                adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+                var result = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
+                if (result.Succeeded)
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
-                };
-                var adminResult = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
-                if (adminResult.Succeeded)
                     _userManager.AddToRoleAsync(adminUser, SD.AdminRole).GetAwaiter().GetResult();
+                }
             }
 
             var park = new Park
@@ -135,32 +124,29 @@ namespace Infrastructure
 
             var policies = new List<Policy>
             {
-                new Policy { PolicyName = "24-Hour Cancellation Policy",   PolicyDescription = "Cancelling within 24 hours of the reservation start date will result in a penalty fee." },
-                new Policy { PolicyName = "Additional Adult Fee Policy",  PolicyDescription = "Each adult guest beyond 3 incurs an additional daily fee." },
-                new Policy { PolicyName = "Pet Cleanup Policy",            PolicyDescription = "Fee applied if pet waste is not cleaned up." }
+                new Policy { PolicyName = "24-Hour Cancellation Policy", PolicyDescription = "Cancelling within 24 hours of the reservation start date will result in a penalty fee." },
+                new Policy { PolicyName = "Additional Adult Fee Policy", PolicyDescription = "Each adult guest beyond 3 incurs an additional daily fee." },
+                new Policy { PolicyName = "Pet Cleanup Policy", PolicyDescription = "Fee applied if pet waste is not cleaned up." }
             };
             _db.Policy.AddRange(policies);
             _db.SaveChanges();
-
             var feeTypes = new List<FeeType>
             {
                 new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
-                new FeeType { FeeTypeName = "Extra Adults Fee",          Description = "Triggered per adult over threshold", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
-                new FeeType { FeeTypeName = "Pet Cleanup Violation",      Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
+                new FeeType { FeeTypeName = "Extra Adults Fee", Description = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
+                new FeeType { FeeTypeName = "Pet Cleanup Violation", Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
             };
             _db.FeeType.AddRange(feeTypes);
             _db.SaveChanges();
 
-            var lots = lotTypes
-                .SelectMany(lt => Enumerable.Range(1, 5).Select(i => new Lot
-                {
-                    LotTypeId = lt.Id,
-                    Location = $"{lt.Name[0]}-{i}",
-                    Width = 20,
-                    Length = 35,
-                    IsAvailable = true
-                }))
-                .ToList();
+            var lots = lotTypes.SelectMany(lt => Enumerable.Range(1, 5).Select(i => new Lot
+            {
+                LotTypeId = lt.Id,
+                Location = $"{lt.Name[0]}-{i}",
+                Width = 20,
+                Length = 35,
+                IsAvailable = true
+            })).ToList();
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
@@ -168,23 +154,27 @@ namespace Infrastructure
             {
                 ("Sheldon", "Cooper"),
                 ("Leonard", "Hofstadter"),
-                ("Penny",   "Teller"),
-                ("Howard",  "Wolowitz"),
-                ("Raj",     "Koothrappali")
+                ("Penny", "Teller"),
+                ("Howard", "Wolowitz"),
+                ("Raj", "Koothrappali")
             };
+
             var guestList = new List<Guest>();
             var rvList = new List<RV>();
 
-            for (var i = 0; i < guestInfos.Count; i++)
+            for (int i = 0; i < guestInfos.Count; i++)
             {
                 var (first, last) = guestInfos[i];
                 var email = $"guest{last.ToLower()}@rv.com";
                 var identityUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+
                 var identityResult = _userManager.CreateAsync(identityUser, "Guest123!").GetAwaiter().GetResult();
                 if (identityResult.Succeeded)
+                {
                     _userManager.AddToRoleAsync(identityUser, SD.GuestRole).GetAwaiter().GetResult();
+                }
 
-                var appUser = new User
+                var user = new User
                 {
                     FirstName = first,
                     LastName = last,
@@ -193,12 +183,12 @@ namespace Infrastructure
                     IdentityUserId = identityUser.Id,
                     IsActive = true
                 };
-                _db.User.Add(appUser);
+                _db.User.Add(user);
                 _db.SaveChanges();
 
                 var guest = new Guest
                 {
-                    UserId = appUser.UserId,
+                    UserId = user.UserId,
                     DodId = 3000 + i
                 };
                 _db.Guest.Add(guest);
@@ -223,84 +213,81 @@ namespace Infrastructure
             {
                 new Reservation
                 {
-                    GuestId       = guestList[0].GuestId,
-                    RvId          = rvList[0].RvId,
-                    LotId         = lots[0].Id,
-                    LotTypeId     = lots[0].LotTypeId,
-                    StartDate     = today.AddDays(2),
-                    EndDate       = today.AddDays(6),
-                    Duration      = 4,
-                    Status        = SD.StatusPending,
-                    NumberOfAdults= 2,
-                    NumberOfPets  = 1
+                    GuestId = guestList[0].GuestId,
+                    RvId = rvList[0].RvId,
+                    LotId = lots[0].Id,
+                    StartDate = today.AddDays(2),
+                    EndDate = today.AddDays(6),
+                    Duration = 4,
+                    Status = SD.StatusPending,
+                    NumberOfAdults = 2,
+                    NumberOfPets = 1
                 },
                 new Reservation
                 {
-                    GuestId        = guestList[1].GuestId,
-                    RvId           = rvList[1].RvId,
-                    LotId          = lots[1].Id,
-                    LotTypeId      = lots[1].LotTypeId,
-                    StartDate      = today.AddDays(3),
-                    EndDate        = today.AddDays(6),
-                    Duration       = 3,
-                    Status         = SD.StatusActive,
+                    GuestId = guestList[1].GuestId,
+                    RvId = rvList[1].RvId,
+                    LotId = lots[1].Id,
+                    StartDate = today.AddDays(3),
+                    EndDate = today.AddDays(6),
+                    Duration = 3,
+                    Status = SD.StatusActive,
                     NumberOfAdults = 4,
-                    NumberOfPets   = 0,
+                    NumberOfPets = 0,
                     OverrideReason = "Admin-approved exception: elderly family"
                 },
                 new Reservation
                 {
-                    GuestId       = guestList[2].GuestId,
-                    RvId          = rvList[2].RvId,
-                    LotId         = lots[2].Id,
-                    LotTypeId     = lots[2].LotTypeId,
-                    StartDate     = today.AddDays(7),
-                    EndDate       = today.AddDays(12),
-                    Duration      = 5,
-                    Status        = SD.StatusConfirmed,
-                    NumberOfAdults= 3,
-                    NumberOfPets  = 2
+                    GuestId = guestList[2].GuestId,
+                    RvId = rvList[2].RvId,
+                    LotId = lots[2].Id,
+                    StartDate = today.AddDays(7),
+                    EndDate = today.AddDays(12),
+                    Duration = 5,
+                    Status = SD.StatusConfirmed,
+                    NumberOfAdults = 3,
+                    NumberOfPets = 2
                 },
                 new Reservation
                 {
-                    GuestId       = guestList[3].GuestId,
-                    RvId          = rvList[3].RvId,
-                    LotId         = lots[3].Id,
-                    LotTypeId     = lots[3].LotTypeId,
-                    StartDate     = today.AddDays(-5),
-                    EndDate       = today.AddDays(-1),
-                    Duration      = 4,
-                    Status        = SD.StatusCompleted,
-                    NumberOfAdults= 3,
-                    NumberOfPets  = 0
+                    GuestId = guestList[3].GuestId,
+                    RvId = rvList[3].RvId,
+                    LotId = lots[3].Id,
+                    StartDate = today.AddDays(-5),
+                    EndDate = today.AddDays(-1),
+                    Duration = 4,
+                    Status = SD.StatusCompleted,
+                    NumberOfAdults = 3,
+                    NumberOfPets = 0
                 },
                 new Reservation
                 {
-                    GuestId            = guestList[4].GuestId,
-                    RvId               = rvList[4].RvId,
-                    LotId              = lots[4].Id,
-                    LotTypeId          = lots[4].LotTypeId,
-                    StartDate          = today.AddDays(1),
-                    EndDate            = today.AddDays(4),
-                    Duration           = 3,
-                    Status             = SD.StatusCancelled,
-                    NumberOfAdults     = 5,
-                    NumberOfPets       = 1,
+                    GuestId = guestList[4].GuestId,
+                    RvId = rvList[4].RvId,
+                    LotId = lots[4].Id,
+                    StartDate = today.AddDays(1),
+                    EndDate = today.AddDays(4),
+                    Duration = 3,
+                    Status = SD.StatusCancelled,
+                    NumberOfAdults = 5,
+                    NumberOfPets = 1,
                     CancellationReason = "Medical emergency",
-                    OverrideReason     = "Fee waived by admin due to proof provided"
+                    OverrideReason = "Fee waived by admin due to proof provided"
                 }
             };
+
             _db.Reservation.AddRange(reservations);
             _db.SaveChanges();
 
-            var cleanupPolicyDb = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
-            if (cleanupPolicyDb != null)
+
+            var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
+            if (cleanupPolicy != null)
             {
                 var fee = new Fee
                 {
                     FeeTypeId = feeTypes.First().Id,
-                    TriggeringPolicyId = cleanupPolicyDb.Id,
-                    FeeTotal = 25.0m,
+                    TriggeringPolicyId = cleanupPolicy.Id,
+                    FeeTotal = 25.0M,
                     AppliedDate = DateTime.UtcNow,
                     Notes = "Auto-triggered on creation",
                     ReservationId = reservations[0].ReservationId,
@@ -309,24 +296,27 @@ namespace Infrastructure
                 _db.Fee.Add(fee);
                 _db.SaveChanges();
             }
-
             var triggeredPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Pet Cleanup"));
-            var petFeeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
-            if (triggeredPolicy != null && petFeeType != null)
+            var feeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
+
+            if (triggeredPolicy != null && feeType != null)
             {
                 var cleanupFee = new Fee
                 {
-                    FeeTypeId = petFeeType.Id,
+                    FeeTypeId = feeType.Id,
                     TriggeringPolicyId = triggeredPolicy.Id,
-                    FeeTotal = 25.00m,
+                    FeeTotal = 25.00M,
                     AppliedDate = DateTime.UtcNow,
                     Notes = "Pet cleanup violation",
                     ReservationId = reservations[0].ReservationId,
                     TriggerType = TriggerType.Triggered
                 };
+
                 _db.Fee.Add(cleanupFee);
                 _db.SaveChanges();
             }
+
+
         }
     }
 }
