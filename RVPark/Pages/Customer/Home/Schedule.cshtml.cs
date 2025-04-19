@@ -1,4 +1,7 @@
-using System.ComponentModel.DataAnnotations;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Security.Claims;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -12,54 +15,52 @@ namespace RVPark.Pages.Customer.Home
     {
         private readonly UnitOfWork _unitOfWork;
 
-        public ScheduleModel(UnitOfWork unitOfWork)
-        {
+        public ScheduleModel(UnitOfWork unitOfWork) =>
             _unitOfWork = unitOfWork;
-        }
 
-        public Lot SelectedLot { get; set; } = null!;
-        public Reservation Reservation { get; set; } = new();
+        public Lot SelectedLot { get; set; } = default!;
 
-        [BindProperty, Required(ErrorMessage = "First name is required.")]
+        [BindProperty(SupportsGet = true)]
+        public int Id { get; set; }
+
+        [BindProperty]
         public string GuestFirstName { get; set; } = string.Empty;
 
-        [BindProperty, Required(ErrorMessage = "Last name is required.")]
+        [BindProperty]
         public string GuestLastName { get; set; } = string.Empty;
 
-        [BindProperty, Required(ErrorMessage = "Trailer length is required.")]
+        [BindProperty]
         public int Length { get; set; }
 
-        [BindProperty, Range(1, 10, ErrorMessage = "Please enter at least 1 adult.")]
-        public int NumberOfAdults { get; set; }
+        [BindProperty]
+        public string LicensePlate { get; set; } = string.Empty;
 
-        [BindProperty, Range(0, 5, ErrorMessage = "Maximum 5 pets allowed.")]
-        public int NumberOfPets { get; set; }
+        [BindProperty]
+        public string Make { get; set; } = string.Empty;
 
-        [BindProperty, Required(ErrorMessage = "Start date is required.")]
+        [BindProperty]
+        public string Model { get; set; } = string.Empty;
+
+        [BindProperty]
+        public string RvDescription { get; set; } = string.Empty;
+
+        [BindProperty]
+        public string SpecialRequests { get; set; } = string.Empty;
+
+        [BindProperty]
         public DateTime StartDate { get; set; }
 
-        [BindProperty, Required(ErrorMessage = "End date is required.")]
+        [BindProperty]
         public DateTime EndDate { get; set; }
 
         [BindProperty]
         public int Duration { get; set; }
 
-        [BindProperty, Required(ErrorMessage = "License plate is required.")]
-        public string? LicensePlate { get; set; }
-
-        [BindProperty, Required(ErrorMessage = "Make is required.")]
-        public string? Make { get; set; }
-
-        [BindProperty, Required(ErrorMessage = "Model is required.")]
-        public string? Model { get; set; }
+        [BindProperty]
+        public int NumberOfAdults { get; set; }
 
         [BindProperty]
-        public string? RvDescription { get; set; }
-
-        [BindProperty]
-        public string? SpecialRequests { get; set; }
-
-        public string StatusOptions { get; } = "Pending";
+        public int NumberOfPets { get; set; }
 
         [BindProperty]
         public int LotId { get; set; }
@@ -67,25 +68,42 @@ namespace RVPark.Pages.Customer.Home
         public async Task<IActionResult> OnGetAsync(int id)
         {
             SelectedLot = await _unitOfWork.Lot.GetAsync(
-                l => l.Id == id, includes: "LotType");
-
+                l => l.Id == id,
+                includes: "LotType");
             if (SelectedLot == null)
-            {
                 return NotFound();
-            }
 
-            LotId = SelectedLot.Id;
+            LotId = id;
             StartDate = DateTime.UtcNow.Date;
             EndDate = StartDate.AddDays(1);
             Duration = 1;
+            NumberOfAdults = 1;
+            NumberOfPets = 0;
 
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!ModelState.IsValid)
+                return Page();
+
+            var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var appUser = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == identityId);
+            if (appUser == null)
+                return Challenge();
+
+            var guest = await _unitOfWork.Guest.GetAsync(g => g.UserId == appUser.UserId);
+            if (guest == null)
+            {
+                guest = new Guest { UserId = appUser.UserId, DodId = 0 };
+                _unitOfWork.Guest.Add(guest);
+                await _unitOfWork.CommitAsync();
+            }
+
             return RedirectToPage("Payment", new
             {
+                id = LotId,
                 guestFirstName = GuestFirstName,
                 guestLastName = GuestLastName,
                 licensePlate = LicensePlate,
@@ -98,8 +116,7 @@ namespace RVPark.Pages.Customer.Home
                 specialRequests = SpecialRequests,
                 startDate = StartDate,
                 endDate = EndDate,
-                duration = Duration,
-                id = LotId
+                duration = Duration
             });
         }
     }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250418043736_Initial")]
+    [Migration("20250419164239_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -266,8 +266,8 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ParkId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Rate")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
