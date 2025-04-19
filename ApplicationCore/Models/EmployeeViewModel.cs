@@ -6,9 +6,9 @@ namespace ApplicationCore.ViewModels
     public class EmployeeViewModel
     {
   
-        public int EmployeeID { get; set; }
+        public int EmployeeId { get; set; }
  
-        public int UserID { get; set; }
+        public int UserId { get; set; }
  
         [Required]
         public string FirstName { get; set; } = string.Empty;

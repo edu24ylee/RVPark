@@ -33,7 +33,7 @@ namespace Infrastructure.Data
         private IGenericRepository<Policy> _Policy;
         private IGenericRepository<FinancialReport> _FinancialReport;
         private IGenericRepository<DodAffiliation> _DodAffiliation;
-
+        private IGenericRepository<Payment> _Payment;
 
         public IGenericRepository<Park> Park
         {
@@ -200,6 +200,17 @@ namespace Infrastructure.Data
                     _DodAffiliation = new GenericRepository<DodAffiliation>(_dbContext);
                 }
                 return _DodAffiliation;
+            }
+        }
+        public IGenericRepository<Payment> Payment
+        {
+            get
+            {
+                if (_Payment == null)
+                {
+                    _Payment = new GenericRepository<Payment>(_dbContext);
+                }
+                return _Payment;
             }
         }   
         public int Commit()

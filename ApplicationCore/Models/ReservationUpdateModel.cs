@@ -6,20 +6,20 @@ using System.Threading.Tasks;
 
 namespace ApplicationCore.Models
 {
- 
+
     public class ReservationUpdateModel
     {
- 
+
         public Reservation Reservation { get; set; }
- 
+
         public Rv Rv { get; set; }
- 
+
         public string GuestName { get; set; }
- 
+
         public List<Lot> AvailableLots { get; set; }
 
         public List<LotType> LotTypes { get; set; }
- 
+
         public decimal OriginalTotal { get; set; }
         public List<FeeType>? ManualFeeOptions { get; set; }
         public int? ManualFeeTypeId { get; set; }
@@ -30,4 +30,11 @@ namespace ApplicationCore.Models
             set => Reservation.Duration = value;
         }
     }
+    public class ManualFeeOptionViewModel
+    {
+        public int Id { get; set; }
+        public string FeeTypeName { get; set; } = string.Empty;
+        public decimal FeeTotal { get; set; }
+    }
+
 }

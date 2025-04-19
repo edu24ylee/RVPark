@@ -1,21 +1,21 @@
 ﻿@page "{id:int}"
-@using Microsoft.AspNetCore.Identity
+@model RVPark.Pages.Admin.Reservations.UpdateModel
 @using Infrastructure.Utilities
+@using Microsoft.AspNetCore.Identity
 @inject UserManager<IdentityUser> UserManager
 @inject SignInManager<IdentityUser> SignInManager
-@model RVPark.Pages.Admin.Reservations.UpdateModel
 
 @{
     ViewData["Title"] = "Update Reservation";
     var returnUrl = Url.Page("/Admin/Reservations/Update", new { id = Model.ViewModel.Reservation.ReservationId });
-    bool isStaff = User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole);
+    var isStaff = User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole);
 }
 
 <form method="post">
     <div class="container mt-4 d-flex justify-content-center">
         <div class="card shadow-sm w-100" style="max-width: 700px;">
             <div class="card-body px-5 py-4">
-                <div asp-validation-summary="All" class="text-danger text-start small mb-3"></div>
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
                 <h2 class="text-primary text-center mb-4">Update Reservation</h2>
 
                 <input type="hidden" asp-for="ReturnUrl" />
@@ -67,8 +67,8 @@
 
                 <div class="mb-3">
                     <label asp-for="ViewModel.Reservation.LotId" class="form-label fw-bold"></label>
-                    <select asp-for="ViewModel.Reservation.LotId" id="Reservation_LotId" class="form-control text-center">
-                        <option disabled value="">-- Select a Lot --</option>
+                    <select asp-for="ViewModel.Reservation.LotId" id="Reservation_LotId" class="form-control text-center" disabled>
+                        <option disabled selected>-- Select a Lot --</option>
                         @foreach (var lot in Model.ViewModel.AvailableLots)
                         {
                             var rate = lot.LotType?.Rate ?? 0;
@@ -83,6 +83,7 @@
                     <label class="form-label fw-bold">Updated Total ($)</label>
                     <input id="updatedTotalField" class="form-control text-center" readonly />
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-bold">Balance Difference</label>
                     <input id="BalanceDifferenceDisplay" class="form-control text-center" readonly />
@@ -96,17 +97,11 @@
                             <option value="">-- Select Fee --</option>
                             @foreach (var fee in Model.ViewModel.ManualFeeOptions)
                             {
-                                <option value="@fee.Id">@fee.FeeTypeName - @fee.Description</option>
+                                <option value="@fee.Id">@fee.FeeTypeName - @fee.FeeTotal</option>
                             }
-
                         </select>
                     </div>
                 }
-
-                <div class="mb-3" id="CancellationReasonContainer" style="display:none;">
-                    <label asp-for="ViewModel.Reservation.CancellationReason" class="form-label fw-bold"></label>
-                    <input asp-for="ViewModel.Reservation.CancellationReason" class="form-control text-center" />
-                </div>
 
                 <div class="mb-3" id="OverrideReasonContainer" style="display:none;">
                     <label asp-for="ViewModel.Reservation.OverrideReason" class="form-label fw-bold"></label>

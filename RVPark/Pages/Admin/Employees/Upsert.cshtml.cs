@@ -37,8 +37,8 @@ namespace RVPark.Pages.Admin.Employees
 
             EmployeeVM = new EmployeeViewModel
             {
-                EmployeeID = employee.EmployeeId,
-                UserID = employee.User.UserId,
+                EmployeeId = employee.EmployeeId,
+                UserId = employee.User.UserId,
                 FirstName = employee.User.FirstName,
                 LastName = employee.User.LastName,
                 Email = employee.User.Email,
@@ -53,7 +53,7 @@ namespace RVPark.Pages.Admin.Employees
             if (!ModelState.IsValid)
                 return Page();
 
-            if (EmployeeVM.EmployeeID == 0)
+            if (EmployeeVM.EmployeeId == 0)
             {
                 var user = new User
                 {
@@ -77,7 +77,7 @@ namespace RVPark.Pages.Admin.Employees
             }
             else
             {
-                var existingEmployee = _unitOfWork.Employee.Get(e => e.EmployeeId == EmployeeVM.EmployeeID, includes: "User");
+                var existingEmployee = _unitOfWork.Employee.Get(e => e.EmployeeId == EmployeeVM.EmployeeId, includes: "User");
                 if (existingEmployee == null || existingEmployee.User == null)
                     return NotFound();
 

@@ -27,6 +27,7 @@ namespace Infrastructure.Data
         public DbSet<Policy> Policy { get; set; }
 
         public DbSet<DodAffiliation> DodAffiliation { get; set; }
+        public DbSet<Payment> Payment { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,7 +53,7 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<Rv>()
                 .HasOne(rv => rv.Guest)
-                .WithMany(g => g.RVs)
+                .WithMany(g => g.Rvs)
                 .HasForeignKey(rv => rv.GuestId)
                 .OnDelete(DeleteBehavior.Cascade);
 

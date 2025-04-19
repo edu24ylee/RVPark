@@ -24,10 +24,11 @@ namespace ApplicationCore.Models
  
         [Required]
         public int DodId { get; set; }
- 
+        public decimal Balance { get; set; } = 0;
+
         public ICollection<Reservation> Reservations { get; set; }
  
-        public ICollection<Rv> RVs { get; set; }
+        public ICollection<Rv> Rvs { get; set; }
         public DodAffiliation DodAffiliation { get; set; }
 
 

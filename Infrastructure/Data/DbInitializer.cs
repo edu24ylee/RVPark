@@ -271,7 +271,6 @@ namespace Infrastructure
                     Status = SD.StatusCancelled,
                     NumberOfAdults = 5,
                     NumberOfPets = 1,
-                    CancellationReason = "Medical emergency",
                     OverrideReason = "Fee waived by admin due to proof provided"
                 }
             };

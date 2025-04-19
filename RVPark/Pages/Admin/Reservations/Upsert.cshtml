@@ -1,88 +1,117 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
 <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
     <div class="container py-4">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
-
                         <h2 class="card-title text-center text-primary mb-4">
                             @(Model.Reservation.ReservationId != 0 ? "Edit Reservation" : "Create Reservation")
                         </h2>
 
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <!-- Guest Information -->
-                        <section aria-labelledby="guest-info" class="mb-4">
-                            <h5 id="guest-info" class="fw-bold">Guest Information</h5>
+                        <!-- Guest Selection -->
+                        <div class="mb-3">
+                            <label for="guestDropdown" class="form-label fw-bold">Select Guest</label>
+                            <select id="guestDropdown" name="SelectedGuestId" class="form-select select2" onchange="fetchGuestRV()">
+                                <option disabled selected value="">-- Search or select guest --</option>
+                                @foreach (var guest in Model.GuestOptions)
+                                {
+                                    <option value="@guest.Value">@guest.Text</option>
+                                }
+                            </select>
+                        </div>
 
-                            <div class="mb-3">
-                                <label asp-for="GuestFirstName" class="form-label">First Name</label>
-                                <input asp-for="GuestFirstName" class="form-control" placeholder="John" required autofocus autocomplete="given-name" />
-                                <span asp-validation-for="GuestFirstName" class="text-danger"></span>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Or Create New Guest</label>
+                            <div class="row">
+                                <div class="col">
+                                    <input asp-for="GuestFirstName" class="form-control" placeholder="First Name" />
+                                </div>
+                                <div class="col">
+                                    <input asp-for="GuestLastName" class="form-control" placeholder="Last Name" />
+                                </div>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label asp-for="GuestLastName" class="form-label">Last Name</label>
-                                <input asp-for="GuestLastName" class="form-control" placeholder="Doe" required autocomplete="family-name" />
-                                <span asp-validation-for="GuestLastName" class="text-danger"></span>
+                        <!-- RV Length + Edit -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">RV Length</label>
+                            <div class="input-group">
+                                <input asp-for="Length" id="Rv_Length" class="form-control text-center" readonly />
+                                <a class="btn btn-outline-secondary" id="rvEditLink" href="#" target="_blank">Edit RV</a>
                             </div>
-                        </section>
+                        </div>
 
-                        <!-- Trailer Info -->
-                        <section aria-labelledby="trailer-info" class="mb-4">
-                            <h5 id="trailer-info" class="fw-bold">Trailer Information</h5>
-
-                            <div class="mb-3">
-                                <label asp-for="Length" class="form-label">Trailer Length</label>
-                                <select asp-for="Length" class="form-select" required>
-                                    <option value="">-- Select Length --</option>
-                                    <option value="20">20 ft</option>
-                                    <option value="25">25 ft</option>
-                                    <option value="30">30 ft</option>
-                                    <option value="35">35 ft</option>
-                                    <option value="40">40 ft</option>
-                                </select>
-                                <span asp-validation-for="Length" class="text-danger"></span>
+                        <!-- Pet and Adult Counts -->
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label asp-for="Reservation.NumberOfAdults" class="form-label fw-bold">Adults</label>
+                                <input asp-for="Reservation.NumberOfAdults" class="form-control text-center" />
                             </div>
-                        </section>
-
-                        <!-- Reservation Dates -->
-                        <section aria-labelledby="reservation-dates" class="mb-4">
-                            <h5 id="reservation-dates" class="fw-bold">Reservation Dates</h5>
-
-                            <div class="mb-3">
-                                <label asp-for="Reservation.StartDate" class="form-label">Start Date</label>
-                                <input asp-for="Reservation.StartDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                                <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
+                            <div class="col">
+                                <label asp-for="Reservation.NumberOfPets" class="form-label fw-bold">Pets</label>
+                                <input asp-for="Reservation.NumberOfPets" class="form-control text-center" />
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Reservation.EndDate" class="form-label">End Date</label>
-                                <input asp-for="Reservation.EndDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                                <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
+                        <!-- Dates -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Reservation.StartDate" class="form-label fw-bold">Start Date</label>
+                                <input asp-for="Reservation.StartDate" type="date" class="form-control" onchange="calculateDuration()" />
                             </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Reservation.Duration" class="form-label">Duration (Days)</label>
-                                <input asp-for="Reservation.Duration" class="form-control" readonly />
-                                <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
+                            <div class="col-md-6">
+                                <label asp-for="Reservation.EndDate" class="form-label fw-bold">End Date</label>
+                                <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
                             </div>
-                        </section>
+                        </div>
 
-                        <!-- Hidden IDs -->
+                        <div class="mb-3">
+                            <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration (Days)</label>
+                            <input asp-for="Reservation.Duration" class="form-control text-center" readonly />
+                        </div>
+
+                        <!-- Lot Type -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Lot Type</label>
+                            <select asp-for="Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control text-center" onchange="updateTotal()">
+                                <option disabled selected>Select Lot Type</option>
+                                @foreach (var lotType in Model.LotTypeOptions)
+                                {
+                                    <option value="@lotType.Id" data-rate="@lotType.Rate">@lotType.Name - $@lotType.Rate/day</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Lot -->
+                        <div class="mb-3">
+                            <label asp-for="Reservation.LotId" class="form-label fw-bold">Lot</label>
+                            <select asp-for="Reservation.LotId" id="Reservation_LotId" class="form-control text-center">
+                                <option disabled selected>Select a lot</option>
+                            </select>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Estimated Cost</label>
+                            <input id="updatedTotalField" class="form-control text-center" readonly />
+                        </div>
+
+                        <!-- Hidden -->
                         <input type="hidden" asp-for="Reservation.GuestId" />
                         <input type="hidden" asp-for="Reservation.RvId" />
-                        <input type="hidden" asp-for="Reservation.LotId" />
 
-                        <!-- Buttons -->
                         <div class="d-flex justify-content-between mt-4">
-                            <a asp-page="Payment" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Back
+                            <a asp-page="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> @(Model.Reservation.ReservationId != 0 ? "Update" : "Create")
+                                <i class="fas fa-save me-1"></i> Save
                             </button>
                         </div>
                     </div>
@@ -94,6 +123,9 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         function calculateDuration() {
             const start = new Date(document.querySelector('[name="Reservation.StartDate"]').value);
@@ -103,9 +135,30 @@
             if (!isNaN(start) && !isNaN(end)) {
                 const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
                 durationInput.value = diff > 0 ? diff : 0;
+                updateTotal();
             } else {
                 durationInput.value = '';
             }
         }
+
+        function updateTotal() {
+            const duration = parseInt(document.querySelector('[name="Reservation.Duration"]').value);
+            const rate = parseFloat(document.querySelector('#Reservation_LotTypeId option:checked')?.getAttribute('data-rate') || 0);
+            document.getElementById('updatedTotalField').value = (duration * rate).toFixed(2);
+        }
+
+        function fetchGuestRV() {
+            const guestId = document.getElementById('guestDropdown').value;
+            fetch(`/api/guests/${guestId}/rv`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('Rv_Length').value = data.length || 0;
+                    document.getElementById('rvEditLink').href = `/Admin/RVs/Edit?id=${data.rvId}`;
+                });
+        }
+
+        $(document).ready(function () {
+            $('.select2').select2();
+        });
     </script>
 }
