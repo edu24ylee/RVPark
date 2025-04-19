@@ -39,10 +39,15 @@ namespace ApplicationCore.Models
         public int NumberOfPets { get; set; }
         public decimal TotalDue { get; set; }
         public decimal AmountPaid { get; set; }
+        [NotMapped]
         public decimal OutstandingBalance { get; set; }
+        public decimal BaseTotal { get; set; }
+        public decimal ManualFeeTotal { get; set; }
+        public decimal TaxTotal { get; set; }
+        public decimal GrandTotal => BaseTotal + ManualFeeTotal + TaxTotal;
+
 
         public int LotTypeId { get; set; }
-
 
         public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)
         {
@@ -68,11 +73,12 @@ namespace ApplicationCore.Models
             Status = "Cancelled";
             CancellationDate = DateTime.UtcNow;
         }
-        public class CancellationRequest
-        {
-            public bool Override { get; set; }
-            public int Percent { get; set; } = 100;
-            public string? Reason { get; set; }
-        }
+    }
+    [NotMapped]
+    public class CancellationRequest
+    {
+        public bool Override { get; set; }
+        public int Percent { get; set; } = 100;
+        public string? Reason { get; set; }
     }
 }

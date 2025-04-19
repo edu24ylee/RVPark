@@ -1,12 +1,19 @@
 ﻿let dataTable;
 
 $(document).ready(function () {
-    initializeReservationsTable();
+    loadReservations();
 
+    // Status dropdown filter (top of page)
     $('#statusFilter').on('change', function () {
+        dataTable.ajax.url(`/api/reservation?filter=${this.value}`).load();
+    });
+
+    // Balance and column filters
+    $('#DT_load thead').on('keyup change', '.column-filter', function () {
         dataTable.draw();
     });
 
+    // Status update dropdown in table
     $(document).on('change', '.status-dropdown', function () {
         const reservationId = $(this).data('id');
         const newStatus = $(this).val();
@@ -19,35 +26,23 @@ $(document).ready(function () {
             success: response => {
                 if (response.success) {
                     toastr.success("Status updated.");
-                    dataTable.ajax.reload(null, false);
                 } else {
                     toastr.error(response.message || "Status update failed.");
                 }
             },
-            error: xhr => toastr.error("Error: " + xhr.responseText)
+            error: xhr => {
+                toastr.error("Error: " + xhr.responseText);
+            }
         });
     });
 });
 
-function initializeReservationsTable() {
-    $.fn.dataTable.ext.search.push(function (settings, data) {
-        const statusFilter = $('#statusFilter').val();
-        const status = data[7]?.trim();
-        const balance = parseFloat(data[8].replace('$', '')) || 0;
-        const balanceFilter = $('#balanceFilter').val();
-
-        if (statusFilter === 'active' && (status === 'Cancelled' || status === 'Completed')) return false;
-        if (balanceFilter === 'has' && balance <= 0) return false;
-        if (balanceFilter === 'none' && balance > 0) return false;
-
-        return true;
-    });
-
+function loadReservations() {
     dataTable = $('#DT_load').DataTable({
         ajax: {
-            url: `/api/reservation?filter=all`,
+            url: `/api/reservation?filter=active`,
             type: "GET",
-            dataSrc: json => json.data || []
+            dataSrc: json => json.data
         },
         columns: [
             { data: "reservationId" },
@@ -65,12 +60,11 @@ function initializeReservationsTable() {
             },
             {
                 data: "status",
-                render: function (data, type, row) {
+                render: (data, type, row) => {
                     const options = ["Pending", "Confirmed", "CheckedIn", "Completed"]
                         .map(opt => `<option value="${opt}" ${opt === data ? "selected" : ""}>${opt}</option>`)
                         .join('');
-                    const isCancelled = data === "Cancelled";
-                    return `<select class="form-select form-select-sm status-dropdown" data-id="${row.reservationId}" ${isCancelled ? "disabled" : ""}>${options}</select>`;
+                    return `<select class="form-select form-select-sm status-dropdown" data-id="${row.reservationId}">${options}</select>`;
                 }
             },
             {
@@ -83,66 +77,45 @@ function initializeReservationsTable() {
                 render: function (data, type, row) {
                     const id = row.reservationId;
                     const balance = parseFloat(row.remainingBalance || 0);
+
                     const edit = `<a href="/Admin/Reservations/Update/${id}" class="btn btn-sm btn-custom-blue text-white"><i class="fas fa-edit"></i> Edit</a>`;
                     const pay = balance > 0
                         ? `<a href="/Admin/Reservations/Payment/${id}" class="btn btn-sm btn-success text-white"><i class="fas fa-dollar-sign"></i> Pay</a>`
                         : '';
-                    const cancel = row.status !== "Cancelled"
-                        ? `<button onclick="confirmCancel(${id})" class="btn btn-sm btn-danger"><i class="fas fa-ban"></i> Cancel</button>`
-                        : '';
+                    const cancel = `<button onclick="confirmCancel(${id})" class="btn btn-sm btn-danger"><i class="fas fa-ban"></i> Cancel</button>`;
+
                     return `<div class="d-flex gap-1 justify-content-center">${edit}${pay}${cancel}</div>`;
                 }
             }
         ],
         initComplete: function () {
-            const api = this.api();
-
-            // Ensure only one filter row
-            $('#DT_load thead .filter-row').remove();
-            $('#DT_load thead').append('<tr class="filter-row"></tr>');
-
-            api.columns().every(function (index) {
-                let filterHtml = '';
-
-                if (index === 7) {
-                    filterHtml = `
-                        <select class="form-select form-select-sm column-filter">
-                            <option value="">All</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="CheckedIn">CheckedIn</option>
-                            <option value="Completed">Completed</option>
-                        </select>`;
-                } else if (index === 8) {
-                    filterHtml = `
-                        <select id="balanceFilter" class="form-select form-select-sm column-filter">
-                            <option value="">All</option>
-                            <option value="has">Has Balance</option>
-                            <option value="none">No Balance</option>
-                        </select>`;
-                } else {
-                    filterHtml = '';
-                }
-
-                $('.filter-row').append(`<th>${filterHtml}</th>`);
-
-                if (filterHtml) {
-                    $('.filter-row th').eq(index).find('.column-filter').on('change', function () {
-                        api.column(index).search(this.value).draw();
-                    });
-                }
+            // Custom filters for each column
+            this.api().columns().every(function (index) {
+                const column = this;
+                $('input, select', $('#DT_load thead th').eq(index)).on('keyup change', function () {
+                    column.search(this.value).draw();
+                });
             });
 
+            // Custom balance filter
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                const balanceFilter = $('#balanceFilter').val();
+                const balanceText = data[8].replace('$', '').trim();
+                const balance = parseFloat(balanceText) || 0;
+
+                if (balanceFilter === "has" && balance <= 0) return false;
+                if (balanceFilter === "none" && balance > 0) return false;
+                return true;
+            });
+
+            // Trigger redraw when balance filter changes
             $('#balanceFilter').on('change', function () {
                 dataTable.draw();
             });
         },
         language: {
             emptyTable: "No reservations found."
-        },
-        scrollX: true,
-        responsive: true,
-        autoWidth: false
+        }
     });
 }
 
@@ -159,7 +132,7 @@ function confirmCancel(id) {
                 closeModal: false
             }
         }
-    }).then(willCancel => {
+    }).then((willCancel) => {
         if (willCancel) {
             const override = document.getElementById("overrideCheckbox").checked;
             const percent = override ? parseInt(document.getElementById("overridePercent").value) : null;
@@ -173,7 +146,7 @@ function confirmCancel(id) {
                 success: function (data) {
                     if (data.success) {
                         toastr.success(data.message);
-                        dataTable.ajax.reload(null, false);
+                        dataTable.ajax.reload();
                         swal.close();
                     } else {
                         toastr.error(data.message);

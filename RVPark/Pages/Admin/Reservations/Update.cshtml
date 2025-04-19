@@ -1,52 +1,42 @@
 ﻿@page "{id:int}"
 @model RVPark.Pages.Admin.Reservations.UpdateModel
 @using Infrastructure.Utilities
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<IdentityUser> UserManager
-@inject SignInManager<IdentityUser> SignInManager
 
-@{
-    ViewData["Title"] = "Update Reservation";
-    var returnUrl = Url.Page("/Admin/Reservations/Update", new { id = Model.ViewModel.Reservation.ReservationId });
-    var isStaff = User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole);
-}
+<form method="post" asp-page="/Admin/Reservations/Update" asp-route-id="@Model.ViewModel.Reservation.ReservationId">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
+    <input type="hidden" id="outstandingBalance" value="@Model.ViewModel.Reservation.OutstandingBalance.ToString("F2")" />
+    <input type="hidden" id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" />
+    <input type="hidden" id="amountPaidValue" value="@Model.ViewModel.Reservation.AmountPaid.ToString("F2")" />
+    <input type="hidden" id="TaxRate" value="0.0825" />
 
-<form method="post">
     <div class="container mt-4 d-flex justify-content-center">
         <div class="card shadow-sm w-100" style="max-width: 700px;">
             <div class="card-body px-5 py-4">
                 <div asp-validation-summary="All" class="text-danger small mb-3"></div>
                 <h2 class="text-primary text-center mb-4">Update Reservation</h2>
 
-                <input type="hidden" asp-for="ReturnUrl" />
-                <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
-                <input type="hidden" id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" />
-
-                <div class="row mb-3 align-items-end">
+                <!-- Guest Info -->
+                <div class="row mb-3">
                     <div class="col-6">
                         <label class="form-label fw-bold">Guest Name</label>
                         <input type="text" class="form-control text-center" value="@Model.ViewModel.GuestName" disabled />
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label class="form-label fw-bold">RV Length</label>
                         <input type="text" id="Rv_Length" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
                     </div>
-                    <div class="col-2 p-0">
-                        <a asp-page="/Admin/RVs/Edit"
-                           asp-route-id="@Model.ViewModel.Rv.RvId"
-                           asp-route-returnUrl="@returnUrl"
-                           class="btn btn-custom-blue w-100">Edit</a>
-                    </div>
                 </div>
 
+                <!-- Dates -->
                 <div class="row mb-3">
                     <div class="col-5">
                         <label asp-for="ViewModel.Reservation.StartDate" class="form-label fw-bold"></label>
-                        <input asp-for="ViewModel.Reservation.StartDate" type="date" class="form-control text-center" id="Reservation_StartDate" />
+                        <input asp-for="ViewModel.Reservation.StartDate" type="date" class="form-control" id="Reservation_StartDate" />
                     </div>
                     <div class="col-5">
                         <label asp-for="ViewModel.Reservation.EndDate" class="form-label fw-bold"></label>
-                        <input asp-for="ViewModel.Reservation.EndDate" type="date" class="form-control text-center" id="Reservation_EndDate" />
+                        <input asp-for="ViewModel.Reservation.EndDate" type="date" class="form-control" id="Reservation_EndDate" />
                     </div>
                     <div class="col-2">
                         <label asp-for="ViewModel.Duration" class="form-label fw-bold"></label>
@@ -54,73 +44,114 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Lot Type</label>
-                    <select asp-for="ViewModel.Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control text-center">
-                        <option disabled value="">-- Select Lot Type --</option>
-                        @foreach (var lotType in Model.ViewModel.LotTypes)
-                        {
-                            <option value="@lotType.Id" data-rate="@lotType.Rate">@lotType.Name - $@lotType.Rate/day</option>
-                        }
-                    </select>
-                </div>
+                <!-- Lot Selection -->
+                <label class="fw-bold">Lot Type</label>
+                <select asp-for="ViewModel.Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control mb-3">
+                    <option disabled value="">-- Select Lot Type --</option>
+                    @foreach (var lotType in Model.ViewModel.LotTypes)
+                    {
+                        <option value="@lotType.Id" data-rate="@lotType.Rate" selected="@(Model.ViewModel.Reservation.LotTypeId == lotType.Id)">
+                            @lotType.Name - $@lotType.Rate/day
+                        </option>
+                    }
+                </select>
 
-                <div class="mb-3">
-                    <label asp-for="ViewModel.Reservation.LotId" class="form-label fw-bold"></label>
-                    <select asp-for="ViewModel.Reservation.LotId" id="Reservation_LotId" class="form-control text-center" disabled>
-                        <option disabled selected>-- Select a Lot --</option>
-                        @foreach (var lot in Model.ViewModel.AvailableLots)
-                        {
-                            var rate = lot.LotType?.Rate ?? 0;
-                            <option value="@lot.Id" data-rate="@rate">Lot #@lot.Id - @lot.Location</option>
-                        }
-                    </select>
-                </div>
+                <label class="fw-bold">Lot</label>
+                <select asp-for="ViewModel.Reservation.LotId" id="Reservation_LotId" class="form-control mb-3">
+                    <option disabled value="">-- Select a Lot --</option>
+                    @foreach (var lot in Model.ViewModel.AvailableLots)
+                    {
+                        var rate = lot.LotType?.Rate ?? 0;
+                        <option value="@lot.Id" data-rate="@rate" selected="@(Model.ViewModel.Reservation.LotId == lot.Id)">
+                            Lot #@lot.Id - @lot.Location
+                        </option>
+                    }
+                </select>
 
-                <div class="mb-3 text-center" id="LotThumbnailContainer"></div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Updated Total ($)</label>
-                    <input id="updatedTotalField" class="form-control text-center" readonly />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Balance Difference</label>
-                    <input id="BalanceDifferenceDisplay" class="form-control text-center" readonly />
-                </div>
-
-                @if (isStaff)
+                <!-- Manual Fees -->
+                @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole))
                 {
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Add Manual Fee</label>
-                        <select class="form-select" name="manualFeeTypeId">
-                            <option value="">-- Select Fee --</option>
-                            @foreach (var fee in Model.ViewModel.ManualFeeOptions)
-                            {
-                                <option value="@fee.Id">@fee.FeeTypeName - @fee.FeeTotal</option>
-                            }
-                        </select>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="toggleManualFees" />
+                        <label class="form-check-label" for="toggleManualFees">Add Fees</label>
+                    </div>
+
+                    <div id="manualFeeTableContainer" style="display: none;">
+                        <table class="table table-sm mt-2">
+                            <thead><tr><th>Fee</th><th>Amount</th><th>Select</th></tr></thead>
+                            <tbody>
+                                @foreach (var fee in Model.ViewModel.ManualFeeOptions)
+                                {
+                                    <tr>
+                                        <td>@fee.FeeTypeName</td>
+                                        <td>$@fee.FeeTotal.ToString("F2")</td>
+                                        <td>
+                                            <input type="checkbox" name="SelectedManualFees" value="@fee.Id" data-amount="@fee.FeeTotal.ToString("F2")" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 }
 
-                <div class="mb-3" id="OverrideReasonContainer" style="display:none;">
-                    <label asp-for="ViewModel.Reservation.OverrideReason" class="form-label fw-bold"></label>
-                    <input asp-for="ViewModel.Reservation.OverrideReason" class="form-control text-center" />
+                <!-- Totals -->
+                <div class="mt-4">
+                    <p><strong>Original Base Total:</strong> $<span id="originalTotalText">@Model.ViewModel.OriginalTotal.ToString("F2")</span></p>
+                    <p><strong>New Base Total:</strong> $<span id="baseTotalText">0.00</span></p>
+                    <p><strong>Manual Fees:</strong> $<span id="manualFeeText">0.00</span></p>
+                    <p><strong>Tax (8.25%):</strong> $<span id="taxAmountText">0.00</span></p>
+                    <p><strong>Total:</strong> $<span id="grandTotalText">0.00</span></p>
+                    <p><strong>Amount Paid:</strong> $<span id="amountPaidText">@Model.ViewModel.Reservation.AmountPaid.ToString("F2")</span></p>
+                    <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">0.00</span></p>
                 </div>
 
-                <div class="d-flex justify-content-between gap-3 mt-4">
-                    <button type="submit" class="btn btn-custom-blue">
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" name="action" value="save" class="btn btn-custom-blue">
                         <i class="fas fa-save"></i> Save Changes
                     </button>
-                    <a asp-page="./Index" class="btn btn-custom-grey">
-                        <i class="fas fa-arrow-left"></i> Back to List
-                    </a>
-                    @if (isStaff)
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                        <i class="fas fa-times-circle"></i> Cancel Reservation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancellation Modal -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="cancelModalLabel">Confirm Cancellation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">This will cancel the reservation and apply applicable fees.</p>
+
+                    @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole))
                     {
-                        <button type="submit" name="cancel" value="true" class="btn btn-danger">
-                            <i class="fas fa-times-circle"></i> Cancel Reservation
-                        </button>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="cancelOverrideCheckbox" name="cancelOverride" />
+                            <label class="form-check-label" for="cancelOverrideCheckbox">Override Cancellation Fee</label>
+                        </div>
+
+                        <div id="cancelOverrideOptions" style="display:none;" class="mt-3">
+                            <label for="overridePercent" class="form-label fw-bold">Cancellation Fee Percentage</label>
+                            <input type="range" min="0" max="100" value="100" step="5" class="form-range" id="overridePercent" name="overridePercent" />
+                            <div class="fw-bold">Selected: <span id="overrideValueText">100%</span></div>
+
+                            <label for="cancelOverrideReason" class="form-label fw-bold mt-2">Reason for Override</label>
+                            <input type="text" class="form-control" id="cancelOverrideReason" name="cancelOverrideReason" placeholder="Enter reason" />
+                        </div>
                     }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+                    <button type="submit" name="action" value="confirmCancel" class="btn btn-danger">
+                        <i class="fas fa-times-circle"></i> Confirm Cancellation
+                    </button>
                 </div>
             </div>
         </div>
@@ -129,4 +160,22 @@
 
 @section Scripts {
     <script src="~/js/reservation-update.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkbox = document.getElementById("cancelOverrideCheckbox");
+            const options = document.getElementById("cancelOverrideOptions");
+            const percent = document.getElementById("overridePercent");
+            const percentText = document.getElementById("overrideValueText");
+
+            if (checkbox && options && percent && percentText) {
+                checkbox.addEventListener("change", () => {
+                    options.style.display = checkbox.checked ? "block" : "none";
+                });
+
+                percent.addEventListener("input", () => {
+                    percentText.textContent = `${percent.value}%`;
+                });
+            }
+        });
+    </script>
 }

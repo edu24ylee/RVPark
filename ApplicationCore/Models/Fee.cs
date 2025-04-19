@@ -32,5 +32,12 @@ namespace ApplicationCore.Models
         public Reservation? Reservation { get; set; }
 
     }
+    public class ManualFeeOptionViewModel
+    {
+        public int Id { get; set; }
+        public string FeeTypeName { get; set; }
+        public decimal FeeTotal { get; set; }
+    }
+
 
 }

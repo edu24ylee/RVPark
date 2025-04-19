@@ -1,13 +1,18 @@
-﻿$(document).ready(function () {
-    $('#Reservation_StartDate, #Reservation_EndDate').on('change', updateLotsAndCosts);
-    $('#Reservation_LotTypeId, #Rv_Length').on('change', updateLotsAndCosts);
-    $('#Reservation_LotId').on('change', updateCostsOnly);
+﻿let originalLotTypeId, originalLotId;
 
-    if (!$('#Reservation_LotTypeId').val()) {
-        $('#Reservation_LotId').prop('disabled', true);
-    }
-
+$(document).ready(function () {
     updateCostsOnly();
+
+    $('#Reservation_LotTypeId').on('change', updateLotsAndCosts);
+    $('#Reservation_LotId').on('change', updateCostsOnly);
+    $('#Reservation_StartDate, #Reservation_EndDate, #Rv_Length').on('change', updateCostsOnly);
+
+    $('#toggleManualFees').on('change', function () {
+        $('#manualFeeTableContainer').toggle(this.checked);
+        updateCostsOnly();
+    });
+
+    $(document).on('change', 'input[name="SelectedManualFees"]', updateCostsOnly);
 });
 
 function updateLotsAndCosts() {
@@ -15,70 +20,145 @@ function updateLotsAndCosts() {
     const trailerLength = $('#Rv_Length').val();
     const startDate = $('#Reservation_StartDate').val();
     const endDate = $('#Reservation_EndDate').val();
+    const currentLotId = $('#Reservation_LotId').val();
+
+    updateDuration(startDate, endDate);
 
     if (!lotTypeId || !trailerLength || !startDate || !endDate) return;
 
-    $('#Reservation_LotId').prop('disabled', false);
-
-    $.get('/Admin/Reservations/Update?handler=AvailableLots', {
+    $.get('/api/reservation/available-lots', {
         lotTypeId,
         trailerLength,
         startDate,
         endDate
-    }, function (lots) {
+    }, function (response) {
+        const lots = response.data;
         const $lotSelect = $('#Reservation_LotId');
         $lotSelect.empty();
 
         if (!lots.length) {
-            $lotSelect.append(`<option disabled>No lots available</option>`);
-            updateCostsOnly();
-            return;
+            $lotSelect.append('<option disabled selected>No lots available</option>');
+        } else {
+            $lotSelect.append('<option disabled selected>-- Select a Lot --</option>');
+            lots.forEach(lot => {
+                const rate = parseFloat(lot.lotTypeRate).toFixed(2);
+                const isSelected = lot.id == currentLotId ? 'selected' : '';
+                $lotSelect.append(`<option value="${lot.id}" data-rate="${rate}" ${isSelected}>
+                            Lot #${lot.id} - ${lot.location}</option>`);
+            });
         }
 
-        lots.forEach(lot => {
-            $lotSelect.append(`<option value="${lot.id}" data-rate="${lot.lotTypeRate}">
-                Lot #${lot.id} - ${lot.location}</option>`);
-        });
-
         updateCostsOnly();
+    }).fail(() => {
+        console.error("Failed to load available lots.");
     });
 }
 
-function updateCostsOnly() {
-    const startDateStr = $('#Reservation_StartDate').val();
-    const endDateStr = $('#Reservation_EndDate').val();
-    const selectedRate = parseFloat($('#Reservation_LotId option:selected').data('rate')) || 0;
-    const originalTotal = parseFloat($('#originalTotal').val()) || 0;
-
-    if (!startDateStr || !endDateStr || !selectedRate) {
-        $('#Reservation_Duration').val('');
-        $('#updatedTotalField').val('$0.00');
-        $('#BalanceDifferenceDisplay').val('$0.00');
-        return;
-    }
-
+function updateDuration(startDateStr, endDateStr) {
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);
     const duration = Math.max(0, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-
-    let updatedTotal = duration * selectedRate;
-    const extraAdultFee = calculateExtraAdultFee();
-    const cancellationFee = calculateCancellationFee();
-
-    updatedTotal += extraAdultFee + cancellationFee;
-    const balanceDiff = updatedTotal - originalTotal;
-
-    $('#Reservation_Duration').val(duration);
-    $('#updatedTotalField').val(`$${updatedTotal.toFixed(2)}`);
-    $('#BalanceDifferenceDisplay').val(`$${balanceDiff.toFixed(2)}`);
+    $('#Reservation_Duration').val(duration || '');
 }
 
-function calculateExtraAdultFee() {
-    const adults = parseInt($('#NumberOfAdults').val()) || 0;
-    const perExtraFee = 10;
-    return adults > 2 ? (adults - 2) * perExtraFee : 0;
+function updateCostsOnly() {
+    const start = $('#Reservation_StartDate').val();
+    const end = $('#Reservation_EndDate').val();
+    updateDuration(start, end);
+
+    const duration = parseInt($('#Reservation_Duration').val()) || 0;
+    const rate = parseFloat($('#Reservation_LotId option:selected').data('rate')) || 0;
+    const manualFee = getManualFeeTotal();
+    const taxRate = parseFloat($('#TaxRate').val()) || 0.0825;
+
+    const baseTotal = duration * rate;
+    const taxable = baseTotal + manualFee;
+    const tax = taxable * taxRate;
+    const grandTotal = baseTotal + manualFee + tax;
+
+    const amountPaid = parseFloat($('#amountPaidText').text()) || 0;
+    const remainingBalance = Math.max(0, grandTotal - amountPaid);
+
+    $('#baseTotalText').text(baseTotal.toFixed(2));
+    $('#manualFeeText').text(manualFee.toFixed(2));
+    $('#taxAmountText').text(tax.toFixed(2));
+    $('#grandTotalText').text(grandTotal.toFixed(2));
+    $('#amountPaidText').text(amountPaid.toFixed(2));
+    $('#remainingBalanceText').text(remainingBalance.toFixed(2));
 }
 
-function calculateCancellationFee() {
-    return 0; // Can be implemented if needed
+
+function getManualFeeTotal() {
+    let total = 0;
+    $('input[name="SelectedManualFees"]:checked').each(function () {
+        const amount = parseFloat($(this).data('amount'));
+        if (!isNaN(amount)) total += amount;
+    });
+    return total;
+}
+
+function confirmCancel(id) {
+    swal({
+        title: "Confirm Cancellation",
+        text: "Cancelling may apply a cancellation fee if within 24 hours of check-in.",
+        icon: "warning",
+        content: createOverrideForm(),
+        buttons: {
+            cancel: "Back",
+            confirm: {
+                text: "Confirm",
+                closeModal: false
+            }
+        }
+    }).then((willCancel) => {
+        if (willCancel) {
+            const override = document.getElementById("overrideCheckbox").checked;
+            const percent = override ? document.getElementById("overridePercent").value : null;
+            const reason = override ? document.getElementById("cancelOverrideReason").value : "";
+
+            $.ajax({
+                type: "POST",
+                url: `/api/reservation/cancel/${id}`,
+                data: JSON.stringify({ override: override, percent: percent, reason: reason }),
+                contentType: "application/json",
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        window.location.href = "/Admin/Reservations/Index";
+                    } else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error("Error: " + xhr.responseText);
+                }
+            });
+        }
+    });
+}
+
+function createOverrideForm() {
+    const div = document.createElement("div");
+    div.innerHTML = `
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="overrideCheckbox">
+                    <label class="form-check-label" for="overrideCheckbox">
+                        Override Cancellation Fee
+                    </label>
+                </div>
+                <div id="overrideFields" style="display:none;">
+                    <label class="form-label mt-2">Override Percentage:</label>
+                    <select id="overridePercent" class="form-select form-select-sm mb-2">
+                        ${[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => `<option value="${p}">${p}%</option>`).join('')}
+                    </select>
+                    <label class="form-label">Reason:</label>
+                    <textarea id="cancelOverrideReason" class="form-control form-control-sm" rows="2"></textarea>
+                </div>
+            `;
+    setTimeout(() => {
+        document.getElementById("overrideCheckbox").addEventListener("change", function () {
+            document.getElementById("overrideFields").style.display = this.checked ? "block" : "none";
+        });
+    }, 10);
+    return div;
 }

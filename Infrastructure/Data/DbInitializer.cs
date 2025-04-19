@@ -202,7 +202,7 @@ namespace Infrastructure
                 new Reservation { GuestId = guestList[1].GuestId, RvId = rvList[1].RvId, LotId = lots[1].Id, StartDate = today.AddDays(3), EndDate = today.AddDays(6), Duration = 3, Status = SD.StatusActive, NumberOfAdults = 4, NumberOfPets = 0, OverrideReason = "Admin-approved exception: elderly family" },
                 new Reservation { GuestId = guestList[2].GuestId, RvId = rvList[2].RvId, LotId = lots[2].Id, StartDate = today.AddDays(7), EndDate = today.AddDays(12), Duration = 5, Status = SD.StatusConfirmed, NumberOfAdults = 3, NumberOfPets = 2 },
                 new Reservation { GuestId = guestList[3].GuestId, RvId = rvList[3].RvId, LotId = lots[3].Id, StartDate = today.AddDays(-5), EndDate = today.AddDays(-1), Duration = 4, Status = SD.StatusCompleted, NumberOfAdults = 3, NumberOfPets = 0 },
-                new Reservation { GuestId = guestList[4].GuestId, RvId = rvList[4].RvId, LotId = lots[4].Id, StartDate = today.AddDays(1), EndDate = today.AddDays(4), Duration = 3, Status = SD.StatusCancelled, NumberOfAdults = 5, NumberOfPets = 1, CancellationReason = "Medical emergency", OverrideReason = "Fee waived by admin due to proof provided" }
+                new Reservation { GuestId = guestList[4].GuestId, RvId = rvList[4].RvId, LotId = lots[4].Id, StartDate = today.AddDays(1), EndDate = today.AddDays(4), Duration = 3, Status = SD.StatusCancelled, NumberOfAdults = 5, NumberOfPets = 1, OverrideReason= "Medical emergency" }
             };
             _db.Reservation.AddRange(reservations);
             _db.SaveChanges();

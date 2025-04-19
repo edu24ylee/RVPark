@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:Infrastructure/Migrations/20250419201456_ModelUpdateReservation.Designer.cs
-    [Migration("20250419201456_ModelUpdateReservation")]
+    [Migration("20250419211628_ModelUpdateReservation")]
     partial class ModelUpdateReservation
-========
-    [Migration("20250419201054_Initial")]
-    partial class Initial
->>>>>>>> origin/main:Infrastructure/Migrations/20250419201054_Initial.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,6 +24,20 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationCore.Models.CancellationRequest", b =>
+                {
+                    b.Property<bool>("Override")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Percent")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("CancellationRequest");
+                });
 
             modelBuilder.Entity("ApplicationCore.Models.DodAffiliation", b =>
                 {
@@ -42,7 +51,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GuestID")
+                    b.Property<int>("GuestId")
                         .HasColumnType("int");
 
                     b.Property<string>("Rank")
@@ -55,7 +64,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("DodAffiliationId");
 
-                    b.HasIndex("GuestID")
+                    b.HasIndex("GuestId")
                         .IsUnique();
 
                     b.ToTable("DodAffiliation");
@@ -396,6 +405,9 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("BaseTotal")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime?>("CancellationDate")
                         .HasColumnType("datetime2");
 
@@ -417,14 +429,14 @@ namespace Infrastructure.Migrations
                     b.Property<int>("LotTypeId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ManualFeeTotal")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("NumberOfAdults")
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfPets")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("OutstandingBalance")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
@@ -437,6 +449,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TaxTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalDue")
                         .HasColumnType("decimal(18,2)");
@@ -817,7 +832,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("ApplicationCore.Models.Guest", "Guest")
                         .WithOne("DodAffiliation")
-                        .HasForeignKey("ApplicationCore.Models.DodAffiliation", "GuestID")
+                        .HasForeignKey("ApplicationCore.Models.DodAffiliation", "GuestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

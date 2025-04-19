@@ -21,7 +21,7 @@ namespace ApplicationCore.Models
         public List<LotType> LotTypes { get; set; }
 
         public decimal OriginalTotal { get; set; }
-        public List<FeeType>? ManualFeeOptions { get; set; }
+        public List<ManualFeeOptionViewModel>? ManualFeeOptions { get; set; }
         public int? ManualFeeTypeId { get; set; }
 
         public int Duration
@@ -30,11 +30,4 @@ namespace ApplicationCore.Models
             set => Reservation.Duration = value;
         }
     }
-    public class ManualFeeOptionViewModel
-    {
-        public int Id { get; set; }
-        public string FeeTypeName { get; set; } = string.Empty;
-        public decimal FeeTotal { get; set; }
-    }
-
 }

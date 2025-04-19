@@ -83,6 +83,8 @@ namespace Infrastructure.Data
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<ReservationUpdateModel>().HasNoKey();
+            modelBuilder.Entity<CancellationRequest>().HasNoKey();
+       
         }
     }
 }

@@ -4,7 +4,6 @@ using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
-using static ApplicationCore.Models.Reservation;
 
 namespace RVPark.Pages.Admin.Reservations
 {
@@ -19,14 +18,13 @@ namespace RVPark.Pages.Admin.Reservations
 
         [BindProperty] public ReservationUpdateModel ViewModel { get; set; } = null!;
         [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
-        [BindProperty(SupportsGet = true)] public int Id { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id, string? returnUrl = null)
         {
             ReturnUrl = returnUrl ?? Url.Page("/Admin/Reservations/Update", new { id });
 
             var reservation = await _unitOfWork.Reservation.GetAsync(
-                r => r.ReservationId == Id,
+                r => r.ReservationId == id,
                 includes: "Guest.User,Rv,Lot.LotType");
 
             if (reservation == null) return NotFound();
@@ -36,21 +34,16 @@ namespace RVPark.Pages.Admin.Reservations
                 l => l.IsAvailable || l.Id == reservation.LotId,
                 includes: "LotType");
 
-            var manualFeeTypes = await _unitOfWork.FeeType.GetAllAsync(
-                f => f.TriggerType == TriggerType.Manual && !f.IsArchived);
-
-            var feeCandidates = await _unitOfWork.Fee.GetAllAsync(
+            var manualFees = await _unitOfWork.Fee.GetAllAsync(
                 f => f.TriggerType == TriggerType.Manual && !f.IsArchived && f.ReservationId == null,
                 includes: "FeeType");
 
-            var manualFeeOptions = feeCandidates.Select(f => new ManualFeeOptionViewModel
+            var manualFeeOptions = manualFees.Select(f => new ManualFeeOptionViewModel
             {
                 Id = f.Id,
-                FeeTypeName = f.FeeType?.FeeTypeName ?? "Unknown",
+                FeeTypeName = f.FeeType?.FeeTypeName ?? "Unnamed",
                 FeeTotal = f.FeeTotal
             }).ToList();
-
-            reservation.Duration = (reservation.EndDate - reservation.StartDate).Days;
 
             ViewModel = new ReservationUpdateModel
             {
@@ -63,17 +56,20 @@ namespace RVPark.Pages.Admin.Reservations
                 ManualFeeOptions = manualFeeOptions
             };
 
+
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             var action = Request.Form["action"];
+
             var res = await _unitOfWork.Reservation.GetAsync(
                 r => r.ReservationId == ViewModel.Reservation.ReservationId,
                 includes: "Lot.LotType,Guest.Reservations");
 
-            if (res == null) return NotFound();
+            if (res == null)
+                return NotFound();
 
             if (action == "confirmCancel")
             {
@@ -83,8 +79,8 @@ namespace RVPark.Pages.Admin.Reservations
                 var overrideChecked = Request.Form["cancelOverride"] == "on";
                 int? overridePercent = int.TryParse(overrideStr, out var parsedPercent) ? parsedPercent : null;
 
-                var feeType = await _unitOfWork.FeeType.GetAsync(
-                    f => f.FeeTypeName == "Cancellation Fee" && f.TriggerType == TriggerType.Triggered);
+                var feeType = await _unitOfWork.FeeType.GetAsync(f =>
+                    f.FeeTypeName == "Cancellation Fee" && f.TriggerType == TriggerType.Triggered);
 
                 decimal rate = (decimal)(res.Lot?.LotType?.Rate ?? 0);
                 res.Duration = 1;
@@ -97,7 +93,7 @@ namespace RVPark.Pages.Admin.Reservations
                 {
                     int feePercent = overrideChecked
                         ? overridePercent ?? 0
-                        : (within24Hours ? 100 : 0);
+                        : (within24Hours ? 100 : 0); // Use default policy if no override
 
                     cancellationFee = Math.Round(rate * feePercent / 100m, 2);
 
@@ -152,7 +148,7 @@ namespace RVPark.Pages.Admin.Reservations
 
             if (action == "save")
             {
-                // === SAVE ===
+                // === SAVE CHANGES ===
                 var oldLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
                 var rate = (decimal)(res.Lot?.LotType?.Rate ?? 0);
 
@@ -184,6 +180,7 @@ namespace RVPark.Pages.Admin.Reservations
                 if (role == SD.AdminRole || role == SD.SuperAdminRole || role == SD.CampHostRole)
                 {
                     var selectedFeeIds = Request.Form["SelectedManualFees"];
+
                     foreach (var feeIdStr in selectedFeeIds)
                     {
                         if (int.TryParse(feeIdStr, out int feeId))
@@ -230,11 +227,12 @@ namespace RVPark.Pages.Admin.Reservations
             return RedirectToPage("./Index");
         }
 
+
+
         public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
         {
             var overlappingReservations = await _unitOfWork.Reservation.GetAllAsync(
                 r => !(r.EndDate < startDate || r.StartDate > endDate));
-
             var reservedLotIds = overlappingReservations.Select(r => r.LotId).Distinct();
 
             var lots = await _unitOfWork.Lot.GetAllAsync(
@@ -251,18 +249,5 @@ namespace RVPark.Pages.Admin.Reservations
                 lotTypeRate = l.LotType?.Rate ?? 0
             }));
         }
-    }
-    // Update the property type of ManualFeeOptions in ReservationUpdateModel to match the type being assigned.
-    public class ReservationUpdateModel
-    {
-        public Reservation Reservation { get; set; }
-        public Rv Rv { get; set; }
-        public string GuestName { get; set; }
-        public List<Lot> AvailableLots { get; set; }
-        public List<LotType> LotTypes { get; set; }
-        public decimal OriginalTotal { get; set; }
-        public List<ManualFeeOptionViewModel>? ManualFeeOptions { get; set; } // Updated type
-        public int? ManualFeeTypeId { get; set; }
-        public int Duration { get; set; }
     }
 }
