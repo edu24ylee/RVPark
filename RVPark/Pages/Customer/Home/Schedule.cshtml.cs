@@ -64,6 +64,7 @@ namespace RVPark.Pages.Customer.Home
 
         [BindProperty]
         public int LotId { get; set; }
+        [BindProperty]
         public int GuestId { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
@@ -108,7 +109,6 @@ namespace RVPark.Pages.Customer.Home
                 endDate = EndDate,
                 duration = Duration,
                 id = LotId,
-                guestID = GuestId
             });
         }
     }
