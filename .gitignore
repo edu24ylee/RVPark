@@ -7,7 +7,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 ##
-## Last modified by Yugene Lee, March 2025
+## Last modified by Yugene Lee, April 2025
+
+# Saved Images
+RVPark/wwwroot/Images/lots/*
 
 # Build results
 */[Dd]ebug/

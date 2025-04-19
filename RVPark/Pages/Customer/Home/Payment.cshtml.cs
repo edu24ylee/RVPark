@@ -73,30 +73,51 @@ namespace RVPark.Pages.Customer.Home
 
         public async Task<IActionResult> OnPostAsync(string stripeToken)
         {
+            SelectedLot = await _unitOfWork.Lot.GetAsync(
+                l => l.Id == Id,
+                includes: "LotType");
+            if (SelectedLot == null)
+                return NotFound();
+
+            var rate = SelectedLot.LotType?.Rate ?? 0m;
+            var subtotal = rate * Duration;
+            var tax = subtotal * 0.08m;
+            TotalAmount = subtotal + tax;
+
             if (string.IsNullOrEmpty(stripeToken))
                 return Page();
 
-            var intent = await new PaymentIntentService().CreateAsync(new PaymentIntentCreateOptions
+            var paymentIntent = await new PaymentIntentService().CreateAsync(new PaymentIntentCreateOptions
             {
-                Amount = (long)(TotalAmount * 100),
+                Amount = (long)Math.Round(TotalAmount * 100),
                 Currency = "usd",
-                PaymentMethod = stripeToken,
-                ConfirmationMethod = "manual",
-                Confirm = true
+                AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                {
+                    Enabled = true
+                }
             });
 
-            if (intent.Status != "succeeded")
+            if (paymentIntent.Status != "requires_payment_method" && paymentIntent.Status != "succeeded")
                 return Page();
 
             var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var appUser = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == identityId);
+            if (appUser == null)
+            {
+                ModelState.AddModelError("", "User account not found.");
+                return Page();
+            }
+
             var guest = await _unitOfWork.Guest.GetAsync(g => g.UserId == appUser.UserId);
             if (guest == null)
             {
                 guest = new Guest { UserId = appUser.UserId, DodId = 0 };
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
+
+                guest = await _unitOfWork.Guest.GetAsync(g => g.UserId == appUser.UserId);
             }
+
             var rv = await _unitOfWork.Rv.GetAsync(r => r.LicensePlate == LicensePlate);
             if (rv == null)
             {
@@ -109,10 +130,9 @@ namespace RVPark.Pages.Customer.Home
                     Description = RvDescription,
                     Length = Length
                 };
+                _unitOfWork.Rv.Add(rv);
+                await _unitOfWork.CommitAsync();
             }
-            
-            _unitOfWork.Rv.Add(rv);
-            await _unitOfWork.CommitAsync();
 
             var reservation = new Reservation
             {
@@ -131,13 +151,14 @@ namespace RVPark.Pages.Customer.Home
 
             return RedirectToPage("Confirmation", new
             {
-                guestName = $"{GuestFirstName} {GuestLastName}",
-                checkIn = StartDate.ToString("MM-dd-yyyy"),
-                checkOut = EndDate.ToString("MM-dd-yyyy"),
-                duration = Duration,
-                lotName = SelectedLot.LotType?.Name,
-                totalPaid = TotalAmount
+                GuestName = $"{GuestFirstName} {GuestLastName}",
+                CheckIn = StartDate.ToString("MM-dd-yyyy"),
+                CheckOut = EndDate.ToString("MM-dd-yyyy"),
+                Duration = Duration,
+                LotName = SelectedLot.LotType?.Name,
+                TotalPaid = TotalAmount
             });
         }
+
     }
 }

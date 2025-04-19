@@ -19,9 +19,9 @@ namespace ApplicationCore.Models
         public string Rank { get; set; }
 
         [Required]
-        public int GuestID { get; set; }
+        public int GuestId { get; set; }
 
-        [ForeignKey("GuestID")]
+        [ForeignKey("GuestId")]
         public Guest Guest { get; set; }
     }
 }
