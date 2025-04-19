@@ -95,7 +95,7 @@ namespace RVPark.Pages.Admin.Reservations
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
 
-                var rv = new RV
+                var rv = new Rv
                 {
                     Guest = guest,
                     Length = (int)Length,
@@ -104,7 +104,7 @@ namespace RVPark.Pages.Admin.Reservations
                     LicensePlate = "TEMP",
                     Description = "User Input"
                 };
-                _unitOfWork.RV.Add(rv);
+                _unitOfWork.Rv.Add(rv);
                 await _unitOfWork.CommitAsync();
 
                 Reservation.GuestId = guest.GuestId;
@@ -131,7 +131,7 @@ namespace RVPark.Pages.Admin.Reservations
                 existingReservation.Rv.Length = (int)Length;
 
                 _unitOfWork.User.Update(existingReservation.Guest.User);
-                _unitOfWork.RV.Update(existingReservation.Rv);
+                _unitOfWork.Rv.Update(existingReservation.Rv);
                 await _unitOfWork.CommitAsync();
             }
 

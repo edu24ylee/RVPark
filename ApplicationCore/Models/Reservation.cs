@@ -9,53 +9,40 @@ namespace ApplicationCore.Models
         [Key]
         public int ReservationId { get; set; }
 
-        [Required]
         public int GuestId { get; set; }
-        [ForeignKey(nameof(GuestId))]
-        [Required]
-        public Guest Guest { get; set; } = null!;
 
-        [Required]
+        [ForeignKey("GuestId")]
+        public Guest Guest { get; set; }
+
         public int RvId { get; set; }
-        [ForeignKey(nameof(RvId))]
-        [Required]
-        public RV Rv { get; set; } = null!;
 
-        [Required]
+        [ForeignKey("RvId")]
+        public Rv Rv { get; set; }
+
         public int LotId { get; set; }
-        [ForeignKey(nameof(LotId))]
-        [Required]
-        public Lot Lot { get; set; } = null!;
 
-        [Required]
-        public int LotTypeId { get; set; }
-        [ForeignKey(nameof(LotTypeId))]
-        [Required]
-        public LotType LotType { get; set; } = null!;
+        [ForeignKey("LotId")]
+        public Lot Lot { get; set; }
 
-        [Required]
-        public int Duration { get; set; } = 1;
+        public int Duration { get; set; }
 
-        [Required]
-        public DateTime StartDate { get; set; } = DateTime.UtcNow;
+        public DateTime StartDate { get; set; }
 
-        [Required]
-        public DateTime EndDate { get; set; } = DateTime.UtcNow.AddDays(1);
+        public DateTime EndDate { get; set; }
 
-        [Required]
-        public string Status { get; set; } = "Active";
+        public string Status { get; set; }
+        public int NumberOfAdults { get; set; }
+        public int NumberOfPets { get; set; }
+        public string? SpecialRequests { get; set; }
 
-        [Required]
-        public int NumberOfAdults { get; set; } = 1;
-
-        [Required]
-        public int NumberOfPets { get; set; } = 0;
-
-        public string SpecialRequests { get; set; } = string.Empty;
-        public string OverrideReason { get; set; } = string.Empty;
+        public string? OverrideReason { get; set; }
 
         public DateTime? CancellationDate { get; set; }
-        public string CancellationReason { get; set; } = string.Empty;
+
+        public string? CancellationReason { get; set; }
+
+        public int LotTypeId { get; set; }
+
 
         public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)
         {
@@ -66,7 +53,9 @@ namespace ApplicationCore.Models
         }
 
         public decimal CalculateTotal(decimal ratePerDay)
-            => Duration * ratePerDay;
+        {
+            return Duration * ratePerDay;
+        }
 
         public void UpdateDuration(int newDuration)
         {

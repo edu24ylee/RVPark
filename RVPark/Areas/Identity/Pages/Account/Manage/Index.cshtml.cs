@@ -19,7 +19,7 @@ namespace RVPark.Areas.Identity.Pages.Account.Manage
 
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-        public RV? RV { get; set; }
+        public Rv? RV { get; set; }
 
         [TempData]
         public string StatusMessage { get; set; } = string.Empty;
@@ -39,7 +39,7 @@ namespace RVPark.Areas.Identity.Pages.Account.Manage
                 var guest = _unitOfWork.Guest.Get(g => g.UserId == appUser.UserId);
                 if (guest != null)
                 {
-                    RV = _unitOfWork.RV.Get(r => r.GuestId == guest.GuestId, trackChanges: true);
+                    RV = _unitOfWork.Rv.Get(r => r.GuestId == guest.GuestId, trackChanges: true);
                 }
             }
 

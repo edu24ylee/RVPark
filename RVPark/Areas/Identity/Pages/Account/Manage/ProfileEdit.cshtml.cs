@@ -62,7 +62,7 @@ public class ProfileEditModel : PageModel
             var guest = _unitOfWork.Guest.Get(g => g.UserId == appUser.UserId);
             if (guest != null)
             {
-                var rv = _unitOfWork.RV.Get(r => r.GuestId == guest.GuestId);
+                var rv = _unitOfWork.Rv.Get(r => r.GuestId == guest.GuestId);
                 if (rv != null)
                 {
                     Input.Make = rv.Make;
@@ -112,7 +112,7 @@ public class ProfileEditModel : PageModel
             else
             {
                 Console.WriteLine($"guest found: {guest.GuestId}");
-                var rv = _unitOfWork.RV.Get(r => r.GuestId == guest.GuestId);
+                var rv = _unitOfWork.Rv.Get(r => r.GuestId == guest.GuestId);
                 Console.WriteLine(rv == null ? "⚠️ RV not found. Will add new." : "✅ RV found. Will update.");
             }
         }

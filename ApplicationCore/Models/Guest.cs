@@ -1,33 +1,39 @@
-﻿using System;
+﻿using ApplicationCore.Models;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ApplicationCore.Models
 {
+ 
     public class Guest
     {
+ 
         [Key]
         public int GuestId { get; set; }
 
         [Required]
         public int UserId { get; set; }
-
-        [ForeignKey(nameof(UserId))]
+ 
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+ 
         [Required]
-        public User User { get; set; } = null!;
+        public int DodId { get; set; }
+ 
+        public ICollection<Reservation> Reservations { get; set; }
+ 
+        public ICollection<Rv> RVs { get; set; }
+        public DodAffiliation DodAffiliation { get; set; }
 
-        public int? DodId { get; set; }
 
-        [ForeignKey(nameof(DodId))]
-        public DodAffiliation? DodAffiliation { get; set; }
-
-        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-
-        public ICollection<RV> RVs { get; set; } = new List<RV>();
-
-        public Reservation MakeReservation(Lot lot, RV rv, int duration, DateTime startDate)
-            => new Reservation
+        public Reservation MakeReservation(Lot lot, Rv rv, int duration, DateTime startDate)
+        {
+            return new Reservation
             {
                 GuestId = this.GuestId,
                 RvId = rv.RvId,
@@ -37,11 +43,16 @@ namespace ApplicationCore.Models
                 EndDate = startDate.AddDays(duration),
                 Status = "Active"
             };
-
+        }
+ 
         public void CancelReservation(Reservation reservation)
-            => reservation.CancelReservation();
-
+        {
+            reservation.CancelReservation();
+        }
+ 
         public List<Reservation> ViewReservationHistory()
-            => Reservations.ToList();
+        {
+            return Reservations?.ToList() ?? new List<Reservation>();
+        }
     }
 }

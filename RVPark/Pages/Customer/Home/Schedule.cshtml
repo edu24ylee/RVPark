@@ -1,32 +1,23 @@
 ﻿@page "{id:int}"
-@model ScheduleModel
-@{
-    var today = DateTime.Today.ToString("MM-dd-yyyy");
-    var tomorrow = DateTime.Today.AddDays(1).ToString("MM-dd-yyyy");
+@model RVPark.Pages.Customer.Home.ScheduleModel
 
+@{
     var lotType = Model.SelectedLot.LotType;
     var lotName = lotType?.Name ?? "Name unavailable";
     var lotRate = lotType?.Rate.ToString("C") ?? "Rate unavailable";
-    var lotRateValue = lotType?.Rate ?? 0;
-
     var allowedLengths = new List<int> { 20, 25, 30, 35, 40 };
-    var maxAllowed = Model.SelectedLot.Length;
-    var availableLengths = allowedLengths.Where(l => l <= maxAllowed);
+    var availableLengths = allowedLengths.Where(l => l <= Model.SelectedLot.Length);
 }
 
 <form method="post" enctype="multipart/form-data">
     <div class="container mt-5">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-
                 <h2 class="text-center text-primary mb-4">Create Reservation</h2>
-
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                <!-- Lot Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold border-bottom pb-2">Lot Information</h5>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Lot Name</label>
@@ -39,10 +30,8 @@
                     </div>
                 </div>
 
-                <!-- Guest Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold border-bottom pb-2">Your Information</h5>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="GuestFirstName" class="form-label">First Name</label>
@@ -57,10 +46,8 @@
                     </div>
                 </div>
 
-                <!-- RV Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold border-bottom pb-2">Trailer Information</h5>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Length" class="form-label">Trailer Length</label>
@@ -79,7 +66,6 @@
                             <span class="text-danger" asp-validation-for="LicensePlate"></span>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="Make" class="form-label">RV Make</label>
@@ -92,18 +78,15 @@
                             <span class="text-danger" asp-validation-for="Model"></span>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label asp-for="RvDescription" class="form-label">RV Description</label>
-                        <textarea asp-for="RvDescription" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
+                        <textarea asp-for="RvDescription" class="form-control" rows="3"></textarea>
                         <span class="text-danger" asp-validation-for="RvDescription"></span>
                     </div>
                 </div>
 
-                <!-- Dates -->
                 <div class="mb-4">
                     <h5 class="fw-bold border-bottom pb-2">Reservation Dates</h5>
-
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label asp-for="StartDate" class="form-label">Start Date</label>
@@ -123,10 +106,8 @@
                     </div>
                 </div>
 
-                <!-- Additional Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold border-bottom pb-2">Additional Information</h5>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="NumberOfAdults" class="form-label">Number of Adults</label>
@@ -139,14 +120,13 @@
                             <span class="text-danger" asp-validation-for="NumberOfPets"></span>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label asp-for="SpecialRequests" class="form-label">Special Requests</label>
-                        <textarea asp-for="SpecialRequests" class="form-control" rows="3" placeholder="Let us know anything important..."></textarea>
+                        <textarea asp-for="SpecialRequests" class="form-control" rows="3"></textarea>
                         <span class="text-danger" asp-validation-for="SpecialRequests"></span>
                     </div>
                 </div>
-                <!-- Hidden IDs -->
+
                 <input type="hidden" asp-for="LotId" />
 
                 <div class="text-center mt-4 d-flex justify-content-center gap-3 flex-wrap">
@@ -157,9 +137,6 @@
                         <i class="fas fa-arrow-left"></i> Back To List
                     </a>
                 </div>
-
-
-
             </div>
         </div>
     </div>
@@ -169,10 +146,9 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         function calculateDuration() {
-            const start = new Date(document.querySelector('[name="startDate"]').value);
-            const end = new Date(document.querySelector('[name="endDate"]').value);
-            const durationInput = document.querySelector('[name="duration"]');
-
+            const start = new Date(document.getElementById("StartDate").value);
+            const end   = new Date(document.getElementById("EndDate").value);
+            const durationInput = document.getElementById("Duration");
             if (!isNaN(start) && !isNaN(end)) {
                 const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
                 durationInput.value = diff > 0 ? diff : 0;
@@ -182,5 +158,3 @@
         }
     </script>
 }
-
-

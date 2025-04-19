@@ -9,16 +9,15 @@
         <div class="card-header bg-white text-center py-4 border-bottom border-2">
             <h2 class="text-custom-blue-header mb-0"><strong>Explore Our RV Campsites</strong></h2>
         </div>
-
         <div class="card-body px-4 pt-4 pb-5">
             <form method="get" class="row g-3 mb-4" id="filterForm">
                 <div class="col-md-3">
-                    <label for="StartDate" class="form-label">Start Date</label>
-                    <input type="date" id="StartDate" name="StartDate" class="form-control" value="@Model.FilterStartDate?.ToString("yyyy-MM-dd")" />
+                    <label for="FilterStartDate" class="form-label">Start Date</label>
+                    <input type="date" id="FilterStartDate" name="FilterStartDate" class="form-control" value="@Model.FilterStartDate?.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-3">
-                    <label for="EndDate" class="form-label">End Date</label>
-                    <input type="date" id="EndDate" name="EndDate" class="form-control" value="@Model.FilterEndDate?.ToString("yyyy-MM-dd")" />
+                    <label for="FilterEndDate" class="form-label">End Date</label>
+                    <input type="date" id="FilterEndDate" name="FilterEndDate" class="form-control" value="@Model.FilterEndDate?.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-3">
                     <label for="LotTypeId" class="form-label">Lot Type</label>
@@ -26,7 +25,7 @@
                         <option value="">All Lot Types</option>
                         @foreach (var lt in Model.AllLotTypes)
                         {
-                            <option value="@lt.Id" selected="@(Model.SelectedLotTypeId == lt.Id)">
+                            <option value="@lt.Id" selected="@(Model.LotTypeId == lt.Id)">
                                 @lt.Name
                             </option>
                         }
@@ -37,16 +36,13 @@
                 </div>
             </form>
 
-            @* Featured Lot *@
             @if (Model.FeaturedLot != null)
             {
-                var featuredImage = Model.FeaturedLot.FeaturedImage ?? Model.FeaturedLot.ImageList?.Split(',').FirstOrDefault();
-                var featuredPath = !string.IsNullOrWhiteSpace(featuredImage) ? featuredImage : "/images/default.jpg";
-
+                var featuredImage = Model.FeaturedLot.FeaturedImage ?? Model.FeaturedLot.Images.FirstOrDefault() ?? "/images/default.jpg";
                 <div class="card mb-5 border-0 shadow-lg p-4 bg-light rounded-4">
                     <div class="row g-4 align-items-center">
                         <div class="col-md-6 text-center">
-                            <img src="@featuredPath" class="img-fluid rounded-4 shadow" style="max-height: 400px;" alt="Featured Lot">
+                            <img src="@featuredImage" class="img-fluid rounded-4 shadow" style="max-height: 400px;" alt="Featured Lot" />
                         </div>
                         <div class="col-md-6">
                             <h3 class="text-custom-blue-header"><strong>@Model.FeaturedLot.LotType?.Name</strong></h3>
@@ -74,7 +70,7 @@
                 @foreach (var lot in Model.AvailableLots)
                 {
                     var lotRate = lot.LotType?.Rate ?? 0;
-                    var img = lot.ImageList?.Split(',').FirstOrDefault()?.Trim() ?? "/images/default.jpg";
+                    var img = lot.Images.FirstOrDefault() ?? "/images/default.jpg";
 
                     <div class="col-lg-4 col-md-6 lot-card" data-name="@lot.Location" data-price="@lotRate">
                         <div class="card h-100 border-0 shadow-sm rounded-3">
@@ -102,13 +98,11 @@
             const sort = this.value;
             const container = document.getElementById("lotContainer");
             const cards = Array.from(container.getElementsByClassName("lot-card"));
-
             cards.sort((a, b) => {
                 const nameA = a.dataset.name.toLowerCase();
                 const nameB = b.dataset.name.toLowerCase();
                 const priceA = parseFloat(a.dataset.price);
                 const priceB = parseFloat(b.dataset.price);
-
                 switch (sort) {
                     case "az": return nameA.localeCompare(nameB);
                     case "za": return nameB.localeCompare(nameA);
@@ -117,7 +111,6 @@
                     default: return 0;
                 }
             });
-
             cards.forEach(card => container.appendChild(card));
         });
     </script>

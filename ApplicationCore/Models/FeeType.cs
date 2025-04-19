@@ -1,28 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Azure.Documents;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ApplicationCore.Models
 {
     public class FeeType
     {
-        [Key]
         public int Id { get; set; }
 
         [Required]
         public string FeeTypeName { get; set; } = string.Empty;
 
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
-        [Required]
-        public TriggerType TriggerType { get; set; } = TriggerType.Manual;
+        public TriggerType TriggerType { get; set; }
 
-        public string TriggerRuleJson { get; set; } = string.Empty;
+        public string? TriggerRuleJson { get; set; } 
+        public bool IsArchived { get; set; }
 
-        public bool IsArchived { get; set; } = false;
-
-        public ICollection<Fee> Fees { get; set; } = new List<Fee>();
+        public ICollection<Fee>? Fees { get; set; }
     }
+
 
     public enum TriggerType
     {
@@ -32,7 +31,7 @@ namespace ApplicationCore.Models
 
     public class CancellationFeeRule
     {
-        public int DaysBefore { get; set; } = 0;
-        public double PenaltyPercent { get; set; } = 0.0;
+        public int DaysBefore { get; set; }
+        public double PenaltyPercent { get; set; }
     }
 }

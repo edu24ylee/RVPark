@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.22.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PdfSharpCore" Version="1.3.65" />
+    <PackageReference Include="Stripe.net" Version="48.0.2" />
   </ItemGroup>
 
 </Project>
