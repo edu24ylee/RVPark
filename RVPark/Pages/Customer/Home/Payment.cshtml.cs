@@ -112,13 +112,14 @@ namespace RVPark.Pages.Customer.Home
             var claims = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier);
             if (claims != null)
             {
-                var userId = claims.Value; 
+                var userId = claims.Value;
+                var user = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == userId);
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.UserID == userId);
 
                 // Retrieve the corresponding User entity from the database
                 var user = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == userId);
-                var guest = new Guest { User = user, DodId = 0 };
-
-                var rv = new RV
+                var rv = 
+                rv = new RV
                 {
                     Guest = guest,
                     LicensePlate = LicensePlate,
