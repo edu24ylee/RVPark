@@ -16,7 +16,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<Reservation> Reservation { get; }
         public IGenericRepository<ReservationUpdateModel> ReservationUpdateModel { get; }
         public IGenericRepository<Guest> Guest { get; }
-        public IGenericRepository<RV> RV { get; }
+        public IGenericRepository<Rv> Rv { get; }
         public IGenericRepository<User> User { get; }
         public IGenericRepository<Employee> Employee { get; }
         public IGenericRepository<ReservationReport> ReservationReport { get; }

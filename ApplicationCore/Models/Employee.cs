@@ -8,15 +8,15 @@ namespace ApplicationCore.Models
     {
 
         [Key]
-        public int EmployeeID { get; set; }
+        public int EmployeeId { get; set; }
 
         [Required]
         public string Role { get; set; }
 
         [Required]
-        public int UserID { get; set; }
+        public int UserId { get; set; }
 
-        [ForeignKey("UserID")]
+        [ForeignKey("UserId")]
         public virtual User User { get; set; }
         public bool IsArchived { get; set; } = false;
     }

@@ -23,7 +23,7 @@ namespace Infrastructure.Data
         private IGenericRepository<Lot> _Lot;
         private IGenericRepository<Reservation> _Reservation;
         private IGenericRepository<ReservationUpdateModel> _ReservationUpdateModel;
-        private IGenericRepository<RV> _RV;
+        private IGenericRepository<Rv> _RV;
         private IGenericRepository<Guest> _Guest;
         private IGenericRepository<User> _User;
         private IGenericRepository<Employee> _Employee;
@@ -81,13 +81,13 @@ namespace Infrastructure.Data
             }
         }
 
-        public IGenericRepository<RV> RV
+        public IGenericRepository<Rv> Rv
         {
             get
             {
                 if (_RV == null)
                 {
-                    _RV = new GenericRepository<RV>(_dbContext);
+                    _RV = new GenericRepository<Rv>(_dbContext);
                 }
                 return _RV;
             }

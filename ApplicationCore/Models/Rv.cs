@@ -4,15 +4,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApplicationCore.Models
 {
-    public class RV
+    public class Rv
     {
         [Key]
-        public int RvID { get; set; }
+        public int RvId { get; set; }
 
         [Required]
-        public int GuestID { get; set; }
+        public int GuestId { get; set; }
 
-        [ForeignKey("GuestID")]
+        [ForeignKey("GuestId")]
         [ValidateNever]
         public Guest Guest { get; set; } = new();
 
@@ -34,9 +34,9 @@ namespace ApplicationCore.Models
         [Range(1, 100, ErrorMessage = "Length must be between 1 and 100.")]
         public int Length { get; set; }
 
-        public static RV GetGuestRV(List<RV> rvList, int guestId)
+        public static Rv GetGuestRV(List<Rv> rvList, int guestId)
         {
-            return rvList.FirstOrDefault(rv => rv.GuestID == guestId);
+            return rvList.FirstOrDefault(rv => rv.GuestId == guestId);
         }
     }
 }

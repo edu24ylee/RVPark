@@ -12,7 +12,7 @@ namespace ApplicationCore.Models
  
         public Reservation Reservation { get; set; }
  
-        public RV Rv { get; set; }
+        public Rv Rv { get; set; }
  
         public string GuestName { get; set; }
  

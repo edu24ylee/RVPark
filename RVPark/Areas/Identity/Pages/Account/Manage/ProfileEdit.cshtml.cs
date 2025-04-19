@@ -59,10 +59,10 @@ public class ProfileEditModel : PageModel
         var appUser = _unitOfWork.User.Get(u => u.Email == identityUser.Email);
         if (appUser != null)
         {
-            var guest = _unitOfWork.Guest.Get(g => g.UserID == appUser.UserID);
+            var guest = _unitOfWork.Guest.Get(g => g.UserId == appUser.UserId);
             if (guest != null)
             {
-                var rv = _unitOfWork.RV.Get(r => r.GuestID == guest.GuestID);
+                var rv = _unitOfWork.Rv.Get(r => r.GuestId == guest.GuestId);
                 if (rv != null)
                 {
                     Input.Make = rv.Make;
@@ -103,16 +103,16 @@ public class ProfileEditModel : PageModel
         }
         else
         {
-            Console.WriteLine($"appUser found: {appUser.UserID}");
-            var guest = _unitOfWork.Guest.Get(g => g.UserID == appUser.UserID);
+            Console.WriteLine($"appUser found: {appUser.UserId}");
+            var guest = _unitOfWork.Guest.Get(g => g.UserId == appUser.UserId);
             if (guest == null)
             {
                 Console.WriteLine("guest not found.");
             }
             else
             {
-                Console.WriteLine($"guest found: {guest.GuestID}");
-                var rv = _unitOfWork.RV.Get(r => r.GuestID == guest.GuestID);
+                Console.WriteLine($"guest found: {guest.GuestId}");
+                var rv = _unitOfWork.Rv.Get(r => r.GuestId == guest.GuestId);
                 Console.WriteLine(rv == null ? "⚠️ RV not found. Will add new." : "✅ RV found. Will update.");
             }
         }

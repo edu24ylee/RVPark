@@ -14,12 +14,12 @@ namespace ApplicationCore.Models
     {
  
         [Key]
-        public int GuestID { get; set; }
+        public int GuestId { get; set; }
 
         [Required]
-        public int UserID { get; set; }
+        public int UserId { get; set; }
  
-        [ForeignKey("UserID")]
+        [ForeignKey("UserId")]
         public User User { get; set; }
  
         [Required]
@@ -27,16 +27,16 @@ namespace ApplicationCore.Models
  
         public ICollection<Reservation> Reservations { get; set; }
  
-        public ICollection<RV> RVs { get; set; }
+        public ICollection<Rv> RVs { get; set; }
         public DodAffiliation DodAffiliation { get; set; }
 
 
-        public Reservation MakeReservation(Lot lot, RV rv, int duration, DateTime startDate)
+        public Reservation MakeReservation(Lot lot, Rv rv, int duration, DateTime startDate)
         {
             return new Reservation
             {
-                GuestId = this.GuestID,
-                RvId = rv.RvID,
+                GuestId = this.GuestId,
+                RvId = rv.RvId,
                 LotId = lot.Id,
                 Duration = duration,
                 StartDate = startDate,

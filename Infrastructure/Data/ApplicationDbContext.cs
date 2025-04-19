@@ -17,7 +17,7 @@ namespace Infrastructure.Data
         public DbSet<Reservation> Reservation { get; set; }
         public DbSet<ReservationUpdateModel> ReservationUpdateModel { get; set; }
         public DbSet<Guest> Guest { get; set; }
-        public DbSet<RV> RV { get; set; }
+        public DbSet<Rv> RV { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Employee> Employee { get; set; }
         public DbSet<ReservationReport> ReservationReport { get; set; }
@@ -50,10 +50,10 @@ namespace Infrastructure.Data
                 .HasForeignKey(r => r.RvId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<RV>()
+            modelBuilder.Entity<Rv>()
                 .HasOne(rv => rv.Guest)
                 .WithMany(g => g.RVs)
-                .HasForeignKey(rv => rv.GuestID)
+                .HasForeignKey(rv => rv.GuestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<FinancialReport>().HasNoKey();

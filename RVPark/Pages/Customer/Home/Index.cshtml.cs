@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -10,13 +14,11 @@ namespace RVPark.Pages.Customer.Home
         private readonly UnitOfWork _unitOfWork;
 
         public IndexModel(UnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+            => _unitOfWork = unitOfWork;
 
-        public List<Lot> AvailableLots { get; set; } = new();
-        public Lot? FeaturedLot { get; set; }
         public List<LotType> AllLotTypes { get; set; } = new();
+        public Lot? FeaturedLot { get; set; }
+        public List<Lot> AvailableLots { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
         public DateTime? FilterStartDate { get; set; }
@@ -27,24 +29,27 @@ namespace RVPark.Pages.Customer.Home
         [BindProperty(SupportsGet = true)]
         public int? LotTypeId { get; set; }
 
-        public int? SelectedLotTypeId => LotTypeId;
-
         public async Task OnGetAsync()
         {
-            AllLotTypes = (await _unitOfWork.LotType.GetAllAsync()).ToList();
+            AllLotTypes = (await _unitOfWork.LotType.GetAllAsync())
+                           .OrderBy(lt => lt.Name)
+                           .ToList();
 
-            var allLots = await _unitOfWork.Lot.GetAllAsync(
-                l => !l.IsArchived && l.IsAvailable,
-                includes: "LotType");
+            var allLots = (await _unitOfWork.Lot.GetAllAsync(
+                             l => !l.IsArchived && l.IsAvailable,
+                             includes: "LotType"))
+                           .ToList();
 
-            if (FilterStartDate.HasValue && FilterEndDate.HasValue)
+            if (FilterStartDate.HasValue && FilterEndDate.HasValue
+                && FilterStartDate <= FilterEndDate)
             {
-                var reservedLotIds = (await _unitOfWork.Reservation.GetAllAsync(
-                    r => !(r.EndDate < FilterStartDate || r.StartDate > FilterEndDate)))
-                    .Select(r => r.LotId)
-                    .ToHashSet();
-
-                allLots = allLots.Where(l => !reservedLotIds.Contains(l.Id)).ToList();
+                var start = FilterStartDate.Value.Date;
+                var end = FilterEndDate.Value.Date;
+                var reservedIds = (await _unitOfWork.Reservation.GetAllAsync(
+                                     r => !(r.EndDate < start || r.StartDate > end)))
+                                  .Select(r => r.LotId)
+                                  .ToHashSet();
+                allLots = allLots.Where(l => !reservedIds.Contains(l.Id)).ToList();
             }
 
             if (LotTypeId.HasValue)
@@ -55,6 +60,7 @@ namespace RVPark.Pages.Customer.Home
 
             AvailableLots = allLots
                 .Where(l => l.Id != FeaturedLot?.Id)
+                .OrderBy(l => l.LotType?.Name)
                 .ToList();
         }
     }

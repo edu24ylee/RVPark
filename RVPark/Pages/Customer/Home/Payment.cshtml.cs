@@ -1,209 +1,141 @@
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using ApplicationCore.Models;
-using ApplicationCore.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Services;
+using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using Stripe;
-using System;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.Azure.Documents;
 
 namespace RVPark.Pages.Customer.Home
 {
     public class PaymentModel : PageModel
     {
         private readonly UnitOfWork _unitOfWork;
+        private readonly StripeSettings _stripeSettings;
 
-        public PaymentModel(UnitOfWork unitOfWork)
+        public PaymentModel(UnitOfWork unitOfWork, IOptions<StripeSettings> stripeOptions)
         {
             _unitOfWork = unitOfWork;
+            _stripeSettings = stripeOptions.Value;
         }
-        [BindProperty]
-        public Reservation Reservation { get; set; }
-        [BindProperty]
-        public Lot SelectedLot { get; set; }
-        [BindProperty]
-        public string GuestFirstName { get; set; }
-        [BindProperty]
-        public string GuestLastName { get; set; }
-        [BindProperty]
-        public string LicensePlate { get; set; }
-        [BindProperty]
-        public string Make { get; set; }
-        [BindProperty]
-        public string Model { get; set; }
-        [BindProperty]
-        public string RvDescription { get; set; } = "";
-        [BindProperty]
+
+        [BindProperty(SupportsGet = true)]
+        public int Id { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public string GuestFirstName { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
+        public string GuestLastName { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
+        public string LicensePlate { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
+        public string Make { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
+        public string Model { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
+        public string RvDescription { get; set; } = string.Empty;
+        [BindProperty(SupportsGet = true)]
         public int Length { get; set; }
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public int NumberOfAdults { get; set; }
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public int NumberOfPets { get; set; }
-        [BindProperty]
-        public string SpecialRequests { get; set; }
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public DateTime StartDate { get; set; }
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public DateTime EndDate { get; set; }
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public int Duration { get; set; }
-        [BindProperty]
+
+        public Lot SelectedLot { get; set; } = default!;
         public decimal TotalAmount { get; set; }
-        [BindProperty]
-        public int GuestId { get; set; }
+        public string StripePublishableKey { get; set; } = string.Empty;
 
-        public async Task<IActionResult> OnGetAsync(
-        string guestFirstName, string guestLastName, string licensePlate, string make,
-        string model, string rvDescription, int length,
-        int numberOfAdults, int numberOfPets, string specialRequests,
-        DateTime startDate, DateTime endDate, int duration, int id)
+        public async Task<IActionResult> OnGetAsync()
         {
-            SelectedLot = await _unitOfWork.Lot.GetAsync(l => l.Id == id, includes: "LotType");
-
+            SelectedLot = await _unitOfWork.Lot.GetAsync(
+                l => l.Id == Id,
+                includes: "LotType");
             if (SelectedLot == null)
-            {
                 return NotFound();
-            }
 
-            GuestFirstName = guestFirstName;
-            GuestLastName = guestLastName;
-            LicensePlate = licensePlate;
-            Make = make;
-            Model = model;
-            RvDescription = rvDescription;
-            Length = length;
-            NumberOfAdults = numberOfAdults;
-            NumberOfPets = numberOfPets;
-            SpecialRequests = specialRequests;
-            StartDate = startDate;
-            EndDate = endDate;
-            Duration = duration;
-
-            decimal lotRate = SelectedLot.LotType?.Rate ?? 0;
-            decimal subtotal = lotRate * Duration;
-            decimal tax = subtotal * 0.08m;
+            var rate = SelectedLot.LotType?.Rate ?? 0m;
+            var subtotal = rate * Duration;
+            var tax = subtotal * 0.08m;
             TotalAmount = subtotal + tax;
 
-
+            StripePublishableKey = _stripeSettings.PublishableKey;
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string stripeToken)
         {
-            //if (string.IsNullOrEmpty(stripeToken))
-            //{
-            //    ModelState.AddModelError("", "Payment could not be processed. No token received.");
-            //    return Page();
-            //}
-            this.Reservation = new Reservation
-            {
-                StartDate = StartDate,
-                EndDate = EndDate,
-                Duration = Duration,
-                Status = "Pending",
-                NumberOfAdults = NumberOfAdults,
-                NumberOfPets = NumberOfPets,
-                SpecialRequests = SpecialRequests,
-                LotId = SelectedLot.Id,
-            };
-            var claimsIdentity = User.Identity as ClaimsIdentity;
-            var claims = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier);
-            if (claims != null)
-            {
-                var userId = claims.Value;
-                var user = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == userId);
-                var guest = await _unitOfWork.Guest.GetAsync(g => g.UserID == userId);
+            if (string.IsNullOrEmpty(stripeToken))
+                return Page();
 
-                // Retrieve the corresponding User entity from the database
-                var user = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == userId);
-                var rv = 
-                rv = new RV
+            var intent = await new PaymentIntentService().CreateAsync(new PaymentIntentCreateOptions
+            {
+                Amount = (long)(TotalAmount * 100),
+                Currency = "usd",
+                PaymentMethod = stripeToken,
+                ConfirmationMethod = "manual",
+                Confirm = true
+            });
+
+            if (intent.Status != "succeeded")
+                return Page();
+
+            var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var appUser = await _unitOfWork.User.GetAsync(u => u.IdentityUserId == identityId);
+            var guest = await _unitOfWork.Guest.GetAsync(g => g.UserId == appUser.UserId);
+            if (guest == null)
+            {
+                guest = new Guest { UserId = appUser.UserId, DodId = 0 };
+                _unitOfWork.Guest.Add(guest);
+                await _unitOfWork.CommitAsync();
+            }
+            var rv = await _unitOfWork.Rv.GetAsync(r => r.LicensePlate == LicensePlate);
+            if (rv == null)
+            {
+                rv = new Rv
                 {
-                    Guest = guest,
+                    GuestId = guest.GuestId,
                     LicensePlate = LicensePlate,
                     Make = Make,
                     Model = Model,
                     Description = RvDescription,
                     Length = Length
                 };
-                _unitOfWork.RV.Add(rv);
-                await _unitOfWork.CommitAsync();
-
-                Reservation.GuestId = guest.GuestID;
-                Reservation.RvId = rv.RvID;
-
-                if (user != null)
-                {
-                    GuestId = user.UserID; // Map the UserID to GuestId for reservation purposes
-                }
             }
+            
+            _unitOfWork.Rv.Add(rv);
+            await _unitOfWork.CommitAsync();
 
-            try
+            var reservation = new Reservation
             {
-                if (Reservation.ReservationId == 0)
-                    _unitOfWork.Reservation.Add(Reservation);
-                else
-                    _unitOfWork.Reservation.Update(Reservation);
-
-                await _unitOfWork.CommitAsync();
-                TempData["Success"] = "Reservation saved successfully!";
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"Error saving reservation: {ex.Message}");
-                return Page();
-            }
-            var paymentIntentService = new PaymentIntentService();
-            var paymentIntentOptions = new PaymentIntentCreateOptions
-            {
-                Amount = Convert.ToInt32(TotalAmount * 100),
-                Currency = "usd",
-                PaymentMethod = stripeToken,
-                ConfirmationMethod = "manual",
-                Confirm = true,
-                ReturnUrl = Url.Page(
-                    pageName: "/Customer/Home/Confirmation",
-                    pageHandler: null,
-                    values: new
-                    {
-                        guestName = $"{GuestFirstName} {GuestLastName}",
-                        checkIn = StartDate.ToString("MM-dd-yyyy"),
-                        checkOut = EndDate.ToString("MM-dd-yyyy"),
-                        duration = Duration,
-                        lotName = SelectedLot.LotType?.Name ?? "Unavailable",
-                        totalPaid = TotalAmount
-                    },
-                    protocol: Request.Scheme)
+                GuestId = guest.GuestId,
+                RvId = rv.RvId,
+                LotId = Id,
+                StartDate = StartDate,
+                EndDate = EndDate,
+                Duration = Duration,
+                NumberOfAdults = NumberOfAdults,
+                NumberOfPets = NumberOfPets,
+                Status = "Pending"
             };
+            _unitOfWork.Reservation.Add(reservation);
+            await _unitOfWork.CommitAsync();
 
-            PaymentIntent intent;
-            try
-            {
-                intent = await paymentIntentService.CreateAsync(paymentIntentOptions);
-            }
-            catch (StripeException ex)
-            {
-                ModelState.AddModelError("", $"Payment error: {ex.Message}");
-                return Page();
-            }
-
-            if (intent.Status != "succeeded")
-            {
-                ModelState.AddModelError("", "Payment not completed.");
-                return Page();
-            }
-
-            _unitOfWork.Commit();
-
-            return RedirectToPage("/Customer/Home/Confirmation", new
+            return RedirectToPage("Confirmation", new
             {
                 guestName = $"{GuestFirstName} {GuestLastName}",
                 checkIn = StartDate.ToString("MM-dd-yyyy"),
                 checkOut = EndDate.ToString("MM-dd-yyyy"),
                 duration = Duration,
-                lotName = SelectedLot.LotType?.Name ?? "Unavailable",
+                lotName = SelectedLot.LotType?.Name,
                 totalPaid = TotalAmount
             });
         }

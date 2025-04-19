@@ -31,14 +31,14 @@ namespace RVPark.Pages.Admin.Employees
                 return Page();
             }
 
-            var employee = _unitOfWork.Employee.Get(e => e.EmployeeID == id, includes: "User");
+            var employee = _unitOfWork.Employee.Get(e => e.EmployeeId == id, includes: "User");
             if (employee == null || employee.User == null)
                 return NotFound();
 
             EmployeeVM = new EmployeeViewModel
             {
-                EmployeeID = employee.EmployeeID,
-                UserID = employee.User.UserID,
+                EmployeeID = employee.EmployeeId,
+                UserID = employee.User.UserId,
                 FirstName = employee.User.FirstName,
                 LastName = employee.User.LastName,
                 Email = employee.User.Email,
@@ -69,7 +69,7 @@ namespace RVPark.Pages.Admin.Employees
 
                 var employee = new Employee
                 {
-                    UserID = user.UserID,
+                    UserId = user.UserId,
                     Role = EmployeeVM.Role
                 };
 
@@ -77,7 +77,7 @@ namespace RVPark.Pages.Admin.Employees
             }
             else
             {
-                var existingEmployee = _unitOfWork.Employee.Get(e => e.EmployeeID == EmployeeVM.EmployeeID, includes: "User");
+                var existingEmployee = _unitOfWork.Employee.Get(e => e.EmployeeId == EmployeeVM.EmployeeID, includes: "User");
                 if (existingEmployee == null || existingEmployee.User == null)
                     return NotFound();
 

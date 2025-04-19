@@ -15,7 +15,7 @@ namespace RVPark.Pages.Admin.RVs
         }
 
         [BindProperty]
-        public RV Rv { get; set; } = null!;
+        public Rv Rv { get; set; } = null!;
 
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
@@ -25,7 +25,7 @@ namespace RVPark.Pages.Admin.RVs
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            Rv = await _unitOfWork.RV.GetAsync(r => r.RvID == id, includes: "Guest");
+            Rv = await _unitOfWork.Rv.GetAsync(r => r.RvId == id, includes: "Guest");
 
             if (Rv == null)
                 return NotFound();
@@ -38,7 +38,7 @@ namespace RVPark.Pages.Admin.RVs
             if (!ModelState.IsValid)
                 return Page();
 
-            var existingRv = await _unitOfWork.RV.GetAsync(r => r.RvID == Rv.RvID);
+            var existingRv = await _unitOfWork.Rv.GetAsync(r => r.RvId == Rv.RvId);
             if (existingRv == null)
                 return NotFound();
 
@@ -48,7 +48,7 @@ namespace RVPark.Pages.Admin.RVs
             existingRv.Length = Rv.Length;
             existingRv.Description = Rv.Description;
 
-            _unitOfWork.RV.Update(existingRv);
+            _unitOfWork.Rv.Update(existingRv);
             await _unitOfWork.CommitAsync();
 
             StatusMessage = "RV updated successfully.";

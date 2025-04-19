@@ -82,9 +82,9 @@ namespace Infrastructure
                 _db.SaveChanges();
             }
 
-            if (!_db.Employee.Any(e => e.UserID == customUser.UserID))
+            if (!_db.Employee.Any(e => e.UserId == customUser.UserId))
             {
-                var emp = new Employee { UserID = customUser.UserID, Role = SD.SuperAdminRole };
+                var emp = new Employee { UserId = customUser.UserId, Role = SD.SuperAdminRole };
                 _db.Employee.Add(emp);
                 _db.SaveChanges();
             }
@@ -115,9 +115,9 @@ namespace Infrastructure
             var today = DateTime.Today;
             var lotTypes = new List<LotType>
             {
-                new LotType { Name = "Standard", Rate = 40.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
-                new LotType { Name = "Premium", Rate = 55.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false },
-                new LotType { Name = "Deluxe", Rate = 70.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1), IsArchived = false }
+                new LotType { Name = "Standard", Rate = 40.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
+                new LotType { Name = "Premium",  Rate = 55.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
+                new LotType { Name = "Deluxe",   Rate = 70.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
@@ -160,7 +160,7 @@ namespace Infrastructure
             };
 
             var guestList = new List<Guest>();
-            var rvList = new List<RV>();
+            var rvList = new List<Rv>();
 
             for (int i = 0; i < guestInfos.Count; i++)
             {
@@ -188,16 +188,16 @@ namespace Infrastructure
 
                 var guest = new Guest
                 {
-                    UserID = user.UserID,
+                    UserId = user.UserId,
                     DodId = 3000 + i
                 };
                 _db.Guest.Add(guest);
                 _db.SaveChanges();
                 guestList.Add(guest);
 
-                var rv = new RV
+                var rv = new Rv
                 {
-                    GuestID = guest.GuestID,
+                    GuestId = guest.GuestId,
                     LicensePlate = $"RV-{i + 1:000}",
                     Make = "Winnebago",
                     Model = $"Model-{i + 1}",
@@ -213,8 +213,8 @@ namespace Infrastructure
             {
                 new Reservation
                 {
-                    GuestId = guestList[0].GuestID,
-                    RvId = rvList[0].RvID,
+                    GuestId = guestList[0].GuestId,
+                    RvId = rvList[0].RvId,
                     LotId = lots[0].Id,
                     StartDate = today.AddDays(2),
                     EndDate = today.AddDays(6),
@@ -225,8 +225,8 @@ namespace Infrastructure
                 },
                 new Reservation
                 {
-                    GuestId = guestList[1].GuestID,
-                    RvId = rvList[1].RvID,
+                    GuestId = guestList[1].GuestId,
+                    RvId = rvList[1].RvId,
                     LotId = lots[1].Id,
                     StartDate = today.AddDays(3),
                     EndDate = today.AddDays(6),
@@ -238,8 +238,8 @@ namespace Infrastructure
                 },
                 new Reservation
                 {
-                    GuestId = guestList[2].GuestID,
-                    RvId = rvList[2].RvID,
+                    GuestId = guestList[2].GuestId,
+                    RvId = rvList[2].RvId,
                     LotId = lots[2].Id,
                     StartDate = today.AddDays(7),
                     EndDate = today.AddDays(12),
@@ -250,8 +250,8 @@ namespace Infrastructure
                 },
                 new Reservation
                 {
-                    GuestId = guestList[3].GuestID,
-                    RvId = rvList[3].RvID,
+                    GuestId = guestList[3].GuestId,
+                    RvId = rvList[3].RvId,
                     LotId = lots[3].Id,
                     StartDate = today.AddDays(-5),
                     EndDate = today.AddDays(-1),
@@ -262,8 +262,8 @@ namespace Infrastructure
                 },
                 new Reservation
                 {
-                    GuestId = guestList[4].GuestID,
-                    RvId = rvList[4].RvID,
+                    GuestId = guestList[4].GuestId,
+                    RvId = rvList[4].RvId,
                     LotId = lots[4].Id,
                     StartDate = today.AddDays(1),
                     EndDate = today.AddDays(4),

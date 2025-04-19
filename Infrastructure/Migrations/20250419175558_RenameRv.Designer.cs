@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250418174821_Initial")]
-    partial class Initial
+    [Migration("20250419175558_RenameRv")]
+    partial class RenameRv
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,11 +58,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Employee", b =>
                 {
-                    b.Property<int>("EmployeeID")
+                    b.Property<int>("EmployeeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"));
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -71,12 +71,12 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("EmployeeID");
+                    b.HasKey("EmployeeId");
 
-                    b.HasIndex("UserID")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Employee");
@@ -173,21 +173,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
-                    b.Property<int>("GuestID")
+                    b.Property<int>("GuestId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GuestID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GuestId"));
 
                     b.Property<int>("DodId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("GuestID");
+                    b.HasKey("GuestId");
 
-                    b.HasIndex("UserID")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Guest");
@@ -332,47 +332,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Policy");
                 });
 
-            modelBuilder.Entity("ApplicationCore.Models.RV", b =>
-                {
-                    b.Property<int>("RvID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RvID"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("GuestID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Length")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LicensePlate")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Make")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Model")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("RvID");
-
-                    b.HasIndex("GuestID");
-
-                    b.ToTable("RV");
-                });
-
             modelBuilder.Entity("ApplicationCore.Models.Reservation", b =>
                 {
                     b.Property<int>("ReservationId")
@@ -508,14 +467,55 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ReservationId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RvID")
+                    b.Property<int>("RvId")
                         .HasColumnType("int");
 
                     b.HasIndex("ReservationId");
 
-                    b.HasIndex("RvID");
+                    b.HasIndex("RvId");
 
                     b.ToTable("ReservationUpdateModel");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Rv", b =>
+                {
+                    b.Property<int>("RvId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RvId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("GuestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Length")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Make")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("RvId");
+
+                    b.HasIndex("GuestId");
+
+                    b.ToTable("RV");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -718,11 +718,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("User", b =>
                 {
-                    b.Property<int>("UserID")
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -753,7 +753,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserID");
+                    b.HasKey("UserId");
 
                     b.ToTable("User");
                 });
@@ -773,7 +773,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("User", "User")
                         .WithOne("Employee")
-                        .HasForeignKey("ApplicationCore.Models.Employee", "UserID")
+                        .HasForeignKey("ApplicationCore.Models.Employee", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -807,7 +807,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("User", "User")
                         .WithOne("Guest")
-                        .HasForeignKey("ApplicationCore.Models.Guest", "UserID")
+                        .HasForeignKey("ApplicationCore.Models.Guest", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -836,17 +836,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Park");
                 });
 
-            modelBuilder.Entity("ApplicationCore.Models.RV", b =>
-                {
-                    b.HasOne("ApplicationCore.Models.Guest", "Guest")
-                        .WithMany("RVs")
-                        .HasForeignKey("GuestID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Guest");
-                });
-
             modelBuilder.Entity("ApplicationCore.Models.Reservation", b =>
                 {
                     b.HasOne("ApplicationCore.Models.Guest", "Guest")
@@ -865,7 +854,7 @@ namespace Infrastructure.Migrations
                         .WithMany("Reservations")
                         .HasForeignKey("LotId1");
 
-                    b.HasOne("ApplicationCore.Models.RV", "Rv")
+                    b.HasOne("ApplicationCore.Models.Rv", "Rv")
                         .WithMany()
                         .HasForeignKey("RvId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -886,15 +875,26 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApplicationCore.Models.RV", "Rv")
+                    b.HasOne("ApplicationCore.Models.Rv", "Rv")
                         .WithMany()
-                        .HasForeignKey("RvID")
+                        .HasForeignKey("RvId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Reservation");
 
                     b.Navigation("Rv");
+                });
+
+            modelBuilder.Entity("ApplicationCore.Models.Rv", b =>
+                {
+                    b.HasOne("ApplicationCore.Models.Guest", "Guest")
+                        .WithMany("RVs")
+                        .HasForeignKey("GuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guest");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

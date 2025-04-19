@@ -17,7 +17,7 @@ namespace ApplicationCore.Models
         public int RvId { get; set; }
 
         [ForeignKey("RvId")]
-        public RV Rv { get; set; }
+        public Rv Rv { get; set; }
 
         public int LotId { get; set; }
 
