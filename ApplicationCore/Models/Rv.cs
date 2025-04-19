@@ -14,7 +14,7 @@ namespace ApplicationCore.Models
 
         [ForeignKey("GuestId")]
         [ValidateNever]
-        public Guest Guest { get; set; } = new();
+        public Guest Guest { get; set; }
 
         [Required(ErrorMessage = "License Plate is required.")]
         [StringLength(100)]

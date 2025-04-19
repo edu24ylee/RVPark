@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250419175558_RenameRv")]
-    partial class RenameRv
+    [Migration("20250419201054_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,8 +76,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("EmployeeId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Employee");
                 });
@@ -187,8 +186,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("GuestId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Guest");
                 });
@@ -772,9 +770,9 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Employee", b =>
                 {
                     b.HasOne("User", "User")
-                        .WithOne("Employee")
-                        .HasForeignKey("ApplicationCore.Models.Employee", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -806,9 +804,9 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>
                 {
                     b.HasOne("User", "User")
-                        .WithOne("Guest")
-                        .HasForeignKey("ApplicationCore.Models.Guest", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -976,15 +974,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("ApplicationCore.Models.Policy", b =>
                 {
                     b.Navigation("Fees");
-                });
-
-            modelBuilder.Entity("User", b =>
-                {
-                    b.Navigation("Employee")
-                        .IsRequired();
-
-                    b.Navigation("Guest")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

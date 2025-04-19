@@ -25,10 +25,6 @@ public class User
     public string IdentityUserId { get; set; }
     public bool IsArchived { get; set; } = false;
 
-    public virtual Guest Guest { get; set; }
-
-    public virtual Employee Employee { get; set; }
-
     [NotMapped]
     public string FullName => $"{FirstName} {LastName}";
 }

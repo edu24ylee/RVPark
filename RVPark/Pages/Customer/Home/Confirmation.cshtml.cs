@@ -6,7 +6,6 @@ namespace RVPark.Pages.Customer.Home
 {
     public class ConfirmationModel : PageModel
     {
-        // Properties to hold the confirmation details.
         public string GuestName { get; set; } = "Guest";
         public DateTime ReservationDate { get; set; } = DateTime.Now;
         public DateTime CheckInDate { get; set; } = DateTime.Now;
@@ -15,11 +14,8 @@ namespace RVPark.Pages.Customer.Home
         public string LotName { get; set; } = "Standard Lot";
         public decimal TotalPaid { get; set; } = 0;
 
-        // Optionally, you can accept query parameters to populate the model.
         public void OnGet()
         {
-            // If you pass confirmation details via query string, you can parse them here.
-            // Example:
             if (Request.Query.ContainsKey("GuestName"))
             {
                 GuestName = Request.Query["GuestName"];
@@ -49,7 +45,6 @@ namespace RVPark.Pages.Customer.Home
                 TotalPaid = totalPaid;
             }
 
-            // You can also set the ReservationDate to today or obtain it from your business logic.
             ReservationDate = DateTime.Now;
         }
     }

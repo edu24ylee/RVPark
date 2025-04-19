@@ -21,28 +21,17 @@ namespace Infrastructure
             _roleManager = roleManager;
         }
 
-        /*  public void Initialize()
-          {
-              _db.Database.Migrate();
-
-              if (!_db.Park.Any())
-              {
-                  SeedData();
-              }
-          }*/
         public void Initialize()
         {
             _db.Database.Migrate();
             SeedData();
         }
 
-
         private void SeedData()
         {
             if (_db.Park.Any()) return;
 
             var roles = new[] { SD.AdminRole, SD.ManagerRole, SD.SuperAdminRole, SD.GuestRole, SD.MaintenanceRole, SD.CampHostRole };
-
             foreach (var role in roles)
             {
                 if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
@@ -89,18 +78,6 @@ namespace Infrastructure
                 _db.SaveChanges();
             }
 
-            var adminEmail = SD.DefaultAdminEmail;
-            var adminUser = _userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
-            if (adminUser == null)
-            {
-                adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
-                var result = _userManager.CreateAsync(adminUser, SD.DefaultPassword).GetAwaiter().GetResult();
-                if (result.Succeeded)
-                {
-                    _userManager.AddToRoleAsync(adminUser, SD.AdminRole).GetAwaiter().GetResult();
-                }
-            }
-
             var park = new Park
             {
                 Name = "Desert Eagle Nellis AFB",
@@ -130,6 +107,7 @@ namespace Infrastructure
             };
             _db.Policy.AddRange(policies);
             _db.SaveChanges();
+
             var feeTypes = new List<FeeType>
             {
                 new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
@@ -186,18 +164,25 @@ namespace Infrastructure
                 _db.User.Add(user);
                 _db.SaveChanges();
 
+                var userFromDb = _db.User.FirstOrDefault(u => u.Email.ToLower() == email.ToLower() && u.IdentityUserId == identityUser.Id);
+                if (userFromDb == null || userFromDb.UserId == 0)
+                    throw new Exception($"User not properly inserted for email: {email}");
+
                 var guest = new Guest
                 {
-                    UserId = user.UserId,
+                    UserId = userFromDb.UserId,
                     DodId = 3000 + i
                 };
                 _db.Guest.Add(guest);
                 _db.SaveChanges();
-                guestList.Add(guest);
+
+                var guestFromDb = _db.Guest.FirstOrDefault(g => g.UserId == userFromDb.UserId);
+                if (guestFromDb == null || guestFromDb.GuestId == 0)
+                    throw new Exception($"Guest insert failed for UserId: {userFromDb.UserId}");
 
                 var rv = new Rv
                 {
-                    GuestId = guest.GuestId,
+                    GuestId = guestFromDb.GuestId,
                     LicensePlate = $"RV-{i + 1:000}",
                     Make = "Winnebago",
                     Model = $"Model-{i + 1}",
@@ -206,79 +191,21 @@ namespace Infrastructure
                 };
                 _db.RV.Add(rv);
                 _db.SaveChanges();
+
+                guestList.Add(guestFromDb);
                 rvList.Add(rv);
             }
 
             var reservations = new List<Reservation>
             {
-                new Reservation
-                {
-                    GuestId = guestList[0].GuestId,
-                    RvId = rvList[0].RvId,
-                    LotId = lots[0].Id,
-                    StartDate = today.AddDays(2),
-                    EndDate = today.AddDays(6),
-                    Duration = 4,
-                    Status = SD.StatusPending,
-                    NumberOfAdults = 2,
-                    NumberOfPets = 1
-                },
-                new Reservation
-                {
-                    GuestId = guestList[1].GuestId,
-                    RvId = rvList[1].RvId,
-                    LotId = lots[1].Id,
-                    StartDate = today.AddDays(3),
-                    EndDate = today.AddDays(6),
-                    Duration = 3,
-                    Status = SD.StatusActive,
-                    NumberOfAdults = 4,
-                    NumberOfPets = 0,
-                    OverrideReason = "Admin-approved exception: elderly family"
-                },
-                new Reservation
-                {
-                    GuestId = guestList[2].GuestId,
-                    RvId = rvList[2].RvId,
-                    LotId = lots[2].Id,
-                    StartDate = today.AddDays(7),
-                    EndDate = today.AddDays(12),
-                    Duration = 5,
-                    Status = SD.StatusConfirmed,
-                    NumberOfAdults = 3,
-                    NumberOfPets = 2
-                },
-                new Reservation
-                {
-                    GuestId = guestList[3].GuestId,
-                    RvId = rvList[3].RvId,
-                    LotId = lots[3].Id,
-                    StartDate = today.AddDays(-5),
-                    EndDate = today.AddDays(-1),
-                    Duration = 4,
-                    Status = SD.StatusCompleted,
-                    NumberOfAdults = 3,
-                    NumberOfPets = 0
-                },
-                new Reservation
-                {
-                    GuestId = guestList[4].GuestId,
-                    RvId = rvList[4].RvId,
-                    LotId = lots[4].Id,
-                    StartDate = today.AddDays(1),
-                    EndDate = today.AddDays(4),
-                    Duration = 3,
-                    Status = SD.StatusCancelled,
-                    NumberOfAdults = 5,
-                    NumberOfPets = 1,
-                    CancellationReason = "Medical emergency",
-                    OverrideReason = "Fee waived by admin due to proof provided"
-                }
+                new Reservation { GuestId = guestList[0].GuestId, RvId = rvList[0].RvId, LotId = lots[0].Id, StartDate = today.AddDays(2), EndDate = today.AddDays(6), Duration = 4, Status = SD.StatusPending, NumberOfAdults = 2, NumberOfPets = 1 },
+                new Reservation { GuestId = guestList[1].GuestId, RvId = rvList[1].RvId, LotId = lots[1].Id, StartDate = today.AddDays(3), EndDate = today.AddDays(6), Duration = 3, Status = SD.StatusActive, NumberOfAdults = 4, NumberOfPets = 0, OverrideReason = "Admin-approved exception: elderly family" },
+                new Reservation { GuestId = guestList[2].GuestId, RvId = rvList[2].RvId, LotId = lots[2].Id, StartDate = today.AddDays(7), EndDate = today.AddDays(12), Duration = 5, Status = SD.StatusConfirmed, NumberOfAdults = 3, NumberOfPets = 2 },
+                new Reservation { GuestId = guestList[3].GuestId, RvId = rvList[3].RvId, LotId = lots[3].Id, StartDate = today.AddDays(-5), EndDate = today.AddDays(-1), Duration = 4, Status = SD.StatusCompleted, NumberOfAdults = 3, NumberOfPets = 0 },
+                new Reservation { GuestId = guestList[4].GuestId, RvId = rvList[4].RvId, LotId = lots[4].Id, StartDate = today.AddDays(1), EndDate = today.AddDays(4), Duration = 3, Status = SD.StatusCancelled, NumberOfAdults = 5, NumberOfPets = 1, CancellationReason = "Medical emergency", OverrideReason = "Fee waived by admin due to proof provided" }
             };
-
             _db.Reservation.AddRange(reservations);
             _db.SaveChanges();
-
 
             var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
             if (cleanupPolicy != null)
@@ -296,9 +223,9 @@ namespace Infrastructure
                 _db.Fee.Add(fee);
                 _db.SaveChanges();
             }
+
             var triggeredPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Pet Cleanup"));
             var feeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
-
             if (triggeredPolicy != null && feeType != null)
             {
                 var cleanupFee = new Fee
@@ -311,12 +238,9 @@ namespace Infrastructure
                     ReservationId = reservations[0].ReservationId,
                     TriggerType = TriggerType.Triggered
                 };
-
                 _db.Fee.Add(cleanupFee);
                 _db.SaveChanges();
             }
-
-
         }
     }
 }
