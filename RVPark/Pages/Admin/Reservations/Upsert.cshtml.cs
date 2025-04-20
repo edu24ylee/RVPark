@@ -28,8 +28,9 @@ namespace RVPark.Pages.Admin.Reservations
         public List<SelectListItem> GuestOptions { get; set; }
         public List<LotType> LotTypeOptions { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id, string? returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(int? id, string? returnUrl = null, int? guestId = null, int? rvId = null)
         {
+            ReturnUrl = returnUrl;
 
             var guests = await _unitOfWork.Guest.GetAllAsync(includes: "User");
             GuestOptions = guests.Select(g => new SelectListItem
@@ -48,10 +49,34 @@ namespace RVPark.Pages.Admin.Reservations
 
                 if (Reservation == null)
                     return NotFound();
+
                 SelectedGuestId = Reservation.GuestId;
                 GuestFirstName = Reservation.Guest?.User.FirstName ?? string.Empty;
                 GuestLastName = Reservation.Guest?.User.LastName ?? string.Empty;
                 Length = Reservation.Rv?.Length ?? 0;
+            }
+            else if (guestId.HasValue && rvId.HasValue)
+            {
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == guestId.Value, includes: "User");
+                var rv = await _unitOfWork.Rv.GetAsync(r => r.RvId == rvId.Value);
+
+                if (guest != null && guest.User != null)
+                {
+                    Reservation.GuestId = guest.GuestId;
+                    Reservation.RvId = rvId.Value;
+                    SelectedGuestId = guest.GuestId;
+                    GuestFirstName = guest.User.FirstName;
+                    GuestLastName = guest.User.LastName;
+                    Length = rv?.Length ?? 0;
+                }
+
+                var today = DateTime.UtcNow.Date;
+                Reservation.StartDate = today;
+                Reservation.EndDate = today.AddDays(1);
+                Reservation.Duration = 1;
+                Reservation.Status = "Pending";
+                Reservation.NumberOfAdults = 1;
+                Reservation.NumberOfPets = 0;
             }
             else
             {
@@ -74,7 +99,6 @@ namespace RVPark.Pages.Admin.Reservations
             return Page();
         }
 
-
         public async Task<IActionResult> OnPostAsync()
         {
             Reservation.Duration = (Reservation.EndDate - Reservation.StartDate).Days;
@@ -90,9 +114,7 @@ namespace RVPark.Pages.Admin.Reservations
 
             if (SelectedGuestId.HasValue)
             {
-                guest = await _unitOfWork.Guest.GetAsync(
-                    g => g.GuestId == SelectedGuestId.Value,
-                    includes: "User,RVs");
+                guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == SelectedGuestId.Value, includes: "User,RVs");
 
                 if (guest == null)
                 {
@@ -200,6 +222,7 @@ namespace RVPark.Pages.Admin.Reservations
             TempData["Success"] = "Reservation saved successfully.";
             return RedirectToPage("./Index");
         }
+
         public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
         {
             var overlappingReservations = await _unitOfWork.Reservation.GetAllAsync(

@@ -22,8 +22,13 @@ namespace RVPark.Pages.Admin.Guests
         [BindProperty]
         public GuestViewModel GuestVM { get; set; } = new();
 
-        public IActionResult OnGet(int? id)
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
+
+        public IActionResult OnGet(int? id, string? returnUrl = null)
         {
+            ReturnUrl = returnUrl;
+
             if (id == null || id == 0)
             {
                 GuestVM = new GuestViewModel();
@@ -105,15 +110,31 @@ namespace RVPark.Pages.Admin.Guests
 
                 if (hasAllDodInfo)
                 {
-                    var affiliation = new DodAffiliation
+                    _unitOfWork.DodAffiliation.Add(new DodAffiliation
                     {
                         GuestId = guest.GuestId,
                         Branch = GuestVM.DodBranch,
                         Status = GuestVM.DodStatus,
                         Rank = GuestVM.DodRank
-                    };
+                    });
+                }
 
-                    _unitOfWork.DodAffiliation.Add(affiliation);
+                var rv = new Rv
+                {
+                    GuestId = guest.GuestId,
+                    Length = 0,
+                    Make = "Unknown",
+                    Model = "Unknown",
+                    LicensePlate = "TEMP",
+                    Description = "Auto-created"
+                };
+                _unitOfWork.Rv.Add(rv);
+
+                await _unitOfWork.CommitAsync();
+
+                if (!string.IsNullOrEmpty(ReturnUrl))
+                {
+                    return Redirect($"{ReturnUrl}?GuestId={guest.GuestId}&RvId={rv.RvId}");
                 }
             }
             else
@@ -157,9 +178,9 @@ namespace RVPark.Pages.Admin.Guests
 
                 _unitOfWork.User.Update(existingGuest.User);
                 _unitOfWork.Guest.Update(existingGuest);
+                await _unitOfWork.CommitAsync();
             }
 
-            await _unitOfWork.CommitAsync();
             return RedirectToPage("Index");
         }
     }
