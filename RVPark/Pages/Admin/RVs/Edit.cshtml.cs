@@ -26,7 +26,6 @@ namespace RVPark.Pages.Admin.RVs
         public async Task<IActionResult> OnGetAsync(int id)
         {
             Rv = await _unitOfWork.Rv.GetAsync(r => r.RvId == id, includes: "Guest");
-
             if (Rv == null)
                 return NotFound();
 
@@ -38,17 +37,17 @@ namespace RVPark.Pages.Admin.RVs
             if (!ModelState.IsValid)
                 return Page();
 
-            var existingRv = await _unitOfWork.Rv.GetAsync(r => r.RvId == Rv.RvId);
-            if (existingRv == null)
+            var existing = await _unitOfWork.Rv.GetAsync(r => r.RvId == Rv.RvId);
+            if (existing == null)
                 return NotFound();
 
-            existingRv.Make = Rv.Make;
-            existingRv.Model = Rv.Model;
-            existingRv.LicensePlate = Rv.LicensePlate;
-            existingRv.Length = Rv.Length;
-            existingRv.Description = Rv.Description;
+            existing.Make = Rv.Make;
+            existing.Model = Rv.Model;
+            existing.LicensePlate = Rv.LicensePlate;
+            existing.Length = Rv.Length;
+            existing.Description = Rv.Description;
 
-            _unitOfWork.Rv.Update(existingRv);
+            _unitOfWork.Rv.Update(existing);
             await _unitOfWork.CommitAsync();
 
             StatusMessage = "RV updated successfully.";

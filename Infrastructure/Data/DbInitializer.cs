@@ -207,40 +207,48 @@ namespace Infrastructure
             _db.Reservation.AddRange(reservations);
             _db.SaveChanges();
 
-            var cleanupFeeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Cleanup") && f.TriggerType == TriggerType.Triggered);
+            // Trigger a general cleanup fee (e.g. for site condition)
+            var cleanupFeeType = _db.FeeType.FirstOrDefault(f =>
+                f.FeeTypeName.Contains("Cleanup") &&
+                f.FeeTypeName != "Pet Cleanup" &&
+                f.TriggerType == TriggerType.Triggered &&
+                !f.IsArchived);
 
-            if (cleanupFeeType != null)
-            {
-                var fee = new Fee
-                {
-                    FeeTypeId = cleanupFeeType.Id,
-                    FeeTotal = cleanupFeeType.DefaultFeeTotal ?? 25.0M, 
-                    AppliedDate = DateTime.UtcNow,
-                    Notes = "Auto-triggered on creation",
-                    ReservationId = reservations[0].ReservationId,
-                    TriggerType = TriggerType.Triggered
-                };
-
-                _db.Fee.Add(fee);
-                _db.SaveChanges();
-            }
-
-
-            var feeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
-
-            if (feeType != null)
+            if (cleanupFeeType != null && reservations.Any())
             {
                 var cleanupFee = new Fee
                 {
-                    FeeTypeId = feeType.Id,
-                    FeeTotal = feeType.DefaultFeeTotal ?? 25.00M, // fallback if not set
+                    FeeTypeId = cleanupFeeType.Id,
+                    FeeTotal = 25.00M, // <-- replace with actual logic or policy if needed
                     AppliedDate = DateTime.UtcNow,
-                    Notes = "Pet cleanup violation",
+                    Notes = "Auto-triggered cleanup fee on reservation creation.",
                     ReservationId = reservations[0].ReservationId,
                     TriggerType = TriggerType.Triggered
                 };
 
                 _db.Fee.Add(cleanupFee);
+                _db.SaveChanges();
+            }
+
+            // Trigger a specific Pet Cleanup fee
+            var petCleanupFeeType = _db.FeeType.FirstOrDefault(f =>
+                f.FeeTypeName.Contains("Pet Cleanup") &&
+                f.TriggerType == TriggerType.Triggered &&
+                !f.IsArchived);
+
+            if (petCleanupFeeType != null && reservations.Any())
+            {
+                var petFee = new Fee
+                {
+                    FeeTypeId = petCleanupFeeType.Id,
+                    FeeTotal = 40.00M, // <-- hardcoded or defined per policy
+                    AppliedDate = DateTime.UtcNow,
+                    Notes = "Triggered pet cleanup violation.",
+                    ReservationId = reservations[0].ReservationId,
+                    TriggerType = TriggerType.Triggered
+                };
+
+                _db.Fee.Add(petFee);
                 _db.SaveChanges();
             }
 

@@ -1,4 +1,5 @@
 ﻿using ApplicationCore.Models;
+using ApplicationCore.ViewModels;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,7 @@ namespace Infrastructure.Data
         public DbSet<Policy> Policy { get; set; }
         public DbSet<DodAffiliation> DodAffiliation { get; set; }
         public DbSet<Payment> Payment { get; set; }
+        public DbSet<GuestViewModel> GuestViewModel { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,7 +86,9 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<ReservationUpdateModel>().HasNoKey();
             modelBuilder.Entity<CancellationRequest>().HasNoKey();
-       
+            modelBuilder.Entity<GuestViewModel>().HasNoKey();
+
+
         }
     }
 }

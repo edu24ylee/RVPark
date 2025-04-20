@@ -39,13 +39,9 @@ namespace RVPark.Pages.Admin.FeeTypes
                 return Page();
 
             if (FeeTypeObject.Id == 0)
-            {
                 _unitOfWork.FeeType.Add(FeeTypeObject);
-            }
             else
-            {
                 _unitOfWork.FeeType.Update(FeeTypeObject);
-            }
 
             await _unitOfWork.CommitAsync();
             return RedirectToPage("Index");

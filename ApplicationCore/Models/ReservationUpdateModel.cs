@@ -22,6 +22,7 @@ namespace ApplicationCore.Models
 
         public decimal OriginalTotal { get; set; }
         public List<ManualFeeOptionViewModel>? ManualFeeOptions { get; set; }
+        public List<Fee> ExistingFees { get; set; } = new();
         public int? ManualFeeTypeId { get; set; }
 
         public int Duration

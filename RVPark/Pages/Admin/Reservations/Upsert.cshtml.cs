@@ -19,18 +19,18 @@ namespace RVPark.Pages.Admin.Reservations
         }
 
         [BindProperty] public Reservation Reservation { get; set; } = new();
-
         [BindProperty] public int? SelectedGuestId { get; set; }
-
-        [BindProperty, Required(ErrorMessage = "First name is required.")] public string GuestFirstName { get; set; } = string.Empty;
-        [BindProperty, Required(ErrorMessage = "Last name is required.")] public string GuestLastName { get; set; } = string.Empty;
-        [BindProperty, Required(ErrorMessage = "Trailer length is required.")] public decimal Length { get; set; }
+        [BindProperty, Required] public string GuestFirstName { get; set; } = string.Empty;
+        [BindProperty, Required] public string GuestLastName { get; set; } = string.Empty;
+        [BindProperty, Required] public decimal Length { get; set; }
+        [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
         public List<SelectListItem> GuestOptions { get; set; }
         public List<LotType> LotTypeOptions { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, string? returnUrl = null)
         {
+
             var guests = await _unitOfWork.Guest.GetAllAsync(includes: "User");
             GuestOptions = guests.Select(g => new SelectListItem
             {
@@ -44,11 +44,13 @@ namespace RVPark.Pages.Admin.Reservations
             {
                 Reservation = await _unitOfWork.Reservation.GetAsync(
                     r => r.ReservationId == id.Value,
-                    includes: "Guest.User,Rv,Lot") ?? new Reservation();
+                    includes: "Guest.User,Rv,Lot.LotType");
 
+                if (Reservation == null)
+                    return NotFound();
                 SelectedGuestId = Reservation.GuestId;
-                GuestFirstName = Reservation.Guest?.User.FirstName ?? "";
-                GuestLastName = Reservation.Guest?.User.LastName ?? "";
+                GuestFirstName = Reservation.Guest?.User.FirstName ?? string.Empty;
+                GuestLastName = Reservation.Guest?.User.LastName ?? string.Empty;
                 Length = Reservation.Rv?.Length ?? 0;
             }
             else
@@ -59,14 +61,19 @@ namespace RVPark.Pages.Admin.Reservations
                     StartDate = today,
                     EndDate = today.AddDays(1),
                     Duration = 1,
-                    Status = "Active",
+                    Status = "Pending",
                     NumberOfAdults = 1,
                     NumberOfPets = 0
                 };
+
+                GuestFirstName = string.Empty;
+                GuestLastName = string.Empty;
+                Length = 0;
             }
 
             return Page();
         }
+
 
         public async Task<IActionResult> OnPostAsync()
         {
@@ -78,7 +85,6 @@ namespace RVPark.Pages.Admin.Reservations
                 return await OnGetAsync(Reservation.ReservationId == 0 ? null : Reservation.ReservationId);
             }
 
-            // === Guest/RV handling ===
             Guest? guest;
             Rv? rv;
 
@@ -144,7 +150,6 @@ namespace RVPark.Pages.Admin.Reservations
                 Reservation.RvId = rv.RvId;
             }
 
-            // === Assign Lot ===
             var allLots = await _unitOfWork.Lot.GetAllAsync(l => l.IsAvailable && !l.IsArchived);
             var reservations = await _unitOfWork.Reservation.GetAllAsync();
 
@@ -174,7 +179,14 @@ namespace RVPark.Pages.Admin.Reservations
                 }
             }
 
-            // === Save ===
+            // Calculate base total
+            var selectedLot = await _unitOfWork.Lot.GetAsync(l => l.Id == Reservation.LotId, includes: "LotType");
+            var rate = selectedLot?.LotType?.Rate ?? 0;
+            Reservation.BaseTotal = (decimal)(rate * Reservation.Duration);
+            Reservation.TaxTotal = Reservation.BaseTotal * 0.0825m;
+            Reservation.TotalDue = Reservation.BaseTotal + Reservation.TaxTotal;
+            Reservation.AmountPaid = 0;
+
             if (!ModelState.IsValid)
                 return await OnGetAsync(null);
 
@@ -187,6 +199,26 @@ namespace RVPark.Pages.Admin.Reservations
 
             TempData["Success"] = "Reservation saved successfully.";
             return RedirectToPage("./Index");
+        }
+        public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
+        {
+            var overlappingReservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => !(r.EndDate < startDate || r.StartDate > endDate));
+            var reservedLotIds = overlappingReservations.Select(r => r.LotId).Distinct();
+
+            var lots = await _unitOfWork.Lot.GetAllAsync(
+                l => l.LotTypeId == lotTypeId &&
+                     l.Length >= trailerLength &&
+                     !reservedLotIds.Contains(l.Id) &&
+                     l.IsAvailable && !l.IsArchived,
+                includes: "LotType");
+
+            return new JsonResult(lots.Select(l => new
+            {
+                id = l.Id,
+                location = l.Location,
+                lotTypeRate = l.LotType?.Rate ?? 0
+            }));
         }
     }
 }

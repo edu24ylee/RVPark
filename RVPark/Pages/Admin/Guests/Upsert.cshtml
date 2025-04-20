@@ -1,0 +1,128 @@
+﻿@page
+@model RVPark.Pages.Admin.Guests.UpsertModel
+
+@{
+    ViewData["Title"] = Model.GuestVM.GuestId == 0 ? "Add Guest" : "Update Guest";
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">@ViewData["Title"]</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="hidden" asp-for="GuestVM.GuestId" />
+                <input type="hidden" asp-for="GuestVM.UserId" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.FirstName" class="form-label fw-bold">First Name</label>
+                        <input asp-for="GuestVM.FirstName" class="form-control" />
+                        <span asp-validation-for="GuestVM.FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.LastName" class="form-label fw-bold">Last Name</label>
+                        <input asp-for="GuestVM.LastName" class="form-control" />
+                        <span asp-validation-for="GuestVM.LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.Email" class="form-label fw-bold">Email</label>
+                        <input asp-for="GuestVM.Email" class="form-control" />
+                        <span asp-validation-for="GuestVM.Email" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.Phone" class="form-label fw-bold">Phone</label>
+                        <input asp-for="GuestVM.Phone" class="form-control" />
+                        <span asp-validation-for="GuestVM.Phone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.DodId" class="form-label fw-bold">DoD ID</label>
+                        <input asp-for="GuestVM.DodId" class="form-control" placeholder="DoD ID" />
+                        <span asp-validation-for="GuestVM.DodId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodBranch" class="form-label fw-bold">Branch</label>
+                        <select asp-for="GuestVM.DodBranch" class="form-select">
+                            <option value="">Select a Branch</option>
+                            <option>Army</option>
+                            <option>Navy</option>
+                            <option>Air Force</option>
+                            <option>Marine Corps</option>
+                            <option>Coast Guard</option>
+                            <option>Space Force</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodBranch" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodRank" class="form-label fw-bold">Rank</label>
+                        <select asp-for="GuestVM.DodRank" class="form-select">
+                            <option value="">Select a Rank</option>
+                            <option>E-1</option>
+                            <option>E-2</option>
+                            <option>E-3</option>
+                            <option>E-4</option>
+                            <option>E-5</option>
+                            <option>E-6</option>
+                            <option>E-7</option>
+                            <option>E-8</option>
+                            <option>E-9</option>
+                            <option>O-1</option>
+                            <option>O-2</option>
+                            <option>O-3</option>
+                            <option>O-4</option>
+                            <option>O-5</option>
+                            <option>O-6</option>
+                            <option>O-7</option>
+                            <option>O-8</option>
+                            <option>O-9</option>
+                            <option>O-10</option>
+                            <option>W-1</option>
+                            <option>W-2</option>
+                            <option>W-3</option>
+                            <option>W-4</option>
+                            <option>W-5</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodRank" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodStatus" class="form-label fw-bold">Status</label>
+                        <select asp-for="GuestVM.DodStatus" class="form-select">
+                            <option value="">Select Status</option>
+                            <option>Active Duty</option>
+                            <option>Reserves</option>
+                            <option>National Guard</option>
+                            <option>Retired</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodStatus" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-page="./Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+}

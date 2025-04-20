@@ -142,7 +142,9 @@ function confirmCancel(id) {
                 success: function (data) {
                     if (data.success) {
                         toastr.success(data.message);
-                        dataTable.ajax.reload();
+                        if (window.dataTable) {
+                            dataTable.ajax.reload(null, false);
+                        }
                         swal.close();
                     } else {
                         toastr.error(data.message);

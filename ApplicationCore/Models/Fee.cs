@@ -12,7 +12,8 @@ namespace ApplicationCore.Models
         public FeeType? FeeType { get; set; }
 
         [Required]
-        public decimal FeeTotal { get; set; }
+        public decimal? FeeTotal { get; set; }
+        public string? FeeLabel { get; set; }
 
         public string? Notes { get; set; }
 

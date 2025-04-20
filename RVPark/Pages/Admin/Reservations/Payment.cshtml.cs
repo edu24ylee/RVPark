@@ -46,13 +46,13 @@ namespace RVPark.Pages.Admin.Reservations
         {
             var reservation = await _unitOfWork.Reservation.GetAsync(
                 r => r.ReservationId == ReservationId,
-                includes: "Guest.User");
+                includes: "Guest.Reservations");
 
-            if (reservation == null || reservation.Guest?.User == null)
+            if (reservation == null || reservation.Guest == null)
                 return NotFound();
 
             var guest = reservation.Guest;
-            var outstanding = reservation.TotalDue;
+            var outstanding = reservation.TotalDue - reservation.AmountPaid;
 
             if (AmountPaid <= 0 || AmountPaid > outstanding)
             {
@@ -60,11 +60,12 @@ namespace RVPark.Pages.Admin.Reservations
                 return await OnGetAsync(ReservationId);
             }
 
-            // Update reservation + guest balances
             reservation.AmountPaid += AmountPaid;
-            guest.Balance -= AmountPaid;
 
-            // Create Payment record
+            guest.Balance = guest.Reservations
+                .Where(r => r.Status != "Cancelled")
+                .Sum(r => r.TotalDue - r.AmountPaid);
+
             var payment = new Payment
             {
                 GuestId = guest.GuestId,
@@ -79,11 +80,11 @@ namespace RVPark.Pages.Admin.Reservations
             _unitOfWork.Payment.Add(payment);
             _unitOfWork.Reservation.Update(reservation);
             _unitOfWork.Guest.Update(guest);
-
             await _unitOfWork.CommitAsync();
 
             TempData["Success"] = $"Payment of {AmountPaid:C} applied to Reservation #{ReservationId}.";
             return RedirectToPage("/Admin/Reservations/Index");
         }
+
     }
 }

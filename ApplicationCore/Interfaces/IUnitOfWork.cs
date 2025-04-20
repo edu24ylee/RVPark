@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Stripe;
+using ApplicationCore.ViewModels;
 
 namespace ApplicationCore.Interfaces
 {
@@ -27,6 +28,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<FinancialReport> FinancialReport { get; }
         public IGenericRepository<DodAffiliation> DodAffiliation { get; }
         public IGenericRepository<Payment> Payment { get; }
+        public IGenericRepository<GuestViewModel> GuestViewModel { get; }
 
         int Commit();
         Task<int> CommitAsync();    

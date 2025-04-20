@@ -8,7 +8,6 @@ namespace ApplicationCore.Models
         [Key]
         public int DodAffiliationId { get; set; }
 
-        [Required]
         [Display(Name = "Military Branch")]
         public string Branch { get; set; }
 

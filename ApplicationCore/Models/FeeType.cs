@@ -18,7 +18,6 @@ namespace ApplicationCore.Models
 
         public bool IsArchived { get; set; }
 
-        public decimal? DefaultFeeTotal { get; set; } 
 
         public ICollection<Fee>? Fees { get; set; }
     }

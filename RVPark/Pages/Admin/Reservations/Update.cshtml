@@ -23,7 +23,23 @@
                     </div>
                     <div class="col-6">
                         <label class="form-label fw-bold">RV Length</label>
-                        <input type="text" id="Rv_Length" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
+                        <div class="input-group">
+                            <input type="text" id="Rv_Length" class="form-control text-center" value="@Model.ViewModel.Rv.Length" disabled />
+                            <a asp-page="/Admin/RVs/Edit" asp-route-id="@Model.ViewModel.Rv.RvId" class="btn btn-custom-blue">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label asp-for="ViewModel.Reservation.NumberOfAdults" class="form-label fw-bold">Number of Adults</label>
+                        <input asp-for="ViewModel.Reservation.NumberOfAdults" class="form-control text-center" />
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="ViewModel.Reservation.NumberOfPets" class="form-label fw-bold">Number of Pets</label>
+                        <input asp-for="ViewModel.Reservation.NumberOfPets" class="form-control text-center" />
                     </div>
                 </div>
 
@@ -86,9 +102,12 @@
                                                    name="SelectedManualFees"
                                                    value="@fee.Id"
                                                    data-amount="@fee.FeeTotal.ToString("F2")" />
+                                            <p class="text-muted">Manual fees loaded: @Model.ViewModel.ManualFeeOptions?.Count</p>
+
                                         </td>
                                     </tr>
                                 }
+
                             </tbody>
                         </table>
                     </div>

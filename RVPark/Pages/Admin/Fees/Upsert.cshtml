@@ -16,22 +16,44 @@
                 <!-- Fee Type -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeObject.FeeTypeId" class="form-label"></label>
+                        <label asp-for="FeeObject.FeeTypeId" class="form-label">Fee Type</label>
                     </div>
                     <div class="col-9">
-                        <select class="form-select" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList"></select>
-                        <span class="text-danger" asp-validation-for="FeeObject.FeeTypeId"></span>
+                        <select asp-for="FeeObject.FeeTypeId" class="form-select" asp-items="Model.FeeTypeList"></select>
+                        <span asp-validation-for="FeeObject.FeeTypeId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Label -->
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.FeeLabel" class="form-label">Label</label>
+                    </div>
+                    <div class="col-9">
+                        <input asp-for="FeeObject.FeeLabel" class="form-control" placeholder="e.g., Large Trash Fee" />
+                        <span asp-validation-for="FeeObject.FeeLabel" class="text-danger"></span>
                     </div>
                 </div>
 
                 <!-- Amount -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeObject.FeeTotal" class="form-label"></label>
+                        <label asp-for="FeeObject.FeeTotal" class="form-label">Fee Total</label>
                     </div>
                     <div class="col-9">
                         <input asp-for="FeeObject.FeeTotal" class="form-control" />
-                        <span class="text-danger" asp-validation-for="FeeObject.FeeTotal"></span>
+                        <span asp-validation-for="FeeObject.FeeTotal" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="FeeObject.Notes" class="form-label">Notes</label>
+                    </div>
+                    <div class="col-9">
+                        <textarea asp-for="FeeObject.Notes" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="FeeObject.Notes" class="text-danger"></span>
                     </div>
                 </div>
 
@@ -58,3 +80,12 @@
         </div>
     </div>
 </form>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+}

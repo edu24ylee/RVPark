@@ -105,3 +105,70 @@ function getManualFeeTotal() {
     });
     return total;
 }
+
+function confirmCancel(id) {
+    swal({
+        title: "Confirm Cancellation",
+        text: "Cancelling may apply a cancellation fee if within 24 hours of check-in.",
+        icon: "warning",
+        content: createOverrideForm(),
+        buttons: {
+            cancel: "Back",
+            confirm: {
+                text: "Confirm",
+                closeModal: false
+            }
+        }
+    }).then((willCancel) => {
+        if (willCancel) {
+            const override = document.getElementById("overrideCheckbox").checked;
+            const percent = override ? parseInt(document.getElementById("overridePercent").value) : null;
+            const reason = override ? document.getElementById("cancelOverrideReason").value : "";
+
+            $.ajax({
+                type: "POST",
+                url: `/api/reservation/cancel/${id}`,
+                data: JSON.stringify({ override, percent, reason }),
+                contentType: "application/json",
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        if (window.dataTable) {
+                            dataTable.ajax.reload(null, false);
+                        }
+                        swal.close();
+                    } else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error("Error: " + xhr.responseText);
+                }
+            });
+        }
+    });
+}
+
+function createOverrideForm() {
+    const div = document.createElement("div");
+    div.innerHTML = `
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="overrideCheckbox">
+            <label class="form-check-label" for="overrideCheckbox">Override Cancellation Fee</label>
+        </div>
+        <div id="overrideFields" style="display:none;">
+            <label class="form-label mt-2">Override Percentage:</label>
+            <select id="overridePercent" class="form-select form-select-sm mb-2">
+                ${[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => `<option value="${p}">${p}%</option>`).join('')}
+            </select>
+            <label class="form-label">Reason:</label>
+            <textarea id="cancelOverrideReason" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+    `;
+    setTimeout(() => {
+        document.getElementById("overrideCheckbox").addEventListener("change", function () {
+            document.getElementById("overrideFields").style.display = this.checked ? "block" : "none";
+        });
+    }, 10);
+    return div;
+}

@@ -17,14 +17,19 @@ namespace RVPark.Pages.Admin.Fees
 
         [BindProperty]
         public Fee FeeObject { get; set; } = new();
+
         public List<SelectListItem> FeeTypeList { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             var feeTypes = await _unitOfWork.FeeType.GetAllAsync(f => !f.IsArchived);
+
             FeeTypeList = feeTypes
-                .Select(f => new SelectListItem { Text = f.FeeTypeName, Value = f.Id.ToString() })
-                .ToList();
+                .Select(f => new SelectListItem
+                {
+                    Text = f.FeeTypeName,
+                    Value = f.Id.ToString()
+                }).ToList();
 
             if (id == null || id == 0)
             {
@@ -33,7 +38,8 @@ namespace RVPark.Pages.Admin.Fees
             else
             {
                 FeeObject = await _unitOfWork.Fee.GetAsync(f => f.Id == id);
-                if (FeeObject == null) return NotFound();
+                if (FeeObject == null)
+                    return NotFound();
             }
 
             return Page();
@@ -50,7 +56,8 @@ namespace RVPark.Pages.Admin.Fees
 
             FeeObject.TriggerType = feeType.TriggerType;
 
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+                return Page();
 
             if (FeeObject.Id == 0)
                 _unitOfWork.Fee.Add(FeeObject);
@@ -61,5 +68,4 @@ namespace RVPark.Pages.Admin.Fees
             return RedirectToPage("Index");
         }
     }
-
 }

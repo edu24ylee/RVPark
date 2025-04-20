@@ -14,30 +14,31 @@
 
             <div class="col-8 pt-3">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
                 <input type="hidden" asp-for="FeeTypeObject.Id" />
 
+                <!-- Name -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeTypeObject.FeeTypeName" class="form-label"></label>
                     </div>
                     <div class="col-9">
                         <input asp-for="FeeTypeObject.FeeTypeName" class="form-control" />
-                        <span asp-validation-for="FeeTypeObject.FeeTypeName" class="text-danger"></span>
+                        <span class="text-danger" asp-validation-for="FeeTypeObject.FeeTypeName"></span>
                     </div>
                 </div>
 
+                <!-- Policy -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeTypeObject.Policy" class="form-label">Policy</label>
                     </div>
                     <div class="col-9">
-                        <textarea asp-for="FeeTypeObject.Policy" class="form-control" rows="2"
-                                  placeholder="Description or enforcement details for this fee."></textarea>
-                        <span asp-validation-for="FeeTypeObject.Policy" class="text-danger"></span>
+                        <textarea asp-for="FeeTypeObject.Policy" class="form-control" rows="2" placeholder="e.g., Applies to all pet owners..."></textarea>
+                        <span class="text-danger" asp-validation-for="FeeTypeObject.Policy"></span>
                     </div>
                 </div>
 
+                <!-- Trigger Type -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeTypeObject.TriggerType" class="form-label"></label>
@@ -46,31 +47,22 @@
                         <select asp-for="FeeTypeObject.TriggerType" class="form-select" asp-items="Html.GetEnumSelectList<TriggerType>()">
                             <option value="">-- Select Trigger Type --</option>
                         </select>
-                        <span asp-validation-for="FeeTypeObject.TriggerType" class="text-danger"></span>
+                        <span class="text-danger" asp-validation-for="FeeTypeObject.TriggerType"></span>
                     </div>
                 </div>
 
-                <div class="form-group row mb-3">
-                    <div class="col-3">
-                        <label asp-for="FeeTypeObject.DefaultFeeTotal" class="form-label">Default Fee Total</label>
-                    </div>
-                    <div class="col-9">
-                        <input asp-for="FeeTypeObject.DefaultFeeTotal" class="form-control" />
-                        <span asp-validation-for="FeeTypeObject.DefaultFeeTotal" class="text-danger"></span>
-                    </div>
-                </div>
-
+                <!-- Trigger Rule JSON -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
                         <label asp-for="FeeTypeObject.TriggerRuleJson" class="form-label">Trigger Rules</label>
                     </div>
                     <div class="col-9">
-                        <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="4"
-                                  placeholder="{ &quot;DaysBefore&quot;: 3, &quot;PenaltyPercent&quot;: 50 }"></textarea>
-                        <span asp-validation-for="FeeTypeObject.TriggerRuleJson" class="text-danger"></span>
+                        <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="4" placeholder="{ &quot;DaysBefore&quot;: 3, &quot;PenaltyPercent&quot;: 50 }"></textarea>
+                        <span class="text-danger" asp-validation-for="FeeTypeObject.TriggerRuleJson"></span>
                     </div>
                 </div>
 
+                <!-- Buttons -->
                 <div class="form-group row pt-3">
                     <div class="col-9 offset-3">
                         <div class="row">
