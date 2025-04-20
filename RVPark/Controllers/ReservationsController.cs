@@ -87,13 +87,28 @@ namespace RVPark.Controllers
         }
 
         [HttpPost("cancel/{id}")]
-        public async Task<IActionResult> CancelReservation(int id, [FromBody] CancelRequestModel cancelRequest)
+        public async Task<IActionResult> CancelReservation(int id)
         {
+            string body;
+            using (var reader = new StreamReader(Request.Body))
+            {
+                body = await reader.ReadToEndAsync();
+            }
+
+            var cancelRequest = System.Text.Json.JsonSerializer.Deserialize<CancelRequestModel>(body);
+            if (cancelRequest == null)
+            {
+                return Json(new { success = false, message = "Invalid cancellation data." });
+            }
+
+                  if (cancelRequest == null)
+                return BadRequest("Cancellation request payload is null.");
+
             var reservation = await _unitOfWork.Reservation.GetAsync(
                 r => r.ReservationId == id, includes: "Lot.LotType,Guest.Reservations");
 
             if (reservation == null)
-                return Json(new { success = false, message = "Reservation not found." });
+                return NotFound(new { success = false, message = "Reservation not found." });
 
             var feeType = await _unitOfWork.FeeType.GetAsync(f =>
                 f.FeeTypeName == "Cancellation Fee" && f.TriggerType == TriggerType.Triggered);
@@ -112,7 +127,6 @@ namespace RVPark.Controllers
             {
                 feePercent = 100;
             }
-
 
             decimal cancellationFee = Math.Round(rate * feePercent / 100m, 2);
 
@@ -160,15 +174,7 @@ namespace RVPark.Controllers
             }
 
             await _unitOfWork.CommitAsync();
-            return Json(new { success = true, message = "Reservation cancelled successfully." });
-        }
-
-
-        public class CancelRequestModel
-        {
-            public bool Override { get; set; }
-            public int? Percent { get; set; }
-            public string? Reason { get; set; }
+            return Ok(new { success = true, message = "Reservation cancelled successfully." });
         }
 
         [HttpGet("guest/{guestId}")]
@@ -251,10 +257,20 @@ namespace RVPark.Controllers
                 length = rv.Length
             });
         }
+    }
 
-        public class StatusUpdateRequest
-        {
-            public string Status { get; set; } = null!;
-        }
+
+    public class CancelRequestModel
+    {
+        public bool Override { get; set; }
+        public int? Percent { get; set; }
+        public string? Reason { get; set; }
+    }
+
+
+
+    public class StatusUpdateRequest
+    {
+        public string Status { get; set; } = null!;
     }
 }

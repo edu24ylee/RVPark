@@ -120,7 +120,7 @@
                         <p><strong>Amount Paid:</strong> $<span id="amountPaidText">@Model.ViewModel.Reservation.AmountPaid.ToString("F2")</span></p>
                         <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">@((Model.ViewModel.Reservation.TotalDue - Model.ViewModel.Reservation.AmountPaid).ToString("F2"))</span></p>
                     </div>
-                 }
+                 
 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" name="action" value="save" class="btn btn-custom-blue">

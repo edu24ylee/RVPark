@@ -621,6 +621,21 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RvDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RvLength")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RvLicensePlate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RvMake")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RvModel")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
