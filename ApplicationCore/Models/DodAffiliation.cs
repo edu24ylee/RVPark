@@ -5,17 +5,14 @@ namespace ApplicationCore.Models
 {
     public class DodAffiliation
     {
-        [Key]
         public int DodAffiliationId { get; set; }
 
         [Display(Name = "Military Branch")]
-        public string Branch { get; set; }
+        public string? Branch { get; set; }
 
-        [Required]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
-        [Required]
-        public string Rank { get; set; }
+        public string? Rank { get; set; }
 
         [Required]
         public int GuestId { get; set; }
