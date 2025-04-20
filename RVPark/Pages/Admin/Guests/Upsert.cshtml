@@ -46,7 +46,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label asp-for="GuestVM.DodId" class="form-label fw-bold">DoD ID</label>
-                        <input asp-for="GuestVM.DodId" class="form-control" placeholder="DoD ID" />
+                        <input asp-for="GuestVM.DodId" class="form-control" />
                         <span asp-validation-for="GuestVM.DodId" class="text-danger"></span>
                     </div>
                 </div>
@@ -70,30 +70,14 @@
                         <label asp-for="GuestVM.DodRank" class="form-label fw-bold">Rank</label>
                         <select asp-for="GuestVM.DodRank" class="form-select">
                             <option value="">Select a Rank</option>
-                            <option>E-1</option>
-                            <option>E-2</option>
-                            <option>E-3</option>
-                            <option>E-4</option>
-                            <option>E-5</option>
-                            <option>E-6</option>
-                            <option>E-7</option>
-                            <option>E-8</option>
-                            <option>E-9</option>
-                            <option>O-1</option>
-                            <option>O-2</option>
-                            <option>O-3</option>
-                            <option>O-4</option>
-                            <option>O-5</option>
-                            <option>O-6</option>
-                            <option>O-7</option>
-                            <option>O-8</option>
-                            <option>O-9</option>
-                            <option>O-10</option>
-                            <option>W-1</option>
-                            <option>W-2</option>
-                            <option>W-3</option>
-                            <option>W-4</option>
-                            <option>W-5</option>
+                            @foreach (var rank in new[] {
+                            "E-1","E-2","E-3","E-4","E-5","E-6","E-7","E-8","E-9",
+                            "O-1","O-2","O-3","O-4","O-5","O-6","O-7","O-8","O-9","O-10",
+                            "W-1","W-2","W-3","W-4","W-5"
+                            })
+                            {
+                                <option value="@rank">@rank</option>
+                            }
                         </select>
                         <span asp-validation-for="GuestVM.DodRank" class="text-danger"></span>
                     </div>
@@ -108,8 +92,39 @@
                             <option>Retired</option>
                         </select>
                         <span asp-validation-for="GuestVM.DodStatus" class="text-danger"></span>
-
                     </div>
+                </div>
+
+                <h5 class="mt-4 border-top pt-3 text-primary">RV Details</h5>
+
+                <div class="mb-3">
+                    <label asp-for="Rv.Make" class="form-label fw-bold">Make</label>
+                    <input asp-for="Rv.Make" class="form-control" />
+                    <span asp-validation-for="Rv.Make" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Rv.Model" class="form-label fw-bold">Model</label>
+                    <input asp-for="Rv.Model" class="form-control" />
+                    <span asp-validation-for="Rv.Model" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Rv.LicensePlate" class="form-label fw-bold">License Plate</label>
+                    <input asp-for="Rv.LicensePlate" class="form-control" />
+                    <span asp-validation-for="Rv.LicensePlate" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Rv.Length" class="form-label fw-bold">Length (ft)</label>
+                    <input asp-for="Rv.Length" class="form-control" />
+                    <span asp-validation-for="Rv.Length" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Rv.Description" class="form-label fw-bold">Description</label>
+                    <textarea asp-for="Rv.Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Rv.Description" class="text-danger small"></span>
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
@@ -117,7 +132,7 @@
                         <i class="fas fa-arrow-left"></i> Back
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save
+                        <i class="fas fa-save"></i> Save Guest
                     </button>
                 </div>
             </form>
@@ -127,13 +142,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const returnUrl = urlParams.get("returnUrl");
-
-        if (window.opener && returnUrl && window.location.href.includes("guestId")) {
-            window.opener.location.href = window.location.href;
-            window.close();
-        }
-    </script>
 }

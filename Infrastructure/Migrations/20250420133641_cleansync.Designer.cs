@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250420050408_cleanSynce")]
-    partial class cleanSynce
+    [Migration("20250420133641_cleansync")]
+    partial class cleansync
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,18 +48,15 @@ namespace Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DodAffiliationId"));
 
                     b.Property<string>("Branch")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("GuestId")
                         .HasColumnType("int");
 
                     b.Property<string>("Rank")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DodAffiliationId");
@@ -625,6 +622,21 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RvDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RvLength")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RvLicensePlate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RvMake")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RvModel")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")

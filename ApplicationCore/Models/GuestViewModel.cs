@@ -27,5 +27,11 @@ namespace ApplicationCore.ViewModels
         public string DodStatus { get; set; } = string.Empty;
 
         public string DodRank { get; set; } = string.Empty;
+        public string? RvMake { get; set; }
+        public string? RvModel { get; set; }
+        public string? RvLicensePlate { get; set; }
+        public decimal RvLength { get; set; }
+        public string? RvDescription { get; set; }
+
     }
 }

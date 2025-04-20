@@ -22,6 +22,9 @@ namespace RVPark.Pages.Admin.Guests
         [BindProperty]
         public GuestViewModel GuestVM { get; set; } = new();
 
+        [BindProperty]
+        public Rv Rv { get; set; } = new();
+
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
 
@@ -32,12 +35,15 @@ namespace RVPark.Pages.Admin.Guests
             if (id == null || id == 0)
             {
                 GuestVM = new GuestViewModel();
+                Rv = new Rv();
                 return Page();
             }
 
-            var guest = _unitOfWork.Guest.Get(g => g.GuestId == id, includes: "User,DodAffiliation");
+            var guest = _unitOfWork.Guest.Get(g => g.GuestId == id, includes: "User,DodAffiliation,Rvs");
             if (guest == null || guest.User == null)
                 return NotFound();
+
+            var primaryRv = guest.Rvs?.FirstOrDefault();
 
             GuestVM = new GuestViewModel
             {
@@ -52,6 +58,8 @@ namespace RVPark.Pages.Admin.Guests
                 DodStatus = guest.DodAffiliation?.Status ?? string.Empty,
                 DodRank = guest.DodAffiliation?.Rank ?? string.Empty
             };
+
+            Rv = primaryRv ?? new Rv { GuestId = guest.GuestId };
 
             return Page();
         }
@@ -72,7 +80,6 @@ namespace RVPark.Pages.Admin.Guests
 
             if (GuestVM.GuestId == 0)
             {
-                // === CREATE IDENTITY USER ===
                 var identityUser = new IdentityUser
                 {
                     UserName = GuestVM.Email,
@@ -90,7 +97,6 @@ namespace RVPark.Pages.Admin.Guests
 
                 await _userManager.AddToRoleAsync(identityUser, SD.GuestRole);
 
-                // === CREATE CUSTOM USER ===
                 var user = new User
                 {
                     FirstName = GuestVM.FirstName.Trim(),
@@ -104,7 +110,6 @@ namespace RVPark.Pages.Admin.Guests
                 _unitOfWork.User.Add(user);
                 await _unitOfWork.CommitAsync();
 
-                // === CREATE GUEST ===
                 var guest = new Guest
                 {
                     UserId = user.UserId,
@@ -114,7 +119,6 @@ namespace RVPark.Pages.Admin.Guests
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
 
-                // === OPTIONAL DOD AFFILIATION ===
                 if (hasAllDodInfo)
                 {
                     _unitOfWork.DodAffiliation.Add(new DodAffiliation
@@ -126,26 +130,24 @@ namespace RVPark.Pages.Admin.Guests
                     });
                 }
 
+                Rv.GuestId = guest.GuestId;
+                _unitOfWork.Rv.Add(Rv);
+
                 await _unitOfWork.CommitAsync();
 
-                // === REDIRECT TO RV CREATION PAGE ===
-                return RedirectToPage("/Admin/RVs/Edit", new
-                {
-                    guestId = guest.GuestId,
-                    returnUrl = ReturnUrl
-                });
+                return RedirectToPage("Index");
             }
             else
             {
-                // === UPDATE EXISTING GUEST ===
-                var existingGuest = _unitOfWork.Guest.Get(g => g.GuestId == GuestVM.GuestId, includes: "User,DodAffiliation");
+                // === UPDATE GUEST ===
+                var existingGuest = _unitOfWork.Guest.Get(g => g.GuestId == GuestVM.GuestId, includes: "User,DodAffiliation,Rvs");
                 if (existingGuest == null || existingGuest.User == null)
                     return NotFound();
 
-                existingGuest.User.FirstName = GuestVM.FirstName;
-                existingGuest.User.LastName = GuestVM.LastName;
-                existingGuest.User.Email = GuestVM.Email;
-                existingGuest.User.Phone = GuestVM.Phone;
+                existingGuest.User.FirstName = GuestVM.FirstName.Trim();
+                existingGuest.User.LastName = GuestVM.LastName.Trim();
+                existingGuest.User.Email = GuestVM.Email.Trim();
+                existingGuest.User.Phone = GuestVM.Phone?.Trim();
                 existingGuest.DodId = GuestVM.DodId ?? 0;
 
                 var affiliation = _unitOfWork.DodAffiliation.Get(a => a.GuestId == GuestVM.GuestId);
@@ -177,8 +179,25 @@ namespace RVPark.Pages.Admin.Guests
 
                 _unitOfWork.User.Update(existingGuest.User);
                 _unitOfWork.Guest.Update(existingGuest);
-                await _unitOfWork.CommitAsync();
 
+                var primaryRv = existingGuest.Rvs?.FirstOrDefault();
+                if (primaryRv != null)
+                {
+                    primaryRv.Make = Rv.Make;
+                    primaryRv.Model = Rv.Model;
+                    primaryRv.LicensePlate = Rv.LicensePlate;
+                    primaryRv.Length = Rv.Length;
+                    primaryRv.Description = Rv.Description;
+
+                    _unitOfWork.Rv.Update(primaryRv);
+                }
+                else
+                {
+                    Rv.GuestId = existingGuest.GuestId;
+                    _unitOfWork.Rv.Add(Rv);
+                }
+
+                await _unitOfWork.CommitAsync();
                 return RedirectToPage("Index");
             }
         }

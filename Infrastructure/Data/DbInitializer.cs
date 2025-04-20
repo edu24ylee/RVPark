@@ -132,9 +132,9 @@ namespace Infrastructure
 
             _db.FeeType.AddRange(new[]
             {
-                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
-                new FeeType { FeeTypeName = "Extra Adults Fee", Description = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
-                new FeeType { FeeTypeName = "Pet Cleanup Violation", Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
+                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Policy = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
+                new FeeType { FeeTypeName = "Extra Adults Fee", Policy = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
+                new FeeType { FeeTypeName = "Pet Cleanup Violation", Policy = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
             });
             _db.SaveChanges();
 
@@ -178,7 +178,6 @@ namespace Infrastructure
                     Status = statuses[i % statuses.Length],
                     NumberOfAdults = 2 + (i % 4),
                     NumberOfPets = i % 2,
-                    CancellationReason = i % 5 == 0 ? "Weather" : null,
                     OverrideReason = i % 4 == 0 ? "Test override" : null
                 });
             }

@@ -141,14 +141,15 @@ namespace RVPark.Pages.Admin.Reservations
 
                 _unitOfWork.Reservation.Update(res);
 
-                if (res.Guest != null)
+                if (res.Guest != null && res.Guest.Reservations != null)
                 {
                     res.Guest.Balance = res.Guest.Reservations
-                        .Where(r => r.Status != "Cancelled")
-                        .Sum(r => Math.Max(0, r.TotalDue - r.AmountPaid));
+                        .Where(r => r?.Status != "Cancelled")
+                        .Sum(r => Math.Max(0, (r?.TotalDue ?? 0) - (r?.AmountPaid ?? 0)));
 
                     _unitOfWork.Guest.Update(res.Guest);
                 }
+
 
                 await _unitOfWork.CommitAsync();
                 TempData["Success"] = "Reservation cancelled successfully.";

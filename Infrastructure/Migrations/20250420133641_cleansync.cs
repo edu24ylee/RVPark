@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class cleansync : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,13 +51,25 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CancellationRequest",
+                columns: table => new
+                {
+                    Override = table.Column<bool>(type: "bit", nullable: false),
+                    Percent = table.Column<int>(type: "int", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FeeType",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Policy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     TriggerRuleJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false)
@@ -75,6 +87,30 @@ namespace Infrastructure.Migrations
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CollectedRevenue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     AnticipatedRevenue = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GuestViewModel",
+                columns: table => new
+                {
+                    GuestId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodId = table.Column<int>(type: "int", nullable: true),
+                    DodBranch = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodRank = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RvMake = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RvModel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RvLicensePlate = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RvLength = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    RvDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -313,7 +349,8 @@ namespace Infrastructure.Migrations
                     GuestId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    DodId = table.Column<int>(type: "int", nullable: false)
+                    DodId = table.Column<int>(type: "int", nullable: false),
+                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -407,18 +444,21 @@ namespace Infrastructure.Migrations
                     ReservationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GuestId = table.Column<int>(type: "int", nullable: false),
-                    RvId = table.Column<int>(type: "int", nullable: false),
-                    LotId = table.Column<int>(type: "int", nullable: false),
-                    Duration = table.Column<int>(type: "int", nullable: false),
+                    RvId = table.Column<int>(type: "int", nullable: true),
+                    LotId = table.Column<int>(type: "int", nullable: true),
+                    Duration = table.Column<int>(type: "int", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NumberOfAdults = table.Column<int>(type: "int", nullable: false),
-                    NumberOfPets = table.Column<int>(type: "int", nullable: false),
-                    SpecialRequests = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OverrideReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CancellationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NumberOfAdults = table.Column<int>(type: "int", nullable: false),
+                    NumberOfPets = table.Column<int>(type: "int", nullable: false),
+                    TotalDue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BaseTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ManualFeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TaxTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     LotTypeId = table.Column<int>(type: "int", nullable: false),
                     LotId1 = table.Column<int>(type: "int", nullable: true)
                 },
@@ -457,13 +497,14 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeId = table.Column<int>(type: "int", nullable: false),
-                    TriggeringPolicyId = table.Column<int>(type: "int", nullable: true),
                     FeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FeeLabel = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AppliedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false),
-                    ReservationId = table.Column<int>(type: "int", nullable: true)
+                    ReservationId = table.Column<int>(type: "int", nullable: true),
+                    PolicyId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -475,8 +516,8 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Fee_Policy_TriggeringPolicyId",
-                        column: x => x.TriggeringPolicyId,
+                        name: "FK_Fee_Policy_PolicyId",
+                        column: x => x.PolicyId,
                         principalTable: "Policy",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -484,6 +525,43 @@ namespace Infrastructure.Migrations
                         column: x => x.ReservationId,
                         principalTable: "Reservation",
                         principalColumn: "ReservationId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payment",
+                columns: table => new
+                {
+                    PaymentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReservationId = table.Column<int>(type: "int", nullable: false),
+                    GuestId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Method = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RecordedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PaymentId1 = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payment", x => x.PaymentId);
+                    table.ForeignKey(
+                        name: "FK_Payment_Guest_GuestId",
+                        column: x => x.GuestId,
+                        principalTable: "Guest",
+                        principalColumn: "GuestId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Payment_Payment_PaymentId1",
+                        column: x => x.PaymentId1,
+                        principalTable: "Payment",
+                        principalColumn: "PaymentId");
+                    table.ForeignKey(
+                        name: "FK_Payment_Reservation_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservation",
+                        principalColumn: "ReservationId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -569,14 +647,14 @@ namespace Infrastructure.Migrations
                 column: "FeeTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Fee_PolicyId",
+                table: "Fee",
+                column: "PolicyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Fee_ReservationId",
                 table: "Fee",
                 column: "ReservationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Fee_TriggeringPolicyId",
-                table: "Fee",
-                column: "TriggeringPolicyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Guest_UserId",
@@ -592,6 +670,21 @@ namespace Infrastructure.Migrations
                 name: "IX_LotType_ParkId",
                 table: "LotType",
                 column: "ParkId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payment_GuestId",
+                table: "Payment",
+                column: "GuestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payment_PaymentId1",
+                table: "Payment",
+                column: "PaymentId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payment_ReservationId",
+                table: "Payment",
+                column: "ReservationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservation_GuestId",
@@ -648,6 +741,9 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "CancellationRequest");
+
+            migrationBuilder.DropTable(
                 name: "DodAffiliation");
 
             migrationBuilder.DropTable(
@@ -658,6 +754,12 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "FinancialReport");
+
+            migrationBuilder.DropTable(
+                name: "GuestViewModel");
+
+            migrationBuilder.DropTable(
+                name: "Payment");
 
             migrationBuilder.DropTable(
                 name: "ReservationReports");

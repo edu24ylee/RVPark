@@ -56,7 +56,7 @@ namespace RVPark.Pages.Admin.RVs
             if (!string.IsNullOrWhiteSpace(ReturnUrl))
                 return LocalRedirect(ReturnUrl);
 
-            return RedirectToPage("/Admin/RVs/Index");
+            return RedirectToPage("/Admin/Reservations/Index");
         }
     }
 }
