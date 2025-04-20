@@ -1,4 +1,11 @@
-﻿using ApplicationCore.Interfaces;
+﻿// Seed Requirements
+// - One admin and one employee (Tawny(Admin) and Christian(Employee))
+// - One seed guest for all reservations
+// - All lot types and fees
+// - 2–3 lots per type
+// - At least 12 reservations with varied statuses and dates
+
+using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
 using Infrastructure.Data;
 using Infrastructure.Utilities;
@@ -35,9 +42,7 @@ namespace Infrastructure
             foreach (var role in roles)
             {
                 if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
-                {
                     _roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
-                }
             }
 
             var superEmail = "tawnymcaleese@gmail.com";
@@ -46,78 +51,75 @@ namespace Infrastructure
             {
                 superUser = new IdentityUser { UserName = superEmail, Email = superEmail, EmailConfirmed = true };
                 var result = _userManager.CreateAsync(superUser, "Admin123*").GetAwaiter().GetResult();
-                if (!result.Succeeded)
-                    throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                if (!result.Succeeded) throw new Exception("Failed to create SuperAdmin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
+            _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
 
-            if (!_userManager.IsInRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult())
+            var superDbUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower()) ?? new User
             {
-                _userManager.AddToRoleAsync(superUser, SD.SuperAdminRole).GetAwaiter().GetResult();
-            }
-
-            var customUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == superEmail.ToLower());
-            if (customUser == null)
-            {
-                customUser = new User
-                {
-                    FirstName = "Tawny",
-                    LastName = "McAleese",
-                    Email = superEmail,
-                    Phone = "555-9999",
-                    IsActive = true,
-                    IdentityUserId = superUser.Id
-                };
-                _db.User.Add(customUser);
-                _db.SaveChanges();
-            }
-
-            if (!_db.Employee.Any(e => e.UserId == customUser.UserId))
-            {
-                var emp = new Employee { UserId = customUser.UserId, Role = SD.SuperAdminRole };
-                _db.Employee.Add(emp);
-                _db.SaveChanges();
-            }
-
-            var park = new Park
-            {
-                Name = "Desert Eagle Nellis AFB",
-                Address = "4707 Duffer Dr",
-                City = "Las Vegas",
-                State = "NV",
-                Zipcode = "89191"
+                FirstName = "Tawny",
+                LastName = "McAleese",
+                Email = superEmail,
+                Phone = "555-9999",
+                IsActive = true,
+                IdentityUserId = superUser.Id
             };
+            if (superDbUser.UserId == 0)
+            {
+                _db.User.Add(superDbUser);
+                _db.SaveChanges();
+            }
+            if (!_db.Employee.Any(e => e.UserId == superDbUser.UserId))
+            {
+                _db.Employee.Add(new Employee { UserId = superDbUser.UserId, Role = SD.SuperAdminRole });
+                _db.SaveChanges();
+            }
+
+            var empEmail = "christianmartin@mail.weber.edu";
+            var empUser = _userManager.FindByEmailAsync(empEmail).GetAwaiter().GetResult();
+            if (empUser == null)
+            {
+                empUser = new IdentityUser { UserName = empEmail, Email = empEmail, EmailConfirmed = true };
+                var empResult = _userManager.CreateAsync(empUser, "Employee123!").GetAwaiter().GetResult();
+                if (!empResult.Succeeded) throw new Exception("Failed to create employee: " + string.Join(", ", empResult.Errors.Select(e => e.Description)));
+                _userManager.AddToRoleAsync(empUser, SD.ManagerRole).GetAwaiter().GetResult();
+            }
+
+            var empDbUser = _db.User.FirstOrDefault(u => u.Email.ToLower() == empEmail.ToLower()) ?? new User
+            {
+                FirstName = "Christian",
+                LastName = "Martin",
+                Email = empEmail,
+                Phone = "555-555-5555",
+                IsActive = true,
+                IdentityUserId = empUser.Id
+            };
+            if (empDbUser.UserId == 0)
+            {
+                _db.User.Add(empDbUser);
+                _db.SaveChanges();
+            }
+            if (!_db.Employee.Any(e => e.UserId == empDbUser.UserId))
+            {
+                _db.Employee.Add(new Employee { UserId = empDbUser.UserId, Role = SD.ManagerRole });
+                _db.SaveChanges();
+            }
+
+            var park = new Park { Name = "Desert Eagle Nellis AFB", Address = "4707 Duffer Dr", City = "Las Vegas", State = "NV", Zipcode = "89191" };
             _db.Park.Add(park);
             _db.SaveChanges();
 
             var today = DateTime.Today;
-            var lotTypes = new List<LotType>
+            var lotTypes = new[]
             {
-                new LotType { Name = "Standard", Rate = 40.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
-                new LotType { Name = "Premium",  Rate = 55.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
-                new LotType { Name = "Deluxe",   Rate = 70.00m, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) }
+                new LotType { Name = "Standard", Rate = 40, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
+                new LotType { Name = "Premium", Rate = 55, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) },
+                new LotType { Name = "Deluxe", Rate = 70, ParkId = park.Id, StartDate = today, EndDate = today.AddYears(1) }
             };
             _db.LotType.AddRange(lotTypes);
             _db.SaveChanges();
 
-            var policies = new List<Policy>
-            {
-                new Policy { PolicyName = "24-Hour Cancellation Policy", PolicyDescription = "Cancelling within 24 hours of the reservation start date will result in a penalty fee." },
-                new Policy { PolicyName = "Additional Adult Fee Policy", PolicyDescription = "Each adult guest beyond 3 incurs an additional daily fee." },
-                new Policy { PolicyName = "Pet Cleanup Policy", PolicyDescription = "Fee applied if pet waste is not cleaned up." }
-            };
-            _db.Policy.AddRange(policies);
-            _db.SaveChanges();
-
-            var feeTypes = new List<FeeType>
-            {
-                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Policy = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
-                new FeeType { FeeTypeName = "Extra Adults Fee", Policy = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
-                new FeeType { FeeTypeName = "Pet Cleanup Violation", Policy = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
-            };
-            _db.FeeType.AddRange(feeTypes);
-            _db.SaveChanges();
-
-            var lots = lotTypes.SelectMany(lt => Enumerable.Range(1, 5).Select(i => new Lot
+            var lots = lotTypes.SelectMany(lt => Enumerable.Range(1, 3).Select(i => new Lot
             {
                 LotTypeId = lt.Id,
                 Location = $"{lt.Name[0]}-{i}",
@@ -128,130 +130,60 @@ namespace Infrastructure
             _db.Lot.AddRange(lots);
             _db.SaveChanges();
 
-            var guestInfos = new List<(string First, string Last)>
+            _db.FeeType.AddRange(new[]
             {
-                ("Sheldon", "Cooper"),
-                ("Leonard", "Hofstadter"),
-                ("Penny", "Teller"),
-                ("Howard", "Wolowitz"),
-                ("Raj", "Koothrappali")
-            };
-
-            var guestList = new List<Guest>();
-            var rvList = new List<Rv>();
-
-            for (int i = 0; i < guestInfos.Count; i++)
-            {
-                var (first, last) = guestInfos[i];
-                var email = $"guest{last.ToLower()}@rv.com";
-                var identityUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
-
-                var identityResult = _userManager.CreateAsync(identityUser, "Guest123!").GetAwaiter().GetResult();
-                if (identityResult.Succeeded)
-                {
-                    _userManager.AddToRoleAsync(identityUser, SD.GuestRole).GetAwaiter().GetResult();
-                }
-
-                var user = new User
-                {
-                    FirstName = first,
-                    LastName = last,
-                    Email = email,
-                    Phone = "555-0101",
-                    IdentityUserId = identityUser.Id,
-                    IsActive = true
-                };
-                _db.User.Add(user);
-                _db.SaveChanges();
-
-                var userFromDb = _db.User.FirstOrDefault(u => u.Email.ToLower() == email.ToLower() && u.IdentityUserId == identityUser.Id);
-                if (userFromDb == null || userFromDb.UserId == 0)
-                    throw new Exception($"User not properly inserted for email: {email}");
-
-                var guest = new Guest
-                {
-                    UserId = userFromDb.UserId,
-                    DodId = 3000 + i
-                };
-                _db.Guest.Add(guest);
-                _db.SaveChanges();
-
-                var guestFromDb = _db.Guest.FirstOrDefault(g => g.UserId == userFromDb.UserId);
-                if (guestFromDb == null || guestFromDb.GuestId == 0)
-                    throw new Exception($"Guest insert failed for UserId: {userFromDb.UserId}");
-
-                var rv = new Rv
-                {
-                    GuestId = guestFromDb.GuestId,
-                    LicensePlate = $"RV-{i + 1:000}",
-                    Make = "Winnebago",
-                    Model = $"Model-{i + 1}",
-                    Description = $"Test RV {i + 1}",
-                    Length = 25 + i
-                };
-                _db.RV.Add(rv);
-                _db.SaveChanges();
-
-                guestList.Add(guestFromDb);
-                rvList.Add(rv);
-            }
-
-            var reservations = new List<Reservation>
-            {
-                new Reservation { GuestId = guestList[0].GuestId, RvId = rvList[0].RvId, LotId = lots[0].Id, StartDate = today.AddDays(2), EndDate = today.AddDays(6), Duration = 4, Status = SD.StatusPending, NumberOfAdults = 2, NumberOfPets = 1 },
-                new Reservation { GuestId = guestList[1].GuestId, RvId = rvList[1].RvId, LotId = lots[1].Id, StartDate = today.AddDays(3), EndDate = today.AddDays(6), Duration = 3, Status = SD.StatusActive, NumberOfAdults = 4, NumberOfPets = 0, OverrideReason = "Admin-approved exception: elderly family" },
-                new Reservation { GuestId = guestList[2].GuestId, RvId = rvList[2].RvId, LotId = lots[2].Id, StartDate = today.AddDays(7), EndDate = today.AddDays(12), Duration = 5, Status = SD.StatusConfirmed, NumberOfAdults = 3, NumberOfPets = 2 },
-                new Reservation { GuestId = guestList[3].GuestId, RvId = rvList[3].RvId, LotId = lots[3].Id, StartDate = today.AddDays(-5), EndDate = today.AddDays(-1), Duration = 4, Status = SD.StatusCompleted, NumberOfAdults = 3, NumberOfPets = 0 },
-                new Reservation { GuestId = guestList[4].GuestId, RvId = rvList[4].RvId, LotId = lots[4].Id, StartDate = today.AddDays(1), EndDate = today.AddDays(4), Duration = 3, Status = SD.StatusCancelled, NumberOfAdults = 5, NumberOfPets = 1, OverrideReason= "Medical emergency" }
-            };
-            _db.Reservation.AddRange(reservations);
+                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
+                new FeeType { FeeTypeName = "Extra Adults Fee", Description = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
+                new FeeType { FeeTypeName = "Pet Cleanup Violation", Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
+            });
             _db.SaveChanges();
 
-            // Trigger a general cleanup fee (e.g. for site condition)
-            var cleanupFeeType = _db.FeeType.FirstOrDefault(f =>
-                f.FeeTypeName.Contains("Cleanup") &&
-                f.FeeTypeName != "Pet Cleanup" &&
-                f.TriggerType == TriggerType.Triggered &&
-                !f.IsArchived);
+            var identityUser = new IdentityUser { UserName = "jessica.wells@rv.com", Email = "jessica.wells@rv.com", EmailConfirmed = true };
+            var userResult = _userManager.CreateAsync(identityUser, "Guest123!").GetAwaiter().GetResult();
+            _userManager.AddToRoleAsync(identityUser, SD.GuestRole).GetAwaiter().GetResult();
 
-            if (cleanupFeeType != null && reservations.Any())
+            var guestUser = new User { FirstName = "Jessica", LastName = "Wells", Email = "jessica.wells@rv.com", Phone = "555-0102", IdentityUserId = identityUser.Id, IsActive = true };
+            _db.User.Add(guestUser);
+            _db.SaveChanges();
+
+            var guest = new Guest { UserId = guestUser.UserId, DodId = 8723 };
+            _db.Guest.Add(guest);
+            _db.SaveChanges();
+
+            var rv = new Rv
             {
-                var cleanupFee = new Fee
-                {
-                    FeeTypeId = cleanupFeeType.Id,
-                    FeeTotal = 25.00M, // <-- replace with actual logic or policy if needed
-                    AppliedDate = DateTime.UtcNow,
-                    Notes = "Auto-triggered cleanup fee on reservation creation.",
-                    ReservationId = reservations[0].ReservationId,
-                    TriggerType = TriggerType.Triggered
-                };
+                GuestId = guest.GuestId,
+                LicensePlate = "NEV-4527",
+                Make = "Forest River",
+                Model = "Wildwood X-Lite",
+                Description = "2021 travel trailer with queen bed and bunks",
+                Length = 32
+            };
+            _db.RV.Add(rv);
+            _db.SaveChanges();
 
-                _db.Fee.Add(cleanupFee);
-                _db.SaveChanges();
-            }
 
-            // Trigger a specific Pet Cleanup fee
-            var petCleanupFeeType = _db.FeeType.FirstOrDefault(f =>
-                f.FeeTypeName.Contains("Pet Cleanup") &&
-                f.TriggerType == TriggerType.Triggered &&
-                !f.IsArchived);
-
-            if (petCleanupFeeType != null && reservations.Any())
+            var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
+            var reservations = new List<Reservation>();
+            for (int i = 0; i < 12; i++)
             {
-                var petFee = new Fee
+                reservations.Add(new Reservation
                 {
-                    FeeTypeId = petCleanupFeeType.Id,
-                    FeeTotal = 40.00M, // <-- hardcoded or defined per policy
-                    AppliedDate = DateTime.UtcNow,
-                    Notes = "Triggered pet cleanup violation.",
-                    ReservationId = reservations[0].ReservationId,
-                    TriggerType = TriggerType.Triggered
-                };
-
-                _db.Fee.Add(petFee);
-                _db.SaveChanges();
+                    GuestId = guest.GuestId,
+                    RvId = rv.RvId,
+                    LotId = lots[i % lots.Count].Id,
+                    StartDate = today.AddDays(-10 + i),
+                    EndDate = today.AddDays(-10 + i + 3),
+                    Duration = 3,
+                    Status = statuses[i % statuses.Length],
+                    NumberOfAdults = 2 + (i % 4),
+                    NumberOfPets = i % 2,
+                    CancellationReason = i % 5 == 0 ? "Weather" : null,
+                    OverrideReason = i % 4 == 0 ? "Test override" : null
+                });
             }
-
+            _db.Reservation.AddRange(reservations);
+            _db.SaveChanges();
         }
     }
 }
