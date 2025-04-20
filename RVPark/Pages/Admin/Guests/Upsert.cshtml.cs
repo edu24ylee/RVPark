@@ -59,7 +59,10 @@ namespace RVPark.Pages.Admin.Guests
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
+            {
+                ReturnUrl ??= Request.Query["returnUrl"];
                 return Page();
+            }
 
             bool hasAllDodInfo =
                 !string.IsNullOrWhiteSpace(GuestVM.DodBranch) &&
@@ -69,6 +72,7 @@ namespace RVPark.Pages.Admin.Guests
 
             if (GuestVM.GuestId == 0)
             {
+                // === CREATE IDENTITY USER ===
                 var identityUser = new IdentityUser
                 {
                     UserName = GuestVM.Email,
@@ -86,6 +90,7 @@ namespace RVPark.Pages.Admin.Guests
 
                 await _userManager.AddToRoleAsync(identityUser, SD.GuestRole);
 
+                // === CREATE CUSTOM USER ===
                 var user = new User
                 {
                     FirstName = GuestVM.FirstName.Trim(),
@@ -99,6 +104,7 @@ namespace RVPark.Pages.Admin.Guests
                 _unitOfWork.User.Add(user);
                 await _unitOfWork.CommitAsync();
 
+                // === CREATE GUEST ===
                 var guest = new Guest
                 {
                     UserId = user.UserId,
@@ -108,6 +114,7 @@ namespace RVPark.Pages.Admin.Guests
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
 
+                // === OPTIONAL DOD AFFILIATION ===
                 if (hasAllDodInfo)
                 {
                     _unitOfWork.DodAffiliation.Add(new DodAffiliation
@@ -119,26 +126,18 @@ namespace RVPark.Pages.Admin.Guests
                     });
                 }
 
-                var rv = new Rv
-                {
-                    GuestId = guest.GuestId,
-                    Length = 0,
-                    Make = "Unknown",
-                    Model = "Unknown",
-                    LicensePlate = "TEMP",
-                    Description = "Auto-created"
-                };
-                _unitOfWork.Rv.Add(rv);
-
                 await _unitOfWork.CommitAsync();
 
-                if (!string.IsNullOrEmpty(ReturnUrl))
+                // === REDIRECT TO RV CREATION PAGE ===
+                return RedirectToPage("/Admin/RVs/Edit", new
                 {
-                    return Redirect($"{ReturnUrl}?GuestId={guest.GuestId}&RvId={rv.RvId}");
-                }
+                    guestId = guest.GuestId,
+                    returnUrl = ReturnUrl
+                });
             }
             else
             {
+                // === UPDATE EXISTING GUEST ===
                 var existingGuest = _unitOfWork.Guest.Get(g => g.GuestId == GuestVM.GuestId, includes: "User,DodAffiliation");
                 if (existingGuest == null || existingGuest.User == null)
                     return NotFound();
@@ -179,9 +178,9 @@ namespace RVPark.Pages.Admin.Guests
                 _unitOfWork.User.Update(existingGuest.User);
                 _unitOfWork.Guest.Update(existingGuest);
                 await _unitOfWork.CommitAsync();
-            }
 
-            return RedirectToPage("Index");
+                return RedirectToPage("Index");
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class CleanSync : Migration
+    public partial class cleanSynce : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -72,8 +72,7 @@ namespace Infrastructure.Migrations
                     Policy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     TriggerRuleJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsArchived = table.Column<bool>(type: "bit", nullable: false),
-                    DefaultFeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    IsArchived = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,6 +87,25 @@ namespace Infrastructure.Migrations
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CollectedRevenue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     AnticipatedRevenue = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GuestViewModel",
+                columns: table => new
+                {
+                    GuestId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodId = table.Column<int>(type: "int", nullable: true),
+                    DodBranch = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DodRank = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -475,6 +493,7 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeId = table.Column<int>(type: "int", nullable: false),
                     FeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FeeLabel = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AppliedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
@@ -730,6 +749,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "FinancialReport");
+
+            migrationBuilder.DropTable(
+                name: "GuestViewModel");
 
             migrationBuilder.DropTable(
                 name: "Payment");

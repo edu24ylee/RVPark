@@ -85,7 +85,7 @@
                 {
                     <div class="form-check mt-3">
                         <input class="form-check-input" type="checkbox" id="toggleManualFees" />
-                        <label class="form-check-label" for="toggleManualFees">Add Fees</label>
+                        <label class="form-check-label" for="toggleManualFees">Add Manual Fees</label>
                     </div>
 
                     <div id="manualFeeTableContainer" style="display: none;">
@@ -100,28 +100,27 @@
                                         <td>
                                             <input type="checkbox"
                                                    name="SelectedManualFees"
-                                                   value="@fee.Id"
-                                                   data-amount="@fee.FeeTotal.ToString("F2")" />
-                                            <p class="text-muted">Manual fees loaded: @Model.ViewModel.ManualFeeOptions?.Count</p>
-
+                                                   value="@fee.FeeId"
+                                                   data-amount="@fee.FeeTotal"
+                                            @(fee.IsSelected ? "checked" : "") />
                                         </td>
                                     </tr>
                                 }
-
                             </tbody>
                         </table>
                     </div>
                 }
 
-                <div class="mt-4">
-                    <p><strong>Original Base Total:</strong> $<span id="originalTotalText">@Model.ViewModel.OriginalTotal.ToString("F2")</span></p>
-                    <p><strong>New Base Total:</strong> $<span id="baseTotalText">0.00</span></p>
-                    <p><strong>Manual Fees:</strong> $<span id="manualFeeText">0.00</span></p>
-                    <p><strong>Tax (8.25%):</strong> $<span id="taxAmountText">0.00</span></p>
-                    <p><strong>Total:</strong> $<span id="grandTotalText">0.00</span></p>
-                    <p><strong>Amount Paid:</strong> $<span id="amountPaidText">@Model.ViewModel.Reservation.AmountPaid.ToString("F2")</span></p>
-                    <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">@((Model.ViewModel.Reservation.TotalDue - Model.ViewModel.Reservation.AmountPaid).ToString("F2"))</span></p>
-                </div>
+                    <div class="mt-4">
+                        <p><strong>Original Base Total:</strong> $<span id="originalTotalText">@Model.ViewModel.OriginalTotal.ToString("F2")</span></p>
+                        <p><strong>New Base Total:</strong> $<span id="baseTotalText">0.00</span></p>
+                        <p><strong>Manual Fees:</strong> $<span id="manualFeeText">0.00</span></p>
+                        <p><strong>Tax (8.25%):</strong> $<span id="taxAmountText">0.00</span></p>
+                        <p><strong>Total:</strong> $<span id="grandTotalText">0.00</span></p>
+                        <p><strong>Amount Paid:</strong> $<span id="amountPaidText">@Model.ViewModel.Reservation.AmountPaid.ToString("F2")</span></p>
+                        <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">@((Model.ViewModel.Reservation.TotalDue - Model.ViewModel.Reservation.AmountPaid).ToString("F2"))</span></p>
+                    </div>
+                 }
 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" name="action" value="save" class="btn btn-custom-blue">
@@ -196,5 +195,14 @@
                 });
             }
         });
+          function getManualFeeTotal() {
+            let total = 0;
+            $('input[name="SelectedManualFees"]:checked').each(function () {
+                const amount = parseFloat($(this).data('amount'));
+                if (!isNaN(amount)) total += amount;
+            });
+            return total;
+        }
+
     </script>
 }

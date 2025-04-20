@@ -72,21 +72,23 @@ function loadReservations() {
                 }
             },
             {
-                data: "totalDue",
-                render: b => `$${(parseFloat(b) || 0).toFixed(2)}`
+                data: "remainingBalance", // ✅ Display remaining balance
+                render: b => {
+                    const num = parseFloat(b);
+                    return isNaN(num) ? "$0.00" : `$${num.toFixed(2)}`;
+                }
             },
             {
                 data: null,
                 orderable: false,
                 render: function (data, type, row) {
                     const id = row.reservationId;
-                    const balance = parseFloat(row.totalDue || 0);
+                    const balance = parseFloat(row.remainingBalance || 0); // ✅ Use remainingBalance
                     const edit = `<a href="/Admin/Reservations/Update/${id}" class="btn btn-sm btn-custom-blue text-white"><i class="fas fa-edit"></i> Edit</a>`;
                     const pay = balance > 0 ? `<a href="/Admin/Reservations/Payment/${id}" class="btn btn-sm btn-success text-white"><i class="fas fa-dollar-sign"></i> Pay</a>` : '';
                     return `<div class="d-flex gap-1 justify-content-center">${edit}${pay}</div>`;
                 }
             }
-
         ],
         initComplete: function () {
             this.api().columns().every(function (index) {
@@ -98,7 +100,7 @@ function loadReservations() {
 
             $.fn.dataTable.ext.search.push(function (settings, data) {
                 const balanceFilter = $('#balanceFilter').val();
-                const balanceText = data[8].replace('$', '').trim();
+                const balanceText = data[8].replace('$', '').trim(); 
                 const balance = parseFloat(balanceText) || 0;
                 if (balanceFilter === "has" && balance <= 0) return false;
                 if (balanceFilter === "none" && balance > 0) return false;

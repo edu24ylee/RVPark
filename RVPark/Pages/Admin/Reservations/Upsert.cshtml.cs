@@ -55,24 +55,25 @@ namespace RVPark.Pages.Admin.Reservations
                 GuestLastName = Reservation.Guest?.User.LastName ?? string.Empty;
                 Length = Reservation.Rv?.Length ?? 0;
             }
-            else if (guestId.HasValue && rvId.HasValue)
+            else if (guestId.HasValue)
             {
-                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == guestId.Value, includes: "User");
-                var rv = await _unitOfWork.Rv.GetAsync(r => r.RvId == rvId.Value);
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == guestId.Value, includes: "User,Rvs");
+                var rv = rvId.HasValue
+                    ? await _unitOfWork.Rv.GetAsync(r => r.RvId == rvId.Value)
+                    : guest?.Rvs?.FirstOrDefault();
 
                 if (guest != null && guest.User != null)
                 {
                     Reservation.GuestId = guest.GuestId;
-                    Reservation.RvId = rvId.Value;
+                    Reservation.RvId = rv?.RvId ?? 0;
                     SelectedGuestId = guest.GuestId;
                     GuestFirstName = guest.User.FirstName;
                     GuestLastName = guest.User.LastName;
                     Length = rv?.Length ?? 0;
                 }
 
-                var today = DateTime.UtcNow.Date;
-                Reservation.StartDate = today;
-                Reservation.EndDate = today.AddDays(1);
+                Reservation.StartDate = DateTime.UtcNow.Date;
+                Reservation.EndDate = Reservation.StartDate.AddDays(1);
                 Reservation.Duration = 1;
                 Reservation.Status = "Pending";
                 Reservation.NumberOfAdults = 1;
@@ -80,11 +81,10 @@ namespace RVPark.Pages.Admin.Reservations
             }
             else
             {
-                var today = DateTime.UtcNow.Date;
                 Reservation = new Reservation
                 {
-                    StartDate = today,
-                    EndDate = today.AddDays(1),
+                    StartDate = DateTime.UtcNow.Date,
+                    EndDate = DateTime.UtcNow.Date.AddDays(1),
                     Duration = 1,
                     Status = "Pending",
                     NumberOfAdults = 1,
@@ -109,12 +109,9 @@ namespace RVPark.Pages.Admin.Reservations
                 return await OnGetAsync(Reservation.ReservationId == 0 ? null : Reservation.ReservationId);
             }
 
-            Guest? guest;
-            Rv? rv;
-
             if (SelectedGuestId.HasValue)
             {
-                guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == SelectedGuestId.Value, includes: "User,RVs");
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == SelectedGuestId.Value, includes: "User");
 
                 if (guest == null)
                 {
@@ -122,24 +119,8 @@ namespace RVPark.Pages.Admin.Reservations
                     return await OnGetAsync(null);
                 }
 
-                rv = guest.Rvs?.FirstOrDefault();
-                if (rv == null)
-                {
-                    rv = new Rv
-                    {
-                        GuestId = guest.GuestId,
-                        Length = (int)Length,
-                        Make = "Unknown",
-                        Model = "Unknown",
-                        LicensePlate = "TEMP",
-                        Description = "Auto-created during reservation"
-                    };
-                    _unitOfWork.Rv.Add(rv);
-                    await _unitOfWork.CommitAsync();
-                }
-
                 Reservation.GuestId = guest.GuestId;
-                Reservation.RvId = rv.RvId;
+                Reservation.RvId = 0; // Don't rely on RV existence
             }
             else
             {
@@ -152,24 +133,12 @@ namespace RVPark.Pages.Admin.Reservations
                     IsActive = true
                 };
 
-                guest = new Guest { User = user };
+                var guest = new Guest { User = user };
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
 
-                rv = new Rv
-                {
-                    GuestId = guest.GuestId,
-                    Length = (int)Length,
-                    Make = "Unknown",
-                    Model = "Unknown",
-                    LicensePlate = "TEMP",
-                    Description = "User Provided"
-                };
-                _unitOfWork.Rv.Add(rv);
-                await _unitOfWork.CommitAsync();
-
                 Reservation.GuestId = guest.GuestId;
-                Reservation.RvId = rv.RvId;
+                Reservation.RvId = 0;
             }
 
             var allLots = await _unitOfWork.Lot.GetAllAsync(l => l.IsAvailable && !l.IsArchived);
@@ -201,7 +170,6 @@ namespace RVPark.Pages.Admin.Reservations
                 }
             }
 
-            // Calculate base total
             var selectedLot = await _unitOfWork.Lot.GetAsync(l => l.Id == Reservation.LotId, includes: "LotType");
             var rate = selectedLot?.LotType?.Rate ?? 0;
             Reservation.BaseTotal = (decimal)(rate * Reservation.Duration);

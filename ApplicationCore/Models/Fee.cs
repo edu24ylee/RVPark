@@ -31,8 +31,10 @@ namespace ApplicationCore.Models
 
     public class ManualFeeOptionViewModel
     {
-        public int Id { get; set; }
-        public string FeeTypeName { get; set; }
+        public int FeeId { get; set; }
+        public string FeeTypeName { get; set; } = string.Empty;
         public decimal FeeTotal { get; set; }
+        public bool IsSelected { get; set; } = false; 
     }
+
 }

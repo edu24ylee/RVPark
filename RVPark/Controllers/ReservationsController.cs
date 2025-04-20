@@ -1,8 +1,7 @@
 ﻿using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
-using Microsoft.AspNetCore.Mvc;
 using Infrastructure.Data;
-using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using static ApplicationCore.Models.Reservation;
 
 namespace RVPark.Controllers
@@ -25,49 +24,41 @@ namespace RVPark.Controllers
                 includes: "Guest.User,Rv,Lot.LotType");
 
             if (filter == "active")
-            { 
+            {
                 reservations = reservations
                     .Where(r => r.Status != "Completed" && r.Status != "Cancelled")
                     .ToList();
             }
 
-            var result = reservations.Select(r =>
+            var result = reservations.Select(r => new
             {
-                decimal totalDue = r.TotalDue;
-                decimal amountPaid = r.AmountPaid;
-                decimal outstanding = Math.Max(0, totalDue - amountPaid);
-
-                return new
+                reservationId = r.ReservationId,
+                guest = new
                 {
-                    reservationId = r.ReservationId,
-                    guest = new
+                    user = new
                     {
-                        user = new
-                        {
-                            firstName = r.Guest?.User?.FirstName ?? "",
-                            lastName = r.Guest?.User?.LastName ?? ""
-                        }
-                    },
-                    rv = new
-                    {
-                        licensePlate = r.Rv?.LicensePlate ?? ""
-                    },
-                    lot = new
-                    {
-                        location = r.Lot?.Location ?? ""
-                    },
-                    startDate = r.StartDate,
-                    endDate = r.EndDate,
-                    status = r.Status,
-                    totalDue = totalDue,
-                    amountPaid = amountPaid,
-                    outstandingBalance = outstanding
-                };
+                        firstName = r.Guest?.User?.FirstName ?? "",
+                        lastName = r.Guest?.User?.LastName ?? ""
+                    }
+                },
+                rv = new
+                {
+                    licensePlate = r.Rv?.LicensePlate ?? ""
+                },
+                lot = new
+                {
+                    location = r.Lot?.Location ?? ""
+                },
+                startDate = r.StartDate,
+                endDate = r.EndDate,
+                status = r.Status,
+                totalDue = r.TotalDue,
+                amountPaid = r.AmountPaid,
+                remainingBalance = r.RemainingBalance
             }).ToList();
 
             return Json(new { data = result });
         }
-
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation([FromBody] Reservation reservation)
@@ -98,7 +89,9 @@ namespace RVPark.Controllers
         [HttpPost("cancel/{id}")]
         public async Task<IActionResult> CancelReservation(int id, [FromBody] CancelRequestModel cancelRequest)
         {
-            var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id, includes: "Lot.LotType,Guest.Reservations");
+            var reservation = await _unitOfWork.Reservation.GetAsync(
+                r => r.ReservationId == id, includes: "Lot.LotType,Guest.Reservations");
+
             if (reservation == null)
                 return Json(new { success = false, message = "Reservation not found." });
 
@@ -107,13 +100,21 @@ namespace RVPark.Controllers
 
             decimal rate = (decimal)(reservation.Lot?.LotType?.Rate ?? 0);
             reservation.Duration = 1;
-            decimal cancellationFee = 0m;
-
             var hoursBeforeStart = (reservation.StartDate - DateTime.UtcNow).TotalHours;
             bool within24Hours = hoursBeforeStart <= 24;
 
-            int feePercent = cancelRequest.Override ? (cancelRequest.Percent ?? 0) : (within24Hours ? 100 : 0);
-            cancellationFee = Math.Round(rate * feePercent / 100m, 2);
+            int feePercent = 0;
+            if (cancelRequest.Override)
+            {
+                feePercent = cancelRequest.Percent ?? 0;
+            }
+            else if (within24Hours)
+            {
+                feePercent = 100;
+            }
+
+
+            decimal cancellationFee = Math.Round(rate * feePercent / 100m, 2);
 
             var existing = await _unitOfWork.Fee.GetAsync(f =>
                 f.ReservationId == reservation.ReservationId &&
@@ -162,13 +163,13 @@ namespace RVPark.Controllers
             return Json(new { success = true, message = "Reservation cancelled successfully." });
         }
 
+
         public class CancelRequestModel
         {
             public bool Override { get; set; }
             public int? Percent { get; set; }
             public string? Reason { get; set; }
         }
-
 
         [HttpGet("guest/{guestId}")]
         public async Task<IActionResult> GetGuestReservations(int guestId)
@@ -217,6 +218,7 @@ namespace RVPark.Controllers
 
             return Json(new { success = true, data = availableLots });
         }
+
         [HttpPost("status/{id}")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateRequest request)
         {
@@ -233,11 +235,11 @@ namespace RVPark.Controllers
 
             return Json(new { success = true });
         }
+
         [HttpGet("guest/{guestId}/rv")]
         public async Task<IActionResult> GetGuestRv(int guestId)
         {
-            var guest = await _unitOfWork.Guest
-                .GetAsync(g => g.GuestId == guestId, includes: "Rvs");
+            var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == guestId, includes: "Rvs");
 
             var rv = guest?.Rvs?.FirstOrDefault();
             if (rv == null)
@@ -250,18 +252,9 @@ namespace RVPark.Controllers
             });
         }
 
-
-
         public class StatusUpdateRequest
         {
             public string Status { get; set; } = null!;
         }
-
-    }
-    public class CancellationRequest
-    {
-        public bool Override { get; set; }
-        public int Percent { get; set; } = 100;
-        public string? Reason { get; set; }
     }
 }

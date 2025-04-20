@@ -46,6 +46,9 @@ namespace ApplicationCore.Models
 
 
         public int LotTypeId { get; set; }
+        [NotMapped]
+        public decimal RemainingBalance => TotalDue - AmountPaid;
+
 
         public decimal CalculateBalanceDifference(DateTime newStartDate, DateTime newEndDate, decimal ratePerDay)
         {

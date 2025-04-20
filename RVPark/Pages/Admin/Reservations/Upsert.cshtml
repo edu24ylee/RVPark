@@ -20,26 +20,34 @@
                             <option disabled selected value="">-- Search or select guest --</option>
                             @foreach (var guest in Model.GuestOptions)
                             {
-                                var selectedAttr = Model.SelectedGuestId?.ToString() == guest.Value ? "selected" : "";
-                                <option value="@guest.Value" selected="@selectedAttr">@guest.Text</option>
+                                <option value="@guest.Value" selected="@(Model.SelectedGuestId?.ToString() == guest.Value)">
+                                    @guest.Text
+                                </option>
                             }
                         </select>
-                        <a href="/Admin/Guests/Upsert" class="btn btn-outline-primary" target="_blank">
+                        <a href="/Admin/Guests/Upsert?returnUrl=/Admin/Reservations/Upsert"
+                           id="newGuestBtn"
+                           class="btn btn-outline-primary" target="_blank">
                             <i class="fas fa-user-plus"></i> New Guest
                         </a>
                     </div>
                 </div>
 
- 
                 <div class="mb-3">
                     <label class="form-label fw-bold">RV Length</label>
                     <div class="input-group">
-                        <input type="text" id="Rv_Length" class="form-control text-center" value="@Model.Length" readonly />
-                        <a id="rvEditLink" asp-page="/Admin/RVs/Edit" asp-route-id="@Model.Reservation.RvId" class="btn btn-custom-blue">
+                        <input type="number" id="Rv_Length" name="Length" class="form-control text-center" value="@Model.Length" />
+                        <a id="rvEditLink"
+                           asp-page="/Admin/RVs/Edit"
+                           asp-route-id="@Model.Reservation.RvId"
+                           asp-route-returnUrl="/Admin/Reservations/Upsert"
+                           class="btn btn-custom-blue @(Model.Reservation.RvId == 0 ? "disabled" : "")">
                             <i class="fas fa-edit"></i> Edit
                         </a>
+
                     </div>
                 </div>
+
 
                 <div class="row mb-3">
                     <div class="col">
@@ -62,7 +70,6 @@
                         <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
                     </div>
                 </div>
-
 
                 <div class="mb-3">
                     <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration (Days)</label>
@@ -173,7 +180,7 @@
                 .then(res => res.json())
                 .then(data => {
                     $('#Rv_Length').val(data.length || '');
-                    $('#rvEditLink').attr('href', `/Admin/RVs/Edit?id=${data.rvId}`);
+                    $('#rvEditLink').attr('href', `/Admin/RVs/Edit/${data.rvId}?returnUrl=/Admin/Reservations/Upsert`);
                     $('[name="Reservation.RvId"]').val(data.rvId);
                     $('[name="Reservation.GuestId"]').val(guestId);
                 })
@@ -183,5 +190,43 @@
                     $('#rvEditLink').attr('href', '#');
                 });
         }
+
+        if (window.opener && window.location.href.includes("guestId")) {
+            window.opener.location.href = window.location.href;
+            window.close();
+        }
+                function loadManualFees() {
+            fetch('/api/fees/manual')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('manualFeeTableBody');
+                    tbody.innerHTML = '';
+
+                    data.forEach(fee => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${fee.feeTypeName}</td>
+                            <td>$${parseFloat(fee.feeTotal).toFixed(2)}</td>
+                            <td>
+                                <input type="checkbox" name="SelectedManualFees" value="${fee.id}" data-amount="${fee.feeTotal}" />
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => {
+                    console.error("Failed to load manual fees:", err);
+                });
+        }
+
+        document.getElementById('toggleManualFees')?.addEventListener('change', function () {
+            const container = document.getElementById('manualFeeTableContainer');
+            if (this.checked) {
+                loadManualFees();
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        });
     </script>
 }

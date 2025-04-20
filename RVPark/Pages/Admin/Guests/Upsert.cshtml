@@ -125,5 +125,14 @@
 </div>
 
 @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnUrl = urlParams.get("returnUrl");
+
+        if (window.opener && returnUrl && window.location.href.includes("guestId")) {
+            window.opener.location.href = window.location.href;
+            window.close();
+        }
+    </script>
 }
