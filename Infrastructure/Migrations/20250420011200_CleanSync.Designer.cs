@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250419204823_ModelUpdateReservations")]
-    partial class ModelUpdateReservations
+    [Migration("20250420011200_CleanSync")]
+    partial class CleanSync
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -118,22 +118,22 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PolicyId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ReservationId")
                         .HasColumnType("int");
 
                     b.Property<int>("TriggerType")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TriggeringPolicyId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("FeeTypeId");
 
-                    b.HasIndex("ReservationId");
+                    b.HasIndex("PolicyId");
 
-                    b.HasIndex("TriggeringPolicyId");
+                    b.HasIndex("ReservationId");
 
                     b.ToTable("Fee");
                 });
@@ -146,8 +146,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal?>("DefaultFeeTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("FeeTypeName")
                         .IsRequired()
@@ -155,6 +155,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Policy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TriggerRuleJson")
                         .HasColumnType("nvarchar(max)");
@@ -405,6 +408,9 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("BaseTotal")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime?>("CancellationDate")
                         .HasColumnType("datetime2");
 
@@ -426,14 +432,14 @@ namespace Infrastructure.Migrations
                     b.Property<int>("LotTypeId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ManualFeeTotal")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("NumberOfAdults")
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfPets")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("OutstandingBalance")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("OverrideReason")
                         .HasColumnType("nvarchar(max)");
@@ -446,6 +452,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TaxTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalDue")
                         .HasColumnType("decimal(18,2)");
@@ -852,19 +861,17 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApplicationCore.Models.Policy", null)
+                        .WithMany("Fees")
+                        .HasForeignKey("PolicyId");
+
                     b.HasOne("ApplicationCore.Models.Reservation", "Reservation")
                         .WithMany()
                         .HasForeignKey("ReservationId");
 
-                    b.HasOne("ApplicationCore.Models.Policy", "TriggeringPolicy")
-                        .WithMany("Fees")
-                        .HasForeignKey("TriggeringPolicyId");
-
                     b.Navigation("FeeType");
 
                     b.Navigation("Reservation");
-
-                    b.Navigation("TriggeringPolicy");
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Guest", b =>

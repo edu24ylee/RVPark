@@ -110,9 +110,9 @@ namespace Infrastructure
 
             var feeTypes = new List<FeeType>
             {
-                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Description = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
-                new FeeType { FeeTypeName = "Extra Adults Fee", Description = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
-                new FeeType { FeeTypeName = "Pet Cleanup Violation", Description = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
+                new FeeType { FeeTypeName = "24 Hour Cancellation Fee", Policy = "Triggered if within 24 hrs", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"HoursBefore\":24,\"PenaltyPercent\":100}" },
+                new FeeType { FeeTypeName = "Extra Adults Fee", Policy = "Triggered per adult over 3", TriggerType = TriggerType.Triggered, TriggerRuleJson = "{\"Threshold\":3,\"Fee\":1.0}" },
+                new FeeType { FeeTypeName = "Pet Cleanup Violation", Policy = "Manual fee for uncleaned pet waste", TriggerType = TriggerType.Manual }
             };
             _db.FeeType.AddRange(feeTypes);
             _db.SaveChanges();
@@ -207,40 +207,43 @@ namespace Infrastructure
             _db.Reservation.AddRange(reservations);
             _db.SaveChanges();
 
-            var cleanupPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Cleanup"));
-            if (cleanupPolicy != null)
+            var cleanupFeeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Cleanup") && f.TriggerType == TriggerType.Triggered);
+
+            if (cleanupFeeType != null)
             {
                 var fee = new Fee
                 {
-                    FeeTypeId = feeTypes.First().Id,
-                    TriggeringPolicyId = cleanupPolicy.Id,
-                    FeeTotal = 25.0M,
+                    FeeTypeId = cleanupFeeType.Id,
+                    FeeTotal = cleanupFeeType.DefaultFeeTotal ?? 25.0M, 
                     AppliedDate = DateTime.UtcNow,
                     Notes = "Auto-triggered on creation",
                     ReservationId = reservations[0].ReservationId,
                     TriggerType = TriggerType.Triggered
                 };
+
                 _db.Fee.Add(fee);
                 _db.SaveChanges();
             }
 
-            var triggeredPolicy = _db.Policy.FirstOrDefault(p => p.PolicyName.Contains("Pet Cleanup"));
+
             var feeType = _db.FeeType.FirstOrDefault(f => f.FeeTypeName.Contains("Pet Cleanup"));
-            if (triggeredPolicy != null && feeType != null)
+
+            if (feeType != null)
             {
                 var cleanupFee = new Fee
                 {
                     FeeTypeId = feeType.Id,
-                    TriggeringPolicyId = triggeredPolicy.Id,
-                    FeeTotal = 25.00M,
+                    FeeTotal = feeType.DefaultFeeTotal ?? 25.00M, // fallback if not set
                     AppliedDate = DateTime.UtcNow,
                     Notes = "Pet cleanup violation",
                     ReservationId = reservations[0].ReservationId,
                     TriggerType = TriggerType.Triggered
                 };
+
                 _db.Fee.Add(cleanupFee);
                 _db.SaveChanges();
             }
+
         }
     }
 }

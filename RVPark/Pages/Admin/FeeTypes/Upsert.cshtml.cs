@@ -21,7 +21,7 @@ namespace RVPark.Pages.Admin.FeeTypes
         {
             if (id == null || id == 0)
             {
-                FeeTypeObject = new FeeType(); 
+                FeeTypeObject = new FeeType();
             }
             else
             {
@@ -36,9 +36,7 @@ namespace RVPark.Pages.Admin.FeeTypes
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             if (FeeTypeObject.Id == 0)
             {

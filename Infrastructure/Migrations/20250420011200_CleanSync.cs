@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ModelUpdateReservations : Migration
+    public partial class CleanSync : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -69,10 +69,11 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Policy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     TriggerRuleJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsArchived = table.Column<bool>(type: "bit", nullable: false)
+                    IsArchived = table.Column<bool>(type: "bit", nullable: false),
+                    DefaultFeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -432,7 +433,9 @@ namespace Infrastructure.Migrations
                     NumberOfPets = table.Column<int>(type: "int", nullable: false),
                     TotalDue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     AmountPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    OutstandingBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BaseTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ManualFeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TaxTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     LotTypeId = table.Column<int>(type: "int", nullable: false),
                     LotId1 = table.Column<int>(type: "int", nullable: true)
                 },
@@ -471,13 +474,13 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeTypeId = table.Column<int>(type: "int", nullable: false),
-                    TriggeringPolicyId = table.Column<int>(type: "int", nullable: true),
                     FeeTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AppliedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TriggerType = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "bit", nullable: false),
-                    ReservationId = table.Column<int>(type: "int", nullable: true)
+                    ReservationId = table.Column<int>(type: "int", nullable: true),
+                    PolicyId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -489,8 +492,8 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Fee_Policy_TriggeringPolicyId",
-                        column: x => x.TriggeringPolicyId,
+                        name: "FK_Fee_Policy_PolicyId",
+                        column: x => x.PolicyId,
                         principalTable: "Policy",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -620,14 +623,14 @@ namespace Infrastructure.Migrations
                 column: "FeeTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Fee_PolicyId",
+                table: "Fee",
+                column: "PolicyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Fee_ReservationId",
                 table: "Fee",
                 column: "ReservationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Fee_TriggeringPolicyId",
-                table: "Fee",
-                column: "TriggeringPolicyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Guest_UserId",

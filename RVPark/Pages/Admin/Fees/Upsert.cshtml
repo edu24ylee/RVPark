@@ -16,32 +16,21 @@
                 <!-- Fee Type -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeObject.FeeTypeId"></label>
+                        <label asp-for="FeeObject.FeeTypeId" class="form-label"></label>
                     </div>
                     <div class="col-9">
-                        <select class="form-control" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList" id="FeeTypeDropdown" onchange="handleFeeTypeChange()"></select>
+                        <select class="form-select" asp-for="FeeObject.FeeTypeId" asp-items="Model.FeeTypeList"></select>
                         <span class="text-danger" asp-validation-for="FeeObject.FeeTypeId"></span>
-                    </div>
-                </div>
-
-                <!-- Policy -->
-                <div class="form-group row mb-3" id="policyRow">
-                    <div class="col-3">
-                        <label asp-for="FeeObject.TriggeringPolicyId"></label>
-                    </div>
-                    <div class="col-9">
-                        <select class="form-control" asp-for="FeeObject.TriggeringPolicyId" asp-items="Model.PolicyList"></select>
-                        <span class="text-danger" asp-validation-for="FeeObject.TriggeringPolicyId"></span>
                     </div>
                 </div>
 
                 <!-- Amount -->
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeObject.FeeTotal"></label>
+                        <label asp-for="FeeObject.FeeTotal" class="form-label"></label>
                     </div>
                     <div class="col-9">
-                        <input class="form-control" asp-for="FeeObject.FeeTotal" />
+                        <input asp-for="FeeObject.FeeTotal" class="form-control" />
                         <span class="text-danger" asp-validation-for="FeeObject.FeeTotal"></span>
                     </div>
                 </div>
@@ -69,31 +58,3 @@
         </div>
     </div>
 </form>
-
-@section Scripts {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        const feeTypeTriggerMap = {
-        @foreach (var ft in Model.FeeTypeTriggerTypes)
-        {
-            <text>@ft.FeeTypeId: "@ft.TriggerType",</text>
-        }
-        };
-
-        function handleFeeTypeChange() {
-            const selectedId = parseInt($('#FeeTypeDropdown').val());
-            const triggerType = feeTypeTriggerMap[selectedId];
-
-            if (triggerType === "Triggered") {
-                $('#policyRow').show();
-            } else {
-                $('#policyRow').hide();
-                $('#FeeObject_TriggeringPolicyId').val('');
-            }
-        }
-
-        $(document).ready(function () {
-            handleFeeTypeChange();
-        });
-    </script>
-}

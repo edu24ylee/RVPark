@@ -3,37 +3,40 @@
 $(document).ready(function () {
     loadReservations();
 
-    // Status dropdown filter (top of page)
     $('#statusFilter').on('change', function () {
-        dataTable.ajax.url(`/api/reservation?filter=${this.value}`).load();
+        const filter = this.value;
+        dataTable.ajax.url(`/api/reservation?filter=${filter}`).load();
     });
 
-    // Balance and column filters
     $('#DT_load thead').on('keyup change', '.column-filter', function () {
         dataTable.draw();
     });
 
-    // Status update dropdown in table
-    $(document).on('change', '.status-dropdown', function () {
+    $(document).on('change', '.status-dropdown:not([disabled])', function () {
         const reservationId = $(this).data('id');
         const newStatus = $(this).val();
 
-        $.ajax({
-            url: `/api/reservation/status/${reservationId}`,
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ status: newStatus }),
-            success: response => {
-                if (response.success) {
-                    toastr.success("Status updated.");
-                } else {
-                    toastr.error(response.message || "Status update failed.");
+        if (newStatus === 'Cancelled') {
+            confirmCancel(reservationId);
+        } else {
+            $.ajax({
+                url: `/api/reservation/status/${reservationId}`,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ status: newStatus }),
+                success: response => {
+                    if (response.success) {
+                        toastr.success("Status updated.");
+                        dataTable.ajax.reload();
+                    } else {
+                        toastr.error(response.message || "Status update failed.");
+                    }
+                },
+                error: xhr => {
+                    toastr.error("Error: " + xhr.responseText);
                 }
-            },
-            error: xhr => {
-                toastr.error("Error: " + xhr.responseText);
-            }
-        });
+            });
+        }
     });
 });
 
@@ -61,35 +64,31 @@ function loadReservations() {
             {
                 data: "status",
                 render: (data, type, row) => {
-                    const options = ["Pending", "Confirmed", "CheckedIn", "Completed"]
+                    const disabled = data === "Cancelled" ? "disabled" : "";
+                    const options = ["Pending", "Confirmed", "CheckedIn", "Completed", "Cancelled"]
                         .map(opt => `<option value="${opt}" ${opt === data ? "selected" : ""}>${opt}</option>`)
                         .join('');
-                    return `<select class="form-select form-select-sm status-dropdown" data-id="${row.reservationId}">${options}</select>`;
+                    return `<select class="form-select form-select-sm status-dropdown" data-id="${row.reservationId}" ${disabled}>${options}</select>`;
                 }
             },
             {
-                data: "remainingBalance",
-                render: b => `$${parseFloat(b).toFixed(2)}`
+                data: "totalDue",
+                render: b => `$${(parseFloat(b) || 0).toFixed(2)}`
             },
             {
                 data: null,
                 orderable: false,
                 render: function (data, type, row) {
                     const id = row.reservationId;
-                    const balance = parseFloat(row.remainingBalance || 0);
-
+                    const balance = parseFloat(row.totalDue || 0);
                     const edit = `<a href="/Admin/Reservations/Update/${id}" class="btn btn-sm btn-custom-blue text-white"><i class="fas fa-edit"></i> Edit</a>`;
-                    const pay = balance > 0
-                        ? `<a href="/Admin/Reservations/Payment/${id}" class="btn btn-sm btn-success text-white"><i class="fas fa-dollar-sign"></i> Pay</a>`
-                        : '';
-                    const cancel = `<button onclick="confirmCancel(${id})" class="btn btn-sm btn-danger"><i class="fas fa-ban"></i> Cancel</button>`;
-
-                    return `<div class="d-flex gap-1 justify-content-center">${edit}${pay}${cancel}</div>`;
+                    const pay = balance > 0 ? `<a href="/Admin/Reservations/Payment/${id}" class="btn btn-sm btn-success text-white"><i class="fas fa-dollar-sign"></i> Pay</a>` : '';
+                    return `<div class="d-flex gap-1 justify-content-center">${edit}${pay}</div>`;
                 }
             }
+
         ],
         initComplete: function () {
-            // Custom filters for each column
             this.api().columns().every(function (index) {
                 const column = this;
                 $('input, select', $('#DT_load thead th').eq(index)).on('keyup change', function () {
@@ -97,18 +96,15 @@ function loadReservations() {
                 });
             });
 
-            // Custom balance filter
             $.fn.dataTable.ext.search.push(function (settings, data) {
                 const balanceFilter = $('#balanceFilter').val();
                 const balanceText = data[8].replace('$', '').trim();
                 const balance = parseFloat(balanceText) || 0;
-
                 if (balanceFilter === "has" && balance <= 0) return false;
                 if (balanceFilter === "none" && balance > 0) return false;
                 return true;
             });
 
-            // Trigger redraw when balance filter changes
             $('#balanceFilter').on('change', function () {
                 dataTable.draw();
             });

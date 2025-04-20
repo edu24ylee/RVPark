@@ -1,5 +1,4 @@
-﻿// Fee.cs
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,9 +10,6 @@ namespace ApplicationCore.Models
 
         public int FeeTypeId { get; set; }
         public FeeType? FeeType { get; set; }
-
-        public int? TriggeringPolicyId { get; set; }
-        public Policy? TriggeringPolicy { get; set; }
 
         [Required]
         public decimal FeeTotal { get; set; }
@@ -30,14 +26,12 @@ namespace ApplicationCore.Models
 
         [ForeignKey(nameof(ReservationId))]
         public Reservation? Reservation { get; set; }
-
     }
+
     public class ManualFeeOptionViewModel
     {
         public int Id { get; set; }
         public string FeeTypeName { get; set; }
         public decimal FeeTotal { get; set; }
     }
-
-
 }

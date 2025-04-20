@@ -4,6 +4,7 @@ using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
+using static ApplicationCore.Models.Reservation;
 
 namespace RVPark.Pages.Admin.Reservations
 {
@@ -18,13 +19,14 @@ namespace RVPark.Pages.Admin.Reservations
 
         [BindProperty] public ReservationUpdateModel ViewModel { get; set; } = null!;
         [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
+        [BindProperty(SupportsGet = true)] public int Id { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id, string? returnUrl = null)
         {
             ReturnUrl = returnUrl ?? Url.Page("/Admin/Reservations/Update", new { id });
 
             var reservation = await _unitOfWork.Reservation.GetAsync(
-                r => r.ReservationId == id,
+                r => r.ReservationId == Id,
                 includes: "Guest.User,Rv,Lot.LotType");
 
             if (reservation == null) return NotFound();
@@ -34,16 +36,17 @@ namespace RVPark.Pages.Admin.Reservations
                 l => l.IsAvailable || l.Id == reservation.LotId,
                 includes: "LotType");
 
-            var manualFees = await _unitOfWork.Fee.GetAllAsync(
-                f => f.TriggerType == TriggerType.Manual && !f.IsArchived && f.ReservationId == null,
-                includes: "FeeType");
+            var manualFeeTypes = await _unitOfWork.FeeType.GetAllAsync(
+                f => f.TriggerType == TriggerType.Manual && !f.IsArchived);
 
-            var manualFeeOptions = manualFees.Select(f => new ManualFeeOptionViewModel
+            var manualFeeOptions = manualFeeTypes.Select(ft => new ManualFeeOptionViewModel
             {
-                Id = f.Id,
-                FeeTypeName = f.FeeType?.FeeTypeName ?? "Unnamed",
-                FeeTotal = f.FeeTotal
+                Id = ft.Id,
+                FeeTypeName = ft.FeeTypeName,
+                FeeTotal = ft.DefaultFeeTotal ?? 0m
             }).ToList();
+
+            reservation.Duration = (reservation.EndDate - reservation.StartDate).Days;
 
             ViewModel = new ReservationUpdateModel
             {
@@ -55,7 +58,6 @@ namespace RVPark.Pages.Admin.Reservations
                 OriginalTotal = reservation.CalculateTotal((decimal)(reservation.Lot?.LotType?.Rate ?? 0)),
                 ManualFeeOptions = manualFeeOptions
             };
-
 
             return Page();
         }
@@ -73,29 +75,24 @@ namespace RVPark.Pages.Admin.Reservations
 
             if (action == "confirmCancel")
             {
-                // === CANCELLATION ===
-                var overrideStr = Request.Form["overridePercent"];
                 var reason = Request.Form["cancelOverrideReason"];
                 var overrideChecked = Request.Form["cancelOverride"] == "on";
+                var overrideStr = Request.Form["overridePercent"];
                 int? overridePercent = int.TryParse(overrideStr, out var parsedPercent) ? parsedPercent : null;
 
                 var feeType = await _unitOfWork.FeeType.GetAsync(f =>
                     f.FeeTypeName == "Cancellation Fee" && f.TriggerType == TriggerType.Triggered);
 
                 decimal rate = (decimal)(res.Lot?.LotType?.Rate ?? 0);
-                res.Duration = 1;
                 decimal cancellationFee = 0m;
 
                 var hoursBeforeStart = (res.StartDate - DateTime.UtcNow).TotalHours;
                 bool within24Hours = hoursBeforeStart <= 24;
 
-                if (feeType != null)
+                if (within24Hours && feeType != null)
                 {
-                    int feePercent = overrideChecked
-                        ? overridePercent ?? 0
-                        : (within24Hours ? 100 : 0); // Use default policy if no override
-
-                    cancellationFee = Math.Round(rate * feePercent / 100m, 2);
+                    int feePercent = overrideChecked && overridePercent.HasValue ? overridePercent.Value : 100;
+                    cancellationFee = Math.Round(rate * (feePercent / 100m), 2);
 
                     var existing = await _unitOfWork.Fee.GetAsync(f =>
                         f.ReservationId == res.ReservationId &&
@@ -110,8 +107,8 @@ namespace RVPark.Pages.Admin.Reservations
                             FeeTotal = cancellationFee,
                             ReservationId = res.ReservationId,
                             TriggerType = TriggerType.Triggered,
-                            Notes = $"Cancellation Fee ({feePercent}%) - {reason}",
-                            AppliedDate = DateTime.UtcNow
+                            AppliedDate = DateTime.UtcNow,
+                            Notes = $"Cancellation Fee ({feePercent}%) - {reason}"
                         });
                     }
                 }
@@ -138,6 +135,8 @@ namespace RVPark.Pages.Admin.Reservations
                         .Where(r => r.Status != "Cancelled")
                         .Sum(r => Math.Max(0, r.TotalDue - r.AmountPaid));
 
+
+
                     _unitOfWork.Guest.Update(res.Guest);
                 }
 
@@ -148,7 +147,6 @@ namespace RVPark.Pages.Admin.Reservations
 
             if (action == "save")
             {
-                // === SAVE CHANGES ===
                 var oldLot = await _unitOfWork.Lot.GetAsync(l => l.Id == res.LotId);
                 var rate = (decimal)(res.Lot?.LotType?.Rate ?? 0);
 
@@ -175,24 +173,30 @@ namespace RVPark.Pages.Admin.Reservations
 
                 decimal newBaseTotal = (decimal)(res.Duration * rate);
                 decimal manualFeeTotal = 0m;
-                var role = User.FindFirstValue(ClaimTypes.Role);
 
+                // Collect manual fees (admin/camphost only)
+                var role = User.FindFirstValue(ClaimTypes.Role);
                 if (role == SD.AdminRole || role == SD.SuperAdminRole || role == SD.CampHostRole)
                 {
-                    var selectedFeeIds = Request.Form["SelectedManualFees"];
-
-                    foreach (var feeIdStr in selectedFeeIds)
+                    var selectedFeeTypeIds = Request.Form["SelectedManualFees"];
+                    foreach (var feeTypeIdStr in selectedFeeTypeIds)
                     {
-                        if (int.TryParse(feeIdStr, out int feeId))
+                        if (int.TryParse(feeTypeIdStr, out int feeTypeId))
                         {
-                            var fee = await _unitOfWork.Fee.GetAsync(f => f.Id == feeId);
-                            if (fee != null && fee.ReservationId == null)
+                            var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == feeTypeId);
+                            if (feeType != null)
                             {
-                                fee.ReservationId = res.ReservationId;
-                                fee.AppliedDate = DateTime.UtcNow;
-                                fee.Notes = $"Manual Fee: {fee.FeeType?.FeeTypeName ?? "Unnamed"}";
-                                manualFeeTotal += fee.FeeTotal;
-                                _unitOfWork.Fee.Update(fee);
+                                var newFee = new Fee
+                                {
+                                    FeeTypeId = feeType.Id,
+                                    ReservationId = res.ReservationId,
+                                    FeeTotal = feeType.DefaultFeeTotal ?? 0,
+                                    TriggerType = TriggerType.Manual,
+                                    AppliedDate = DateTime.UtcNow,
+                                    Notes = $"Manual Fee: {feeType.FeeTypeName}"
+                                };
+                                manualFeeTotal += newFee.FeeTotal;
+                                _unitOfWork.Fee.Add(newFee);
                             }
                         }
                     }
@@ -202,20 +206,19 @@ namespace RVPark.Pages.Admin.Reservations
                 decimal taxableAmount = balanceDifference > 0 ? balanceDifference + manualFeeTotal : manualFeeTotal;
                 decimal tax = taxableAmount * 0.0825m;
 
+                res.BaseTotal = newBaseTotal;
+                res.ManualFeeTotal = manualFeeTotal;
+                res.TaxTotal = tax;
                 res.TotalDue = ViewModel.OriginalTotal + balanceDifference + manualFeeTotal + tax;
+                res.TotalDue = Math.Max(0, res.TotalDue - res.AmountPaid);
 
                 _unitOfWork.Reservation.Update(res);
-
-                var guest = await _unitOfWork.Guest.GetAsync(
-                    g => g.GuestId == res.GuestId,
-                    includes: "Reservations");
-
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == res.GuestId, includes: "Reservations");
                 if (guest != null)
                 {
                     guest.Balance = guest.Reservations
                         .Where(r => r.Status != "Cancelled")
                         .Sum(r => Math.Max(0, r.TotalDue - r.AmountPaid));
-
                     _unitOfWork.Guest.Update(guest);
                 }
 
@@ -226,8 +229,6 @@ namespace RVPark.Pages.Admin.Reservations
 
             return RedirectToPage("./Index");
         }
-
-
 
         public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
         {

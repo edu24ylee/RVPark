@@ -39,8 +39,6 @@ namespace ApplicationCore.Models
         public int NumberOfPets { get; set; }
         public decimal TotalDue { get; set; }
         public decimal AmountPaid { get; set; }
-        [NotMapped]
-        public decimal OutstandingBalance { get; set; }
         public decimal BaseTotal { get; set; }
         public decimal ManualFeeTotal { get; set; }
         public decimal TaxTotal { get; set; }

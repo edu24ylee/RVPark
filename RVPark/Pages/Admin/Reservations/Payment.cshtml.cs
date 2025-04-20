@@ -18,7 +18,7 @@ namespace RVPark.Pages.Admin.Reservations
         public int ReservationId { get; set; }
 
         public string GuestFullName { get; set; } = string.Empty;
-        public decimal OutstandingBalance { get; set; }
+        public decimal TotalDue { get; set; }
 
         [BindProperty]
         public decimal AmountPaid { get; set; }
@@ -37,7 +37,7 @@ namespace RVPark.Pages.Admin.Reservations
 
             ReservationId = reservation.ReservationId;
             GuestFullName = $"{reservation.Guest.User.FirstName} {reservation.Guest.User.LastName}";
-            OutstandingBalance = reservation.OutstandingBalance;
+            TotalDue = reservation.TotalDue;
 
             return Page();
         }
@@ -52,7 +52,7 @@ namespace RVPark.Pages.Admin.Reservations
                 return NotFound();
 
             var guest = reservation.Guest;
-            var outstanding = reservation.OutstandingBalance;
+            var outstanding = reservation.TotalDue;
 
             if (AmountPaid <= 0 || AmountPaid > outstanding)
             {

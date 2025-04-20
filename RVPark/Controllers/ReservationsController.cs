@@ -1,6 +1,9 @@
-﻿using ApplicationCore.Models;
-using Infrastructure.Data;
+﻿using ApplicationCore.Interfaces;
+using ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Infrastructure.Data;
+using System.Text.Json;
+using static ApplicationCore.Models.Reservation;
 
 namespace RVPark.Controllers
 {
@@ -19,45 +22,53 @@ namespace RVPark.Controllers
         public async Task<IActionResult> GetAll([FromQuery] string? filter = null)
         {
             var reservations = await _unitOfWork.Reservation.GetAllAsync(
-                includes: "Guest.User,Rv,Lot"
-            );
+                includes: "Guest.User,Rv,Lot.LotType");
 
             if (filter == "active")
             {
+                // Only show active and upcoming reservations
                 reservations = reservations
-                    .Where(r => r.Status != "Cancelled" && r.Status != "Completed")
+                    .Where(r => r.Status != "Completed" && r.Status != "Cancelled")
                     .ToList();
             }
 
-            var result = reservations.Select(r => new
+            var result = reservations.Select(r =>
             {
-                reservationId = r.ReservationId,
-                guest = new
+                decimal totalDue = r.TotalDue;
+                decimal amountPaid = r.AmountPaid;
+                decimal outstanding = Math.Max(0, totalDue - amountPaid);
+
+                return new
                 {
-                    user = new
+                    reservationId = r.ReservationId,
+                    guest = new
                     {
-                        firstName = r.Guest?.User?.FirstName ?? "N/A",
-                        lastName = r.Guest?.User?.LastName ?? "N/A"
-                    }
-                },
-                rv = new
-                {
-                    licensePlate = r.Rv?.LicensePlate ?? "N/A"
-                },
-                lot = new
-                {
-                    location = r.Lot?.Location ?? "N/A"
-                },
-                startDate = r.StartDate,
-                endDate = r.EndDate,
-                status = r.Status,
-                totalDue = r.TotalDue,
-                amountPaid = r.AmountPaid,
-                remainingBalance = r.OutstandingBalance
+                        user = new
+                        {
+                            firstName = r.Guest?.User?.FirstName ?? "",
+                            lastName = r.Guest?.User?.LastName ?? ""
+                        }
+                    },
+                    rv = new
+                    {
+                        licensePlate = r.Rv?.LicensePlate ?? ""
+                    },
+                    lot = new
+                    {
+                        location = r.Lot?.Location ?? ""
+                    },
+                    startDate = r.StartDate,
+                    endDate = r.EndDate,
+                    status = r.Status,
+                    totalDue = totalDue,
+                    amountPaid = amountPaid,
+                    outstandingBalance = outstanding
+                };
             }).ToList();
 
             return Json(new { data = result });
         }
+
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation([FromBody] Reservation reservation)
@@ -85,67 +96,94 @@ namespace RVPark.Controllers
             return Json(new { success = true, data = reservation });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id);
-            if (reservation == null)
-                return Json(new { success = false, message = "Reservation not found." });
-
-            _unitOfWork.Reservation.Delete(reservation);
-            await _unitOfWork.CommitAsync();
-
-            return Json(new { success = true, message = "Reservation deleted successfully." });
-        }
-
         [HttpPost("cancel/{id}")]
-        public async Task<IActionResult> CancelReservation(int id, [FromBody] CancelReservationRequest request)
+        public async Task<IActionResult> CancelReservation(int id, [FromBody] CancellationRequest request)
         {
             var reservation = await _unitOfWork.Reservation.GetAsync(
                 r => r.ReservationId == id,
-                includes: "Lot.LotType"
-            );
+                includes: "Lot.LotType,Guest");
 
             if (reservation == null)
                 return Json(new { success = false, message = "Reservation not found." });
 
+            decimal cancellationFeeAmount = 0m;
+
             var feeType = await _unitOfWork.FeeType.GetAsync(f =>
-                f.FeeTypeName == "Cancellation Fee" &&
-                f.TriggerType == TriggerType.Triggered);
+                f.FeeTypeName == "Cancellation Fee" && f.TriggerType == TriggerType.Triggered);
 
-            decimal rate = (decimal)(reservation.Lot?.LotType?.Rate ?? 0);
-            decimal cancellationFee = 0m;
-
-            var hoursBeforeStart = (reservation.StartDate - DateTime.UtcNow).TotalHours;
-            bool within24Hours = hoursBeforeStart <= 24;
-
-            int feePercent = request.Override
-                ? request.Percent ?? 0
-                : (within24Hours ? 100 : 0);
-
-            cancellationFee = Math.Round(rate * feePercent / 100m, 2);
-
-            if (feeType != null && cancellationFee > 0)
+            if (feeType != null && !string.IsNullOrEmpty(feeType.TriggerRuleJson))
             {
-                _unitOfWork.Fee.Add(new Fee
+                try
                 {
-                    FeeTypeId = feeType.Id,
-                    FeeTotal = cancellationFee,
-                    ReservationId = reservation.ReservationId,
-                    TriggerType = TriggerType.Triggered,
-                    AppliedDate = DateTime.UtcNow,
-                    Notes = $"Cancellation Fee ({feePercent}%) - {request.Reason}"
-                });
+                    var rule = JsonSerializer.Deserialize<CancellationFeeRule>(feeType.TriggerRuleJson);
+                    if (rule != null)
+                    {
+                        var hoursBeforeStart = (reservation.StartDate - DateTime.UtcNow).TotalHours;
+                        var withinThreshold = hoursBeforeStart <= rule.DaysBefore * 24;
+
+                        if (withinThreshold || request.Override)
+                        {
+                            int percent = request.Override ? request.Percent : (int)rule.PenaltyPercent;
+                            decimal rate = (decimal)(reservation.Lot?.LotType?.Rate ?? 0);
+
+                            cancellationFeeAmount = (decimal)(reservation.Duration * rate) * percent / 100m;
+
+                            // Prevent duplicate fee
+                            var existingFee = await _unitOfWork.Fee.GetAsync(f =>
+                                f.ReservationId == reservation.ReservationId &&
+                                f.FeeTypeId == feeType.Id &&
+                                f.TriggerType == TriggerType.Triggered);
+
+                            if (existingFee == null)
+                            {
+                                _unitOfWork.Fee.Add(new Fee
+                                {
+                                    FeeTypeId = feeType.Id,
+                                    FeeTotal = cancellationFeeAmount,
+                                    ReservationId = reservation.ReservationId,
+                                    Notes = $"Cancellation Fee ({percent}%)",
+                                    TriggerType = TriggerType.Triggered
+                                });
+
+                                if (reservation.Guest != null)
+                                {
+                                    reservation.Guest.Balance += cancellationFeeAmount;
+                                    _unitOfWork.Guest.Update(reservation.Guest);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Invalid cancellation fee rule format." });
+                }
             }
 
+            // Release lot
+            var oldLotId = reservation.LotId;
             reservation.Status = "Cancelled";
-            reservation.AmountPaid = 0;
-            reservation.TotalDue = cancellationFee;
-
+            reservation.LotId = null;
             _unitOfWork.Reservation.Update(reservation);
+
+            if (oldLotId.HasValue)
+            {
+                var lot = await _unitOfWork.Lot.GetAsync(l => l.Id == oldLotId.Value);
+                if (lot != null)
+                {
+                    lot.IsAvailable = true;
+                    _unitOfWork.Lot.Update(lot);
+                }
+            }
+
             await _unitOfWork.CommitAsync();
 
-            return Json(new { success = true, message = "Reservation cancelled successfully." });
+            return Json(new
+            {
+                success = true,
+                message = "Reservation cancelled successfully.",
+                cancellationFee = cancellationFeeAmount
+            });
         }
 
         [HttpGet("guest/{guestId}")]
@@ -156,29 +194,72 @@ namespace RVPark.Controllers
         }
 
         [HttpGet("availability/{lotId}")]
-        public async Task<IActionResult> CheckAvailability(int lotId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        [HttpGet("available-lots")]
+        public async Task<IActionResult> GetAvailableLots(
+            int lotTypeId,
+            int trailerLength,
+            DateTime startDate,
+            DateTime endDate,
+            int? lotId = null)
         {
-            var reservations = await _unitOfWork.Reservation.GetAllAsync(r =>
-                r.LotId == lotId && r.StartDate < endDate && r.EndDate > startDate);
+            var overlappingReservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => !(r.EndDate < startDate || r.StartDate > endDate));
 
-            return Json(new { success = true, available = !reservations.Any() });
+            var reservedLotIds = overlappingReservations
+                .Where(r => r.LotId.HasValue)
+                .Select(r => r.LotId.Value)
+                .ToHashSet();
+
+            var allLots = await _unitOfWork.Lot.GetAllAsync(
+                l => l.LotTypeId == lotTypeId &&
+                     l.Length >= trailerLength &&
+                     l.IsAvailable && !l.IsArchived,
+                includes: "LotType");
+
+            if (lotId.HasValue)
+            {
+                bool available = allLots.Any(l => l.Id == lotId.Value && !reservedLotIds.Contains(l.Id));
+                return Json(new { success = true, available });
+            }
+
+            var availableLots = allLots
+                .Where(l => !reservedLotIds.Contains(l.Id))
+                .Select(l => new
+                {
+                    id = l.Id,
+                    location = l.Location,
+                    lotTypeRate = l.LotType?.Rate ?? 0
+                });
+
+            return Json(new { success = true, data = availableLots });
         }
-        [HttpGet("status/{id}")]
-        public async Task<IActionResult> GetStatus(int id)
+        [HttpPost("status/{id}")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateRequest request)
         {
             var reservation = await _unitOfWork.Reservation.GetAsync(r => r.ReservationId == id);
             if (reservation == null)
-                return NotFound();
+                return Json(new { success = false, message = "Reservation not found." });
 
-            return Json(new { status = reservation.Status });
+            if (request.Status == "Cancelled")
+                return Json(new { success = false, message = "Cannot change status to 'Cancelled' here." });
+
+            reservation.Status = request.Status;
+            _unitOfWork.Reservation.Update(reservation);
+            await _unitOfWork.CommitAsync();
+
+            return Json(new { success = true });
+        }
+
+        public class StatusUpdateRequest
+        {
+            public string Status { get; set; } = null!;
         }
 
     }
-
-    public class CancelReservationRequest
+    public class CancellationRequest
     {
         public bool Override { get; set; }
-        public int? Percent { get; set; }
+        public int Percent { get; set; } = 100;
         public string? Reason { get; set; }
     }
 }

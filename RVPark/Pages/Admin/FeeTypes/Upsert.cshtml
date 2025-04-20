@@ -29,12 +29,12 @@
 
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeTypeObject.Description" class="form-label"></label>
+                        <label asp-for="FeeTypeObject.Policy" class="form-label">Policy</label>
                     </div>
                     <div class="col-9">
-                        <textarea asp-for="FeeTypeObject.Description" class="form-control" rows="2"
-                                  placeholder="Optional: Description of the fee type"></textarea>
-                        <span asp-validation-for="FeeTypeObject.Description" class="text-danger"></span>
+                        <textarea asp-for="FeeTypeObject.Policy" class="form-control" rows="2"
+                                  placeholder="Description or enforcement details for this fee."></textarea>
+                        <span asp-validation-for="FeeTypeObject.Policy" class="text-danger"></span>
                     </div>
                 </div>
 
@@ -52,7 +52,17 @@
 
                 <div class="form-group row mb-3">
                     <div class="col-3">
-                        <label asp-for="FeeTypeObject.TriggerRuleJson" class="form-label"></label>
+                        <label asp-for="FeeTypeObject.DefaultFeeTotal" class="form-label">Default Fee Total</label>
+                    </div>
+                    <div class="col-9">
+                        <input asp-for="FeeTypeObject.DefaultFeeTotal" class="form-control" />
+                        <span asp-validation-for="FeeTypeObject.DefaultFeeTotal" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
+                    <div class="col-3">
+                        <label asp-for="FeeTypeObject.TriggerRuleJson" class="form-label">Trigger Rules</label>
                     </div>
                     <div class="col-9">
                         <textarea asp-for="FeeTypeObject.TriggerRuleJson" class="form-control" rows="4"
@@ -84,7 +94,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
 }

@@ -1,7 +1,5 @@
-﻿using Microsoft.Azure.Documents;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ApplicationCore.Models
 {
@@ -12,16 +10,18 @@ namespace ApplicationCore.Models
         [Required]
         public string FeeTypeName { get; set; } = string.Empty;
 
-        public string? Description { get; set; }
+        public string? Policy { get; set; }
 
         public TriggerType TriggerType { get; set; }
 
-        public string? TriggerRuleJson { get; set; } 
+        public string? TriggerRuleJson { get; set; }
+
         public bool IsArchived { get; set; }
+
+        public decimal? DefaultFeeTotal { get; set; } 
 
         public ICollection<Fee>? Fees { get; set; }
     }
-
 
     public enum TriggerType
     {

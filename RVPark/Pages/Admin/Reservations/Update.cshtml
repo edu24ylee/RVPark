@@ -5,7 +5,7 @@
 <form method="post" asp-page="/Admin/Reservations/Update" asp-route-id="@Model.ViewModel.Reservation.ReservationId">
     <input type="hidden" asp-for="ReturnUrl" />
     <input type="hidden" asp-for="ViewModel.Reservation.ReservationId" />
-    <input type="hidden" id="outstandingBalance" value="@Model.ViewModel.Reservation.OutstandingBalance.ToString("F2")" />
+    <input type="hidden" id="TotalDue" value="@((Model.ViewModel.Reservation.TotalDue - Model.ViewModel.Reservation.AmountPaid).ToString("F2"))" />
     <input type="hidden" id="originalTotal" value="@Model.ViewModel.OriginalTotal.ToString("F2")" />
     <input type="hidden" id="amountPaidValue" value="@Model.ViewModel.Reservation.AmountPaid.ToString("F2")" />
     <input type="hidden" id="TaxRate" value="0.0825" />
@@ -16,7 +16,6 @@
                 <div asp-validation-summary="All" class="text-danger small mb-3"></div>
                 <h2 class="text-primary text-center mb-4">Update Reservation</h2>
 
-                <!-- Guest Info -->
                 <div class="row mb-3">
                     <div class="col-6">
                         <label class="form-label fw-bold">Guest Name</label>
@@ -28,7 +27,6 @@
                     </div>
                 </div>
 
-                <!-- Dates -->
                 <div class="row mb-3">
                     <div class="col-5">
                         <label asp-for="ViewModel.Reservation.StartDate" class="form-label fw-bold"></label>
@@ -44,7 +42,6 @@
                     </div>
                 </div>
 
-                <!-- Lot Selection -->
                 <label class="fw-bold">Lot Type</label>
                 <select asp-for="ViewModel.Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control mb-3">
                     <option disabled value="">-- Select Lot Type --</option>
@@ -68,7 +65,6 @@
                     }
                 </select>
 
-                <!-- Manual Fees -->
                 @if (User.IsInRole(SD.AdminRole) || User.IsInRole(SD.SuperAdminRole) || User.IsInRole(SD.CampHostRole))
                 {
                     <div class="form-check mt-3">
@@ -86,7 +82,10 @@
                                         <td>@fee.FeeTypeName</td>
                                         <td>$@fee.FeeTotal.ToString("F2")</td>
                                         <td>
-                                            <input type="checkbox" name="SelectedManualFees" value="@fee.Id" data-amount="@fee.FeeTotal.ToString("F2")" />
+                                            <input type="checkbox"
+                                                   name="SelectedManualFees"
+                                                   value="@fee.Id"
+                                                   data-amount="@fee.FeeTotal.ToString("F2")" />
                                         </td>
                                     </tr>
                                 }
@@ -95,7 +94,6 @@
                     </div>
                 }
 
-                <!-- Totals -->
                 <div class="mt-4">
                     <p><strong>Original Base Total:</strong> $<span id="originalTotalText">@Model.ViewModel.OriginalTotal.ToString("F2")</span></p>
                     <p><strong>New Base Total:</strong> $<span id="baseTotalText">0.00</span></p>
@@ -103,23 +101,25 @@
                     <p><strong>Tax (8.25%):</strong> $<span id="taxAmountText">0.00</span></p>
                     <p><strong>Total:</strong> $<span id="grandTotalText">0.00</span></p>
                     <p><strong>Amount Paid:</strong> $<span id="amountPaidText">@Model.ViewModel.Reservation.AmountPaid.ToString("F2")</span></p>
-                    <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">0.00</span></p>
+                    <p><strong>Remaining Balance:</strong> $<span id="remainingBalanceText">@((Model.ViewModel.Reservation.TotalDue - Model.ViewModel.Reservation.AmountPaid).ToString("F2"))</span></p>
                 </div>
 
-                <!-- Buttons -->
                 <div class="d-flex justify-content-between mt-4">
                     <button type="submit" name="action" value="save" class="btn btn-custom-blue">
                         <i class="fas fa-save"></i> Save Changes
                     </button>
+                    <a asp-page="./Index" class="btn btn-custom-grey">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
                         <i class="fas fa-times-circle"></i> Cancel Reservation
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Cancellation Modal -->
     <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

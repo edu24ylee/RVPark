@@ -1,11 +1,14 @@
 ﻿let originalLotTypeId, originalLotId;
 
 $(document).ready(function () {
+    originalLotTypeId = $('#Reservation_LotTypeId').val();
+    originalLotId = $('#Reservation_LotId').val();
+
+    $('#Reservation_LotId').prop('disabled', true).val(originalLotId);
     updateCostsOnly();
 
-    $('#Reservation_LotTypeId').on('change', updateLotsAndCosts);
-    $('#Reservation_LotId').on('change', updateCostsOnly);
     $('#Reservation_StartDate, #Reservation_EndDate, #Rv_Length').on('change', updateCostsOnly);
+    $('#Reservation_LotId').on('change', updateCostsOnly);
 
     $('#toggleManualFees').on('change', function () {
         $('#manualFeeTableContainer').toggle(this.checked);
@@ -13,6 +16,16 @@ $(document).ready(function () {
     });
 
     $(document).on('change', 'input[name="SelectedManualFees"]', updateCostsOnly);
+
+    $('#Reservation_LotTypeId').one('click', function () {
+        $('#Reservation_LotId').prop('disabled', false);
+        updateLotsAndCosts();
+    });
+
+    $('#Reservation_LotTypeId').on('change', function () {
+        $('#Reservation_LotId').prop('disabled', false);
+        updateLotsAndCosts();
+    });
 });
 
 function updateLotsAndCosts() {
@@ -20,7 +33,6 @@ function updateLotsAndCosts() {
     const trailerLength = $('#Rv_Length').val();
     const startDate = $('#Reservation_StartDate').val();
     const endDate = $('#Reservation_EndDate').val();
-    const currentLotId = $('#Reservation_LotId').val();
 
     updateDuration(startDate, endDate);
 
@@ -42,9 +54,7 @@ function updateLotsAndCosts() {
             $lotSelect.append('<option disabled selected>-- Select a Lot --</option>');
             lots.forEach(lot => {
                 const rate = parseFloat(lot.lotTypeRate).toFixed(2);
-                const isSelected = lot.id == currentLotId ? 'selected' : '';
-                $lotSelect.append(`<option value="${lot.id}" data-rate="${rate}" ${isSelected}>
-                            Lot #${lot.id} - ${lot.location}</option>`);
+                $lotSelect.append(`<option value="${lot.id}" data-rate="${rate}">Lot #${lot.id} - ${lot.location}</option>`);
             });
         }
 
@@ -74,19 +84,18 @@ function updateCostsOnly() {
     const baseTotal = duration * rate;
     const taxable = baseTotal + manualFee;
     const tax = taxable * taxRate;
-    const grandTotal = baseTotal + manualFee + tax;
+    const totalDue = baseTotal + manualFee + tax;
 
-    const amountPaid = parseFloat($('#amountPaidText').text()) || 0;
-    const remainingBalance = Math.max(0, grandTotal - amountPaid);
+    const amountPaid = parseFloat($('#amountPaidValue').val()) || 0;
+    const remainingBalance = Math.max(0, totalDue - amountPaid);
 
     $('#baseTotalText').text(baseTotal.toFixed(2));
     $('#manualFeeText').text(manualFee.toFixed(2));
     $('#taxAmountText').text(tax.toFixed(2));
-    $('#grandTotalText').text(grandTotal.toFixed(2));
+    $('#grandTotalText').text(totalDue.toFixed(2));
     $('#amountPaidText').text(amountPaid.toFixed(2));
     $('#remainingBalanceText').text(remainingBalance.toFixed(2));
 }
-
 
 function getManualFeeTotal() {
     let total = 0;
@@ -95,70 +104,4 @@ function getManualFeeTotal() {
         if (!isNaN(amount)) total += amount;
     });
     return total;
-}
-
-function confirmCancel(id) {
-    swal({
-        title: "Confirm Cancellation",
-        text: "Cancelling may apply a cancellation fee if within 24 hours of check-in.",
-        icon: "warning",
-        content: createOverrideForm(),
-        buttons: {
-            cancel: "Back",
-            confirm: {
-                text: "Confirm",
-                closeModal: false
-            }
-        }
-    }).then((willCancel) => {
-        if (willCancel) {
-            const override = document.getElementById("overrideCheckbox").checked;
-            const percent = override ? document.getElementById("overridePercent").value : null;
-            const reason = override ? document.getElementById("cancelOverrideReason").value : "";
-
-            $.ajax({
-                type: "POST",
-                url: `/api/reservation/cancel/${id}`,
-                data: JSON.stringify({ override: override, percent: percent, reason: reason }),
-                contentType: "application/json",
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);
-                        window.location.href = "/Admin/Reservations/Index";
-                    } else {
-                        toastr.error(data.message);
-                    }
-                },
-                error: function (xhr) {
-                    toastr.error("Error: " + xhr.responseText);
-                }
-            });
-        }
-    });
-}
-
-function createOverrideForm() {
-    const div = document.createElement("div");
-    div.innerHTML = `
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="overrideCheckbox">
-                    <label class="form-check-label" for="overrideCheckbox">
-                        Override Cancellation Fee
-                    </label>
-                </div>
-                <div id="overrideFields" style="display:none;">
-                    <label class="form-label mt-2">Override Percentage:</label>
-                    <select id="overridePercent" class="form-select form-select-sm mb-2">
-                        ${[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => `<option value="${p}">${p}%</option>`).join('')}
-                    </select>
-                    <label class="form-label">Reason:</label>
-                    <textarea id="cancelOverrideReason" class="form-control form-control-sm" rows="2"></textarea>
-                </div>
-            `;
-    setTimeout(() => {
-        document.getElementById("overrideCheckbox").addEventListener("change", function () {
-            document.getElementById("overrideFields").style.display = this.checked ? "block" : "none";
-        });
-    }, 10);
-    return div;
 }
