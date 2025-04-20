@@ -7,8 +7,8 @@ $(document).ready(function () {
 function loadList() {
     dataTable = $('#DT_load').DataTable({
         dom:
-        "<'row mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-end'f>>" +
-        "<'row'<'col-sm-12'tr>>" +
+            "<'row mb-3'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-end'f>>" +
+            "<'row'<'col-sm-12'tr>>" +
             "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 text-end'p>>",
         ajax: {
             url: "/api/fees",
@@ -18,29 +18,32 @@ function loadList() {
         },
         columns: [
             { data: "id", title: "ID", width: "10%" },
-            { data: "feeType", title: "Fee Type", width: "25%" }, 
+
             {
-                data: "triggeringPolicy",
-                title: "Triggering Policy",
+                data: "feeType",
+                title: "Fee Type",
                 width: "25%",
                 render: function (data) {
-                    return data || "N/A";
+                    return data?.feeTypeName || "N/A";
                 }
             },
+
             {
-                data: "triggerType",
-                title: "Trigger Type",
-                width: "15%",
+                data: "feeType",
+                title: "Policy",
+                width: "30%",
                 render: function (data) {
-                    return data === 0 ? "Manual" : "Triggered";
+                    return data?.description || "—";
                 }
             },
+
             {
                 data: "feeTotal",
-                title: "Total",
+                title: "Amount",
                 width: "15%",
                 render: $.fn.dataTable.render.number(',', '.', 2, '$')
             },
+
             {
                 data: null,
                 title: "Actions",
@@ -65,7 +68,7 @@ function loadList() {
             }
         ],
         initComplete: function () {
-            this.api().columns([1, 2, 3]).every(function () {
+            this.api().columns([1, 2]).every(function () {
                 const column = this;
                 const columnIndex = column.index();
                 const originalTitle = $('#DT_load thead th').eq(columnIndex).text();
@@ -75,8 +78,12 @@ function loadList() {
                 const $select = $(`<select class="form-select form-select-sm"><option value="">All ${originalTitle}</option></select>`);
 
                 column.data().unique().sort().each(function (d) {
-                    if (d || d === 0) {
-                        $select.append(`<option value="${d}">${d}</option>`);
+                    let text = typeof d === 'object'
+                        ? d?.feeTypeName || d?.description || d
+                        : d;
+
+                    if (text || text === 0) {
+                        $select.append(`<option value="${text}">${text}</option>`);
                     }
                 });
 

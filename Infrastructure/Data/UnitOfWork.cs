@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ApplicationCore.ViewModels;
 
 namespace Infrastructure.Data
 {
@@ -33,7 +34,8 @@ namespace Infrastructure.Data
         private IGenericRepository<Policy> _Policy;
         private IGenericRepository<FinancialReport> _FinancialReport;
         private IGenericRepository<DodAffiliation> _DodAffiliation;
-
+        private IGenericRepository<Payment> _Payment;
+        private IGenericRepository<GuestViewModel> _GuestViewModel; 
 
         public IGenericRepository<Park> Park
         {
@@ -201,7 +203,29 @@ namespace Infrastructure.Data
                 }
                 return _DodAffiliation;
             }
-        }   
+        }
+        public IGenericRepository<Payment> Payment
+        {
+            get
+            {
+                if (_Payment == null)
+                {
+                    _Payment = new GenericRepository<Payment>(_dbContext);
+                }
+                return _Payment;
+            }
+        }
+        public IGenericRepository<GuestViewModel> GuestViewModel
+        {
+            get
+            {
+                if (_GuestViewModel == null)
+                {
+                    _GuestViewModel = new GenericRepository<GuestViewModel>(_dbContext);
+                }
+                return _GuestViewModel;
+            }
+        }
         public int Commit()
         {
             return _dbContext.SaveChanges();

@@ -32,13 +32,15 @@
 
                 <div class="mb-3">
                     <label asp-for="LotTypeObject.EndDate" class="form-label fw-bold text-outline">End Date</label>
-                    <input asp-for="LotTypeObject.EndDate" class="form-control text-center" type="date" />
+                    <input asp-for="LotTypeObject.EndDate" class="form-control text-center" type="date" readonly />
                 </div>
 
                 @if (Model.LotTypeObject.Id != 0)
                 {
                     <input type="hidden" asp-for="LotTypeObject.Id" />
                 }
+
+                <input type="hidden" asp-for="LotTypeObject.ParkId" />
 
                 <div class="d-flex justify-content-center gap-3 mt-4">
                     <button type="submit" class="btn btn-custom-blue-header">

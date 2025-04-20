@@ -7,12 +7,20 @@
 <div class="container my-4">
     <div class="card shadow-sm">
         <div class="card-body">
-
             <div class="d-flex justify-content-between align-items-center py-3">
-                <h2 class="text-primary mb-0">Reservation List</h2>
-                <a asp-page="Upsert" class="btn btn-primary">
+                <h2 class="text-custom-blue-header mb-0">Reservation List</h2>
+                <a asp-page="Upsert" class="btn btn-custom-blue-header">
                     <i class="fas fa-plus"></i> Create New Reservation
                 </a>
+            </div>
+
+            <!-- Top Filter Dropdown -->
+            <div class="mb-3">
+                <label for="statusFilter" class="form-label fw-bold">Filter by Status:</label>
+                <select id="statusFilter" class="form-select w-auto d-inline-block">
+                    <option value="active" selected>Active/Upcoming</option>
+                    <option value="all">All Reservations</option>
+                </select>
             </div>
 
             <div class="table-responsive">
@@ -26,32 +34,40 @@
                             <th>Lot</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>Status</th>
+                            <th>
+                                Status
+                                <select class="form-select form-select-sm column-filter mt-1">
+                                    <option value="">All</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="CheckedIn">CheckedIn</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </th>
+                            <th>
+                                Balance
+                                <select id="balanceFilter" class="form-select form-select-sm column-filter mt-1">
+                                    <option value="">All</option>
+                                    <option value="has">Has Balance</option>
+                                    <option value="none">No Balance</option>
+                                </select>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                 </table>
             </div>
-
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-
-    @if (TempData["Success"] != null)
-    {
-        <script>toastr.success("@TempData["Success"]");</script>
-    }
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/reservations.js" asp-append-version="true"></script>
-
-    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://kit.fontawesome.com/4ce08efd14.js" crossorigin="anonymous"></script>
+    <script src="~/js/reservations.js" asp-append-version="true"></script>
 }

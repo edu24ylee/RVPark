@@ -15,6 +15,7 @@
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <input type="hidden" asp-for="GuestVM.GuestId" />
                 <input type="hidden" asp-for="GuestVM.UserId" />
+                <input type="hidden" asp-for="ReturnUrl" />
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -44,28 +45,70 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label asp-for="GuestVM.DodId" class="form-label fw-bold">DOD ID</label>
-                        <input asp-for="GuestVM.DodId" class="form-control" />
+                        <label asp-for="GuestVM.DodId" class="form-label fw-bold">DoD ID</label>
+                        <input asp-for="GuestVM.DodId" class="form-control" placeholder="DoD ID" />
                         <span asp-validation-for="GuestVM.DodId" class="text-danger"></span>
                     </div>
                 </div>
 
-                <hr />
-
-                <h5 class="mb-3 text-primary">DoD Affiliation</h5>
-
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold" for="DodBranch">Military Branch</label>
-                        <input name="GuestVM.DodBranch" id="DodBranch" class="form-control" type="text" value="@Model.GuestVM.DodBranch" />
+                        <label asp-for="GuestVM.DodBranch" class="form-label fw-bold">Branch</label>
+                        <select asp-for="GuestVM.DodBranch" class="form-select">
+                            <option value="">Select a Branch</option>
+                            <option>Army</option>
+                            <option>Navy</option>
+                            <option>Air Force</option>
+                            <option>Marine Corps</option>
+                            <option>Coast Guard</option>
+                            <option>Space Force</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodBranch" class="text-danger"></span>
                     </div>
+
                     <div class="col-md-4">
-                        <label class="form-label fw-bold" for="DodStatus">Status</label>
-                        <input name="GuestVM.DodStatus" id="DodStatus" class="form-control" type="text" value="@Model.GuestVM.DodStatus" />
+                        <label asp-for="GuestVM.DodRank" class="form-label fw-bold">Rank</label>
+                        <select asp-for="GuestVM.DodRank" class="form-select">
+                            <option value="">Select a Rank</option>
+                            <option>E-1</option>
+                            <option>E-2</option>
+                            <option>E-3</option>
+                            <option>E-4</option>
+                            <option>E-5</option>
+                            <option>E-6</option>
+                            <option>E-7</option>
+                            <option>E-8</option>
+                            <option>E-9</option>
+                            <option>O-1</option>
+                            <option>O-2</option>
+                            <option>O-3</option>
+                            <option>O-4</option>
+                            <option>O-5</option>
+                            <option>O-6</option>
+                            <option>O-7</option>
+                            <option>O-8</option>
+                            <option>O-9</option>
+                            <option>O-10</option>
+                            <option>W-1</option>
+                            <option>W-2</option>
+                            <option>W-3</option>
+                            <option>W-4</option>
+                            <option>W-5</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodRank" class="text-danger"></span>
                     </div>
+
                     <div class="col-md-4">
-                        <label class="form-label fw-bold" for="DodRank">Rank</label>
-                        <input name="GuestVM.DodRank" id="DodRank" class="form-control" type="text" value="@Model.GuestVM.DodRank" />
+                        <label asp-for="GuestVM.DodStatus" class="form-label fw-bold">Status</label>
+                        <select asp-for="GuestVM.DodStatus" class="form-select">
+                            <option value="">Select Status</option>
+                            <option>Active Duty</option>
+                            <option>Reserves</option>
+                            <option>National Guard</option>
+                            <option>Retired</option>
+                        </select>
+                        <span asp-validation-for="GuestVM.DodStatus" class="text-danger"></span>
+
                     </div>
                 </div>
 
@@ -84,4 +127,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnUrl = urlParams.get("returnUrl");
+
+        if (window.opener && returnUrl && window.location.href.includes("guestId")) {
+            window.opener.location.href = window.location.href;
+            window.close();
+        }
+    </script>
 }

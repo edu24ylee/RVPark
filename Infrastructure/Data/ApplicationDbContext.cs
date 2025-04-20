@@ -1,4 +1,5 @@
 ﻿using ApplicationCore.Models;
+using ApplicationCore.ViewModels;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,8 @@ namespace Infrastructure.Data
         public DbSet<FinancialReport> FinancialReport { get; set; }
         public DbSet<Policy> Policy { get; set; }
         public DbSet<DodAffiliation> DodAffiliation { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<GuestViewModel> GuestViewModel { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,7 +54,7 @@ namespace Infrastructure.Data
 
             modelBuilder.Entity<Rv>()
                 .HasOne(rv => rv.Guest)
-                .WithMany(g => g.RVs)
+                .WithMany(g => g.Rvs)
                 .HasForeignKey(rv => rv.GuestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -82,6 +85,10 @@ namespace Infrastructure.Data
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<ReservationUpdateModel>().HasNoKey();
+            modelBuilder.Entity<CancellationRequest>().HasNoKey();
+            modelBuilder.Entity<GuestViewModel>().HasNoKey();
+
+
         }
     }
 }

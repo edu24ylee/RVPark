@@ -56,7 +56,7 @@ namespace RVPark.Pages.Admin.Reports
             foreach (var r in reservations)
             {
                 decimal rate = (decimal)(r.Lot?.LotType?.Rate ?? 0); // Default to 0 if missing
-                decimal amount = r.Duration * rate;
+                decimal amount = (decimal)(r.Duration * rate);
 
                 if (r.Status == "Active" || r.Status == "Completed")
                 {

@@ -1,99 +1,75 @@
 ﻿let dataTable;
 
 $(document).ready(function () {
-    loadList();
-
-    const today = new Date();
-    const fiscalStart = new Date(today.getFullYear(), 9, 1);
-    const fiscalReminderStart = new Date(fiscalStart);
-    fiscalReminderStart.setDate(fiscalStart.getDate() - 5);
-
-    const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
-
-    if (isSuperAdmin && today >= fiscalReminderStart && today <= fiscalStart) {
-        toastr.info(
-            "Reminder: Review Lot Type pricing for the upcoming fiscal year (Oct 1).",
-            "Fiscal Year Alert",
-            { toastClass: 'toast toast-custom-blue' }
-        );
-    }
+    loadLotTypes(window.selectedParkId);
 });
 
-function loadList() {
-    dataTable = $('#DT_load').DataTable({
-        ajax: {
-            url: "/api/lottypes",
-            type: "GET",
-            dataSrc: "data"
-        },
-        columns: [
-            { data: "name", title: "Name", width: "20%" },
-            {
-                data: "rate",
-                title: "Rate",
-                width: "15%",
-                render: $.fn.dataTable.render.number(',', '.', 2, '$')
-            },
-            {
-                data: "startDate",
-                title: "Start Date",
-                width: "15%",
-                render: data => data ? new Date(data).toLocaleDateString() : "—"
-            },
-            {
-                data: "endDate",
-                title: "End Date",
-                width: "15%",
-                render: data => data ? new Date(data).toLocaleDateString() : "—"
-            },
-            {
-                data: null,
-                title: "Actions",
-                width: "20%",
-                render: function (data, type, row) {
-                    const archiveBtn = row.isArchived
-                        ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="toggleArchive(${row.id}, true)">
-                               <i class="fas fa-box-open"></i> Unarchive
-                           </button>`
-                        : `<button class="btn btn-sm btn-custom-grey text-white" onclick="toggleArchive(${row.id}, false)">
-                               <i class="fas fa-archive"></i> Archive
-                           </button>`;
+function loadLotTypes(parkId) {
+    if (!parkId) return;
 
-                    return `
-                        <div class="text-center d-flex justify-content-center gap-2">
-                            <a href="/Admin/LotTypes/Upsert?id=${row.id}" class="btn btn-sm btn-custom-blue text-white">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            ${archiveBtn}
-                        </div>`;
-                }
-            }
-        ],
-        dom: '<"row mb-2"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 text-end"f>>rt<"row mt-2"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-        language: {
-            emptyTable: "No lot types found.",
-            search: "Search:"
-        },
-        responsive: true,
-        autoWidth: false
-    });
-}
+    $.ajax({
+        url: `/api/lottypes?parkId=${parkId}`,
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+            const data = response?.data ?? [];
 
-function toggleArchive(id, isArchived) {
-    const url = isArchived
-        ? `/api/lottypes/unarchive/${id}`
-        : `/api/lottypes/archive/${id}`;
+            const nameSet = new Set();
+            const rateSet = new Set();
+            const startSet = new Set();
+            const endSet = new Set();
 
-    $.post(url, function (data) {
-        if (data.success) {
-            toastr.success(data.message, '', {
-                toastClass: 'toast toast-custom-blue',
-                timeOut: 2000,
-                progressBar: true
+            data.forEach(item => {
+                if (item.name) nameSet.add(item.name);
+                if (item.rate) rateSet.add(item.rate);
+                if (item.startDate) startSet.add(item.startDate.split("T")[0]);
+                if (item.endDate) endSet.add(item.endDate.split("T")[0]);
             });
-        } else {
-            toastr.error(data.message || "Error toggling archive status.");
+
+            const fillFilter = (selector, values) => {
+                const $select = $(selector);
+                $select.find('option:not(:first)').remove();
+                [...values].sort().forEach(val => {
+                    $select.append(`<option value="${val}">${val}</option>`);
+                });
+                $select.off('change').on('change', function () {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    const colIndex = $(this).closest('th').index();
+                    dataTable.column(colIndex).search(val ? `^${val}$` : '', true, false).draw();
+                });
+            };
+
+            fillFilter('#nameFilter', nameSet);
+            fillFilter('#rateFilter', rateSet);
+            fillFilter('#startDateFilter', startSet);
+            fillFilter('#endDateFilter', endSet);
+
+            dataTable = $('#DT_load').DataTable({
+                data: data,
+                columns: [
+                    { data: "name", width: "25%" },
+                    { data: "rate", width: "15%" },
+                    { data: "startDate", render: d => d.split("T")[0], width: "15%" },
+                    { data: "endDate", render: d => d.split("T")[0], width: "15%" },
+                    {
+                        data: "id",
+                        render: function (data, type, row) {
+                            return `
+                                <div class="text-center d-flex flex-column gap-2 align-items-center">
+                                    <a href="/Admin/LotTypes/Upsert?id=${data}" class="btn btn-sm btn-custom-blue" style="width: 100px;">
+                                        <i class="far fa-edit"></i> Edit
+                                    </a>
+                                </div>`;
+                        },
+                        width: "15%"
+                    }
+                ],
+                destroy: true,
+                language: { emptyTable: "No lot types found." }
+            });
+        },
+        error: function () {
+            toastr.error("Failed to load lot types.");
         }
-        dataTable.ajax.reload(null, false);
     });
 }

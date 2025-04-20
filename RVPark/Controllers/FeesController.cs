@@ -20,13 +20,19 @@ namespace RVPark.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllFees()
         {
-            var fees = await _unitOfWork.Fee.GetAllAsync(null, null, "FeeType,TriggeringPolicy");
+            var fees = await _unitOfWork.Fee.GetAllAsync(
+                orderBy: null,
+                includes: "FeeType" // Removed TriggeringPolicy
+            );
 
             var result = fees.Select(f => new
             {
                 id = f.Id,
-                feeType = new { feeTypeName = f.FeeType?.FeeTypeName ?? "N/A" },
-                triggeringPolicy = new { policyName = f.TriggeringPolicy?.PolicyName ?? "N/A" },
+                feeType = new
+                {
+                    feeTypeName = f.FeeType?.FeeTypeName ?? "N/A",
+                    description = f.FeeType?.Policy ?? "—"
+                },
                 triggerType = f.TriggerType,
                 feeTotal = f.FeeTotal,
                 isArchived = f.IsArchived
@@ -34,7 +40,6 @@ namespace RVPark.Controllers
 
             return Json(new { success = true, data = result });
         }
-
 
         [HttpPost("archive/{id}")]
         public async Task<IActionResult> ArchiveFee(int id)

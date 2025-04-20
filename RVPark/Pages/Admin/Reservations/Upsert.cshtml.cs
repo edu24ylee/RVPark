@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using ApplicationCore.Models;
+﻿using ApplicationCore.Models;
 using Infrastructure.Data;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace RVPark.Pages.Admin.Reservations
 {
@@ -14,58 +14,87 @@ namespace RVPark.Pages.Admin.Reservations
         public UpsertModel(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            GuestOptions = new List<SelectListItem>();
+            LotTypeOptions = new List<LotType>();
         }
 
-        public List<string> StatusOptions { get; } = new()
+        [BindProperty] public Reservation Reservation { get; set; } = new();
+        [BindProperty] public int? SelectedGuestId { get; set; }
+        [BindProperty, Required] public string GuestFirstName { get; set; } = string.Empty;
+        [BindProperty, Required] public string GuestLastName { get; set; } = string.Empty;
+        [BindProperty, Required] public decimal Length { get; set; }
+        [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
+
+        public List<SelectListItem> GuestOptions { get; set; }
+        public List<LotType> LotTypeOptions { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int? id, string? returnUrl = null, int? guestId = null, int? rvId = null)
         {
-            "Active", "Cancelled", "Confirmed", "Completed", "Pending"
-        };
+            ReturnUrl = returnUrl;
 
-        [BindProperty, Required(ErrorMessage = "First name is required.")]
-        public string GuestFirstName { get; set; } = string.Empty;
+            var guests = await _unitOfWork.Guest.GetAllAsync(includes: "User");
+            GuestOptions = guests.Select(g => new SelectListItem
+            {
+                Value = g.GuestId.ToString(),
+                Text = $"{g.User.FirstName} {g.User.LastName}"
+            }).ToList();
 
-        [BindProperty, Required(ErrorMessage = "Last name is required.")]
-        public string GuestLastName { get; set; } = string.Empty;
+            LotTypeOptions = (await _unitOfWork.LotType.GetAllAsync()).ToList();
 
-        [BindProperty, Required(ErrorMessage = "Trailer length is required.")]
-        public decimal Length { get; set; }
-
-        [BindProperty]
-        public Reservation Reservation { get; set; } = new();
-
-        public IEnumerable<SelectListItem> AvailableLots { get; set; } = new List<SelectListItem>();
-
-        public async Task<IActionResult> OnGetAsync(int? id)
-        {
-            if (id != null)
+            if (id.HasValue)
             {
                 Reservation = await _unitOfWork.Reservation.GetAsync(
-                    r => r.ReservationId == id,
-                    includes: "Guest.User,Rv,Lot"
-                ) ?? new Reservation();
+                    r => r.ReservationId == id.Value,
+                    includes: "Guest.User,Rv,Lot.LotType");
 
-                GuestFirstName = Reservation.Guest?.User?.FirstName ?? "";
-                GuestLastName = Reservation.Guest?.User?.LastName ?? "";
+                if (Reservation == null)
+                    return NotFound();
+
+                SelectedGuestId = Reservation.GuestId;
+                GuestFirstName = Reservation.Guest?.User.FirstName ?? string.Empty;
+                GuestLastName = Reservation.Guest?.User.LastName ?? string.Empty;
                 Length = Reservation.Rv?.Length ?? 0;
+            }
+            else if (guestId.HasValue)
+            {
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == guestId.Value, includes: "User,Rvs");
+                var rv = rvId.HasValue
+                    ? await _unitOfWork.Rv.GetAsync(r => r.RvId == rvId.Value)
+                    : guest?.Rvs?.FirstOrDefault();
+
+                if (guest != null && guest.User != null)
+                {
+                    Reservation.GuestId = guest.GuestId;
+                    Reservation.RvId = rv?.RvId ?? 0;
+                    SelectedGuestId = guest.GuestId;
+                    GuestFirstName = guest.User.FirstName;
+                    GuestLastName = guest.User.LastName;
+                    Length = rv?.Length ?? 0;
+                }
+
+                Reservation.StartDate = DateTime.UtcNow.Date;
+                Reservation.EndDate = Reservation.StartDate.AddDays(1);
+                Reservation.Duration = 1;
+                Reservation.Status = "Pending";
+                Reservation.NumberOfAdults = 1;
+                Reservation.NumberOfPets = 0;
             }
             else
             {
-                var today = DateTime.UtcNow.Date;
                 Reservation = new Reservation
                 {
-                    StartDate = today,
-                    EndDate = today.AddDays(1),
+                    StartDate = DateTime.UtcNow.Date,
+                    EndDate = DateTime.UtcNow.Date.AddDays(1),
                     Duration = 1,
-                    Status = "Active"
+                    Status = "Pending",
+                    NumberOfAdults = 1,
+                    NumberOfPets = 0
                 };
-            }
 
-            AvailableLots = _unitOfWork.Lot.GetAll(l => l.IsAvailable)
-                .Select(l => new SelectListItem
-                {
-                    Text = $"Lot #{l.Id} - {l.Description}",
-                    Value = l.Id.ToString()
-                });
+                GuestFirstName = string.Empty;
+                GuestLastName = string.Empty;
+                Length = 0;
+            }
 
             return Page();
         }
@@ -77,10 +106,23 @@ namespace RVPark.Pages.Admin.Reservations
             if (Reservation.Duration <= 0)
             {
                 ModelState.AddModelError("", "End date must be after start date.");
-                return Page();
+                return await OnGetAsync(Reservation.ReservationId == 0 ? null : Reservation.ReservationId);
             }
 
-            if (Reservation.ReservationId == 0)
+            if (SelectedGuestId.HasValue)
+            {
+                var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == SelectedGuestId.Value, includes: "User");
+
+                if (guest == null)
+                {
+                    ModelState.AddModelError("", "Selected guest not found.");
+                    return await OnGetAsync(null);
+                }
+
+                Reservation.GuestId = guest.GuestId;
+                Reservation.RvId = 0; // Don't rely on RV existence
+            }
+            else
             {
                 var user = new User
                 {
@@ -91,58 +133,22 @@ namespace RVPark.Pages.Admin.Reservations
                     IsActive = true
                 };
 
-                var guest = new Guest { User = user, DodId = 0 };
+                var guest = new Guest { User = user };
                 _unitOfWork.Guest.Add(guest);
                 await _unitOfWork.CommitAsync();
 
-                var rv = new Rv
-                {
-                    Guest = guest,
-                    Length = (int)Length,
-                    Make = "Unknown",
-                    Model = "Unknown",
-                    LicensePlate = "TEMP",
-                    Description = "User Input"
-                };
-                _unitOfWork.Rv.Add(rv);
-                await _unitOfWork.CommitAsync();
-
                 Reservation.GuestId = guest.GuestId;
-                Reservation.RvId = rv.RvId;
-            }
-            else
-            {
-                var existingReservation = await _unitOfWork.Reservation.GetAsync(
-                    r => r.ReservationId == Reservation.ReservationId,
-                    includes: "Guest.User,Rv"
-                );
-
-                if (existingReservation == null)
-                {
-                    ModelState.AddModelError("", "Reservation not found.");
-                    return Page();
-                }
-
-                Reservation.GuestId = existingReservation.GuestId;
-                Reservation.RvId = existingReservation.RvId;
-
-                existingReservation.Guest.User.FirstName = GuestFirstName;
-                existingReservation.Guest.User.LastName = GuestLastName;
-                existingReservation.Rv.Length = (int)Length;
-
-                _unitOfWork.User.Update(existingReservation.Guest.User);
-                _unitOfWork.Rv.Update(existingReservation.Rv);
-                await _unitOfWork.CommitAsync();
+                Reservation.RvId = 0;
             }
 
-            var lots = await _unitOfWork.Lot.GetAllAsync();
+            var allLots = await _unitOfWork.Lot.GetAllAsync(l => l.IsAvailable && !l.IsArchived);
             var reservations = await _unitOfWork.Reservation.GetAllAsync();
 
-            var availableLots = lots
-                .Where(l => l.IsAvailable && (decimal)l.Length >= Length)
-                .Where(lot =>
+            var availableLots = allLots
+                .Where(l =>
+                    (decimal)l.Length >= Length &&
                     !reservations.Any(r =>
-                        r.LotId == lot.Id &&
+                        r.LotId == l.Id &&
                         r.ReservationId != Reservation.ReservationId &&
                         (
                             (Reservation.StartDate >= r.StartDate && Reservation.StartDate < r.EndDate) ||
@@ -150,39 +156,60 @@ namespace RVPark.Pages.Admin.Reservations
                             (Reservation.StartDate <= r.StartDate && Reservation.EndDate >= r.EndDate)
                         )
                     )
-                )
-                .OrderBy(l => l.Length)
-                .ToList();
+                ).OrderBy(l => l.Length).ToList();
 
-            var selectedLot = availableLots.FirstOrDefault();
-
-            if (selectedLot == null)
+            if (availableLots.All(l => l.Id != Reservation.LotId))
             {
-                ModelState.AddModelError("", "No available lot found for the trailer size and date range.");
-                return Page();
+                var fallback = availableLots.FirstOrDefault();
+                if (fallback != null)
+                    Reservation.LotId = fallback.Id;
+                else
+                {
+                    ModelState.AddModelError("", "No lot available for the selected range and trailer size.");
+                    return await OnGetAsync(null);
+                }
             }
 
-            Reservation.LotId = selectedLot.Id;
+            var selectedLot = await _unitOfWork.Lot.GetAsync(l => l.Id == Reservation.LotId, includes: "LotType");
+            var rate = selectedLot?.LotType?.Rate ?? 0;
+            Reservation.BaseTotal = (decimal)(rate * Reservation.Duration);
+            Reservation.TaxTotal = Reservation.BaseTotal * 0.0825m;
+            Reservation.TotalDue = Reservation.BaseTotal + Reservation.TaxTotal;
+            Reservation.AmountPaid = 0;
 
             if (!ModelState.IsValid)
-                return Page();
+                return await OnGetAsync(null);
 
-            try
-            {
-                if (Reservation.ReservationId == 0)
-                    _unitOfWork.Reservation.Add(Reservation);
-                else
-                    _unitOfWork.Reservation.Update(Reservation);
+            if (Reservation.ReservationId == 0)
+                _unitOfWork.Reservation.Add(Reservation);
+            else
+                _unitOfWork.Reservation.Update(Reservation);
 
-                await _unitOfWork.CommitAsync();
-                TempData["Success"] = "Reservation saved successfully!";
-                return RedirectToPage("./Index");
-            }
-            catch (Exception ex)
+            await _unitOfWork.CommitAsync();
+
+            TempData["Success"] = "Reservation saved successfully.";
+            return RedirectToPage("./Index");
+        }
+
+        public async Task<IActionResult> OnGetAvailableLotsAsync(int lotTypeId, int trailerLength, DateTime startDate, DateTime endDate)
+        {
+            var overlappingReservations = await _unitOfWork.Reservation.GetAllAsync(
+                r => !(r.EndDate < startDate || r.StartDate > endDate));
+            var reservedLotIds = overlappingReservations.Select(r => r.LotId).Distinct();
+
+            var lots = await _unitOfWork.Lot.GetAllAsync(
+                l => l.LotTypeId == lotTypeId &&
+                     l.Length >= trailerLength &&
+                     !reservedLotIds.Contains(l.Id) &&
+                     l.IsAvailable && !l.IsArchived,
+                includes: "LotType");
+
+            return new JsonResult(lots.Select(l => new
             {
-                ModelState.AddModelError("", $"Error saving reservation: {ex.Message}");
-                return Page();
-            }
+                id = l.Id,
+                location = l.Location,
+                lotTypeRate = l.LotType?.Rate ?? 0
+            }));
         }
     }
 }

@@ -1,109 +1,185 @@
-﻿// Declare a global variable to store the DataTable instance
-var dataTable;
+﻿let dataTable;
 
 $(document).ready(function () {
-    // When the DOM is ready, populate the reservations list
-    loadList();
-});
+    loadReservations();
 
-function loadList() {
-    // Initialize the DataTable and bind it to the #DT_load element
-    dataTable = $('#DT_load').DataTable({
-        ajax: {
-            // Fetch reservation data from the API
-            // Adding a timestamp query parameter (`_`) ensures the request isn't cached
-            url: "/api/reservation?_=" + new Date().getTime(),
-            type: "GET",
-            datatype: "json",
-            cache: false
-        },
-        columns: [
-            // Maps and displays reservation fields into table columns
-
-            { data: "reservationId", title: "Reservation ID", width: "10%" },
-
-            // Retrieves guest first and last name through nested navigation (Guest → User)
-            { data: "guest.user.firstName", title: "First Name", width: "15%" },
-            { data: "guest.user.lastName", title: "Last Name", width: "15%" },
-
-            // RV's license plate number
-            { data: "rv.licensePlate", title: "License Plate", width: "15%" },
-
-            // Lot location (e.g., "B12", "North Pad 7")
-            { data: "lot.location", title: "Lot", width: "10%" },
-
-            // Reservation start and end dates, formatted as local strings
-            {
-                data: "startDate",
-                render: d => new Date(d).toLocaleDateString(),
-                title: "Start Date",
-                width: "10%"
-            },
-            {
-                data: "endDate",
-                render: d => new Date(d).toLocaleDateString(),
-                title: "End Date",
-                width: "10%"
-            },
-
-            // Reservation status (e.g., "Upcoming", "Active", "Completed")
-            { data: "status", title: "Status", width: "10%" },
-
-            // Action column with Edit and Delete buttons
-            {
-                data: "reservationId",
-                width: "15%",
-                render: function (data) {
-                    return `
-                        <div class="text-center">
-                            <a href="/Admin/Reservations/Update/${data}" 
-                               class="btn btn-custom-blue text-white mb-1" 
-                               style="width:100px;">
-                                <i class="far fa-edit"></i> Edit
-                            </a>
-                            <a onClick="Delete('/api/reservation/${data}')" 
-                               class="btn btn-custom-grey text-white" 
-                               style="width:100px;">
-                                <i class="far fa-trash-alt"></i> Delete
-                            </a>
-                        </div>`;
-                }
-            }
-        ],
-        // Fallback message when no reservation records exist
-        language: { emptyTable: "No reservations found." },
-
-        // Use the full width of the parent container
-        width: "100%"
+    $('#statusFilter').on('change', function () {
+        const filter = this.value;
+        dataTable.ajax.url(`/api/reservation?filter=${filter}`).load();
     });
-}
 
-// Called when the Delete button is clicked
-// Uses SweetAlert to confirm and then sends a DELETE request
-function Delete(url) {
-    swal({
-        title: "Are you sure you want to delete?",
-        text: "You will not be able to restore this reservation!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true
-    }).then((willDelete) => {
-        if (willDelete) {
+    $('#DT_load thead').on('keyup change', '.column-filter', function () {
+        dataTable.draw();
+    });
+
+    $(document).on('change', '.status-dropdown:not([disabled])', function () {
+        const reservationId = $(this).data('id');
+        const newStatus = $(this).val();
+
+        if (newStatus === 'Cancelled') {
+            confirmCancel(reservationId);
+        } else {
             $.ajax({
-                type: 'DELETE',
-                url: url,
-                success: function (data) {
-                    if (data.success) {
-                        toastr.success(data.message);            // Show success toast
-                        $('#DT_load').DataTable().ajax.reload(); // Refresh the table
+                url: `/api/reservation/status/${reservationId}`,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ status: newStatus }),
+                success: response => {
+                    if (response.success) {
+                        toastr.success("Status updated.");
+                        dataTable.ajax.reload();
                     } else {
-                        toastr.error(data.message);              // Show error toast
+                        toastr.error(response.message || "Status update failed.");
                     }
                 },
-                error: function (xhr) {
-                    toastr.error("Error: " + xhr.responseText);  // Display technical error
+                error: xhr => {
+                    toastr.error("Error: " + xhr.responseText);
                 }
             });
         }
     });
+});
+
+function loadReservations() {
+    dataTable = $('#DT_load').DataTable({
+        ajax: {
+            url: `/api/reservation?filter=active`,
+            type: "GET",
+            dataSrc: json => json.data
+        },
+        columns: [
+            { data: "reservationId" },
+            { data: "guest.user.firstName" },
+            { data: "guest.user.lastName" },
+            { data: "rv.licensePlate" },
+            { data: "lot.location" },
+            {
+                data: "startDate",
+                render: d => new Date(d).toLocaleDateString()
+            },
+            {
+                data: "endDate",
+                render: d => new Date(d).toLocaleDateString()
+            },
+            {
+                data: "status",
+                render: (data, type, row) => {
+                    const disabled = data === "Cancelled" ? "disabled" : "";
+                    const options = ["Pending", "Confirmed", "CheckedIn", "Completed", "Cancelled"]
+                        .map(opt => `<option value="${opt}" ${opt === data ? "selected" : ""}>${opt}</option>`)
+                        .join('');
+                    return `<select class="form-select form-select-sm status-dropdown" data-id="${row.reservationId}" ${disabled}>${options}</select>`;
+                }
+            },
+            {
+                data: "remainingBalance", // ✅ Display remaining balance
+                render: b => {
+                    const num = parseFloat(b);
+                    return isNaN(num) ? "$0.00" : `$${num.toFixed(2)}`;
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                render: function (data, type, row) {
+                    const id = row.reservationId;
+                    const balance = parseFloat(row.remainingBalance || 0); // ✅ Use remainingBalance
+                    const edit = `<a href="/Admin/Reservations/Update/${id}" class="btn btn-sm btn-custom-blue text-white"><i class="fas fa-edit"></i> Edit</a>`;
+                    const pay = balance > 0 ? `<a href="/Admin/Reservations/Payment/${id}" class="btn btn-sm btn-success text-white"><i class="fas fa-dollar-sign"></i> Pay</a>` : '';
+                    return `<div class="d-flex gap-1 justify-content-center">${edit}${pay}</div>`;
+                }
+            }
+        ],
+        initComplete: function () {
+            this.api().columns().every(function (index) {
+                const column = this;
+                $('input, select', $('#DT_load thead th').eq(index)).on('keyup change', function () {
+                    column.search(this.value).draw();
+                });
+            });
+
+            $.fn.dataTable.ext.search.push(function (settings, data) {
+                const balanceFilter = $('#balanceFilter').val();
+                const balanceText = data[8].replace('$', '').trim(); 
+                const balance = parseFloat(balanceText) || 0;
+                if (balanceFilter === "has" && balance <= 0) return false;
+                if (balanceFilter === "none" && balance > 0) return false;
+                return true;
+            });
+
+            $('#balanceFilter').on('change', function () {
+                dataTable.draw();
+            });
+        },
+        language: {
+            emptyTable: "No reservations found."
+        }
+    });
+}
+
+function confirmCancel(id) {
+    swal({
+        title: "Confirm Cancellation",
+        text: "Cancelling may apply a cancellation fee if within 24 hours of check-in.",
+        icon: "warning",
+        content: createOverrideForm(),
+        buttons: {
+            cancel: "Back",
+            confirm: {
+                text: "Confirm",
+                closeModal: false
+            }
+        }
+    }).then((willCancel) => {
+        if (willCancel) {
+            const override = document.getElementById("overrideCheckbox").checked;
+            const percent = override ? parseInt(document.getElementById("overridePercent").value) : null;
+            const reason = override ? document.getElementById("cancelOverrideReason").value : "";
+
+            $.ajax({
+                type: "POST",
+                url: `/api/reservation/cancel/${id}`,
+                data: JSON.stringify({ override, percent, reason }),
+                contentType: "application/json",
+                success: function (data) {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        if (window.dataTable) {
+                            dataTable.ajax.reload(null, false);
+                        }
+                        swal.close();
+                    } else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error("Error: " + xhr.responseText);
+                }
+            });
+        }
+    });
+}
+
+function createOverrideForm() {
+    const div = document.createElement("div");
+    div.innerHTML = `
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="overrideCheckbox">
+            <label class="form-check-label" for="overrideCheckbox">Override Cancellation Fee</label>
+        </div>
+        <div id="overrideFields" style="display:none;">
+            <label class="form-label mt-2">Override Percentage:</label>
+            <select id="overridePercent" class="form-select form-select-sm mb-2">
+                ${[100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].map(p => `<option value="${p}">${p}%</option>`).join('')}
+            </select>
+            <label class="form-label">Reason:</label>
+            <textarea id="cancelOverrideReason" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+    `;
+    setTimeout(() => {
+        document.getElementById("overrideCheckbox").addEventListener("change", function () {
+            document.getElementById("overrideFields").style.display = this.checked ? "block" : "none";
+        });
+    }, 10);
+    return div;
 }

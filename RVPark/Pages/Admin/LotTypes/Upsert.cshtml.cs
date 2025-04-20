@@ -23,14 +23,19 @@ namespace RVPark.Pages.Admin.LotTypes
         {
             if (id == null || id == 0)
             {
-                if (parkId == null || await _unitOfWork.Park.GetAsync(p => p.Id == parkId) == null)
+                if (parkId == null)
                     return NotFound();
 
+                var parkExists = await _unitOfWork.Park.GetAsync(p => p.Id == parkId);
+                if (parkExists == null)
+                    return NotFound();
+
+                var start = DateTime.Today;
                 LotTypeObject = new LotType
                 {
                     ParkId = parkId.Value,
-                    StartDate = DateTime.Today,
-                    EndDate = DateTime.Today
+                    StartDate = start,
+                    EndDate = start.AddYears(1)
                 };
             }
             else
@@ -50,8 +55,8 @@ namespace RVPark.Pages.Admin.LotTypes
             if (!ModelState.IsValid)
                 return Page();
 
-            var parkExists = await _unitOfWork.Park.GetAsync(p => p.Id == LotTypeObject.ParkId) != null;
-            if (!parkExists)
+            var parkExists = await _unitOfWork.Park.GetAsync(p => p.Id == LotTypeObject.ParkId);
+            if (parkExists == null)
             {
                 ModelState.AddModelError(string.Empty, "Selected Park does not exist.");
                 return Page();
@@ -60,7 +65,7 @@ namespace RVPark.Pages.Admin.LotTypes
             if (LotTypeObject.Id == 0)
             {
                 LotTypeObject.StartDate = DateTime.Today;
-                LotTypeObject.EndDate = DateTime.Today;
+                LotTypeObject.EndDate = LotTypeObject.StartDate.AddYears(1);
                 _unitOfWork.LotType.Add(LotTypeObject);
             }
             else
@@ -69,16 +74,14 @@ namespace RVPark.Pages.Admin.LotTypes
                 if (existing == null)
                     return NotFound();
 
-                bool endDateChanged = existing.EndDate != LotTypeObject.EndDate;
-
                 existing.Name = LotTypeObject.Name;
                 existing.Rate = LotTypeObject.Rate;
-                existing.EndDate = LotTypeObject.EndDate;
                 existing.IsArchived = LotTypeObject.IsArchived;
 
-                if (endDateChanged)
+                if (existing.EndDate != LotTypeObject.EndDate)
                 {
                     existing.StartDate = DateTime.Today;
+                    existing.EndDate = existing.StartDate.AddYears(1);
                 }
 
                 _unitOfWork.LotType.Update(existing);

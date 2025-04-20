@@ -1,91 +1,114 @@
 ﻿@page
 @model RVPark.Pages.Admin.Reservations.UpsertModel
-<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-10">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
+@using Microsoft.AspNetCore.Mvc.Rendering
 
-                        <h2 class="card-title text-center text-primary mb-4">
-                            @(Model.Reservation.ReservationId != 0 ? "Edit Reservation" : "Create Reservation")
-                        </h2>
+<form method="post" enctype="multipart/form-data">
+    <div class="container mt-4 d-flex justify-content-center">
+        <div class="card shadow-sm w-100" style="max-width: 700px;">
+            <div class="card-body px-5 py-4">
+                <h2 class="text-primary text-center mb-4">
+                    @(Model.Reservation.ReservationId != 0 ? "Edit Reservation" : "Create Reservation")
+                </h2>
 
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-                        <!-- Guest Information -->
-                        <section aria-labelledby="guest-info" class="mb-4">
-                            <h5 id="guest-info" class="fw-bold">Guest Information</h5>
-
-                            <div class="mb-3">
-                                <label asp-for="GuestFirstName" class="form-label">First Name</label>
-                                <input asp-for="GuestFirstName" class="form-control" placeholder="John" required autofocus autocomplete="given-name" />
-                                <span asp-validation-for="GuestFirstName" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="GuestLastName" class="form-label">Last Name</label>
-                                <input asp-for="GuestLastName" class="form-control" placeholder="Doe" required autocomplete="family-name" />
-                                <span asp-validation-for="GuestLastName" class="text-danger"></span>
-                            </div>
-                        </section>
-
-                        <!-- Trailer Info -->
-                        <section aria-labelledby="trailer-info" class="mb-4">
-                            <h5 id="trailer-info" class="fw-bold">Trailer Information</h5>
-
-                            <div class="mb-3">
-                                <label asp-for="Length" class="form-label">Trailer Length</label>
-                                <select asp-for="Length" class="form-select" required>
-                                    <option value="">-- Select Length --</option>
-                                    <option value="20">20 ft</option>
-                                    <option value="25">25 ft</option>
-                                    <option value="30">30 ft</option>
-                                    <option value="35">35 ft</option>
-                                    <option value="40">40 ft</option>
-                                </select>
-                                <span asp-validation-for="Length" class="text-danger"></span>
-                            </div>
-                        </section>
-
-                        <!-- Reservation Dates -->
-                        <section aria-labelledby="reservation-dates" class="mb-4">
-                            <h5 id="reservation-dates" class="fw-bold">Reservation Dates</h5>
-
-                            <div class="mb-3">
-                                <label asp-for="Reservation.StartDate" class="form-label">Start Date</label>
-                                <input asp-for="Reservation.StartDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                                <span asp-validation-for="Reservation.StartDate" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Reservation.EndDate" class="form-label">End Date</label>
-                                <input asp-for="Reservation.EndDate" type="date" class="form-control" required onchange="calculateDuration()" />
-                                <span asp-validation-for="Reservation.EndDate" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Reservation.Duration" class="form-label">Duration (Days)</label>
-                                <input asp-for="Reservation.Duration" class="form-control" readonly />
-                                <span asp-validation-for="Reservation.Duration" class="text-danger"></span>
-                            </div>
-                        </section>
-
-                        <!-- Hidden IDs -->
-                        <input type="hidden" asp-for="Reservation.GuestId" />
-                        <input type="hidden" asp-for="Reservation.RvId" />
-                        <input type="hidden" asp-for="Reservation.LotId" />
-
-                        <!-- Buttons -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-page="Payment" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Back
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> @(Model.Reservation.ReservationId != 0 ? "Update" : "Create")
-                            </button>
-                        </div>
+                <div class="mb-3">
+                    <label for="guestDropdown" class="form-label fw-bold">Select Guest</label>
+                    <div class="input-group">
+                        <select id="guestDropdown" name="SelectedGuestId" class="form-select select2" onchange="fetchGuestRV()">
+                            <option disabled selected value="">-- Search or select guest --</option>
+                            @foreach (var guest in Model.GuestOptions)
+                            {
+                                <option value="@guest.Value" selected="@(Model.SelectedGuestId?.ToString() == guest.Value)">
+                                    @guest.Text
+                                </option>
+                            }
+                        </select>
+                        <a href="/Admin/Guests/Upsert?returnUrl=/Admin/Reservations/Upsert"
+                           id="newGuestBtn"
+                           class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-user-plus"></i> New Guest
+                        </a>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">RV Length</label>
+                    <div class="input-group">
+                        <input type="number" id="Rv_Length" name="Length" class="form-control text-center" value="@Model.Length" />
+                        <a id="rvEditLink"
+                           asp-page="/Admin/RVs/Edit"
+                           asp-route-id="@Model.Reservation.RvId"
+                           asp-route-returnUrl="/Admin/Reservations/Upsert"
+                           class="btn btn-custom-blue @(Model.Reservation.RvId == 0 ? "disabled" : "")">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label asp-for="Reservation.NumberOfAdults" class="form-label fw-bold">Adults</label>
+                        <input asp-for="Reservation.NumberOfAdults" class="form-control text-center" />
+                    </div>
+                    <div class="col">
+                        <label asp-for="Reservation.NumberOfPets" class="form-label fw-bold">Pets</label>
+                        <input asp-for="Reservation.NumberOfPets" class="form-control text-center" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Reservation.StartDate" class="form-label fw-bold">Start Date</label>
+                        <input asp-for="Reservation.StartDate" type="date" class="form-control" onchange="calculateDuration()" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Reservation.EndDate" class="form-label fw-bold">End Date</label>
+                        <input asp-for="Reservation.EndDate" type="date" class="form-control" onchange="calculateDuration()" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Reservation.Duration" class="form-label fw-bold">Duration (Days)</label>
+                    <input asp-for="Reservation.Duration" class="form-control text-center" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Lot Type</label>
+                    <select asp-for="Reservation.LotTypeId" id="Reservation_LotTypeId" class="form-control text-center">
+                        <option disabled selected value="">-- Select Lot Type --</option>
+                        @foreach (var lotType in Model.LotTypeOptions)
+                        {
+                            <option value="@lotType.Id" data-rate="@lotType.Rate">@lotType.Name - $@lotType.Rate/day</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Reservation.LotId" class="form-label fw-bold">Lot</label>
+                    <select asp-for="Reservation.LotId" id="Reservation_LotId" class="form-control text-center" disabled>
+                        <option disabled selected value="">-- Select Lot --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Estimated Base Total</label>
+                    <input id="updatedTotalField" class="form-control text-center fw-bold" readonly />
+                </div>
+
+                <input type="hidden" asp-for="Reservation.GuestId" />
+                <input type="hidden" asp-for="Reservation.RvId" />
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-page="Index" class="btn btn-custom-grey">
+                        <i class="fas fa-arrow-left me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-custom-blue">
+                        <i class="fas fa-save me-1"></i> Save Reservation
+                    </button>
                 </div>
             </div>
         </div>
@@ -94,18 +117,116 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        function calculateDuration() {
-            const start = new Date(document.querySelector('[name="Reservation.StartDate"]').value);
-            const end = new Date(document.querySelector('[name="Reservation.EndDate"]').value);
-            const durationInput = document.querySelector('[name="Reservation.Duration"]');
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-            if (!isNaN(start) && !isNaN(end)) {
-                const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                durationInput.value = diff > 0 ? diff : 0;
-            } else {
-                durationInput.value = '';
-            }
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2();
+
+            $('#Reservation_LotTypeId').one('click', () => $('#Reservation_LotId').prop('disabled', false));
+            $('#Reservation_LotTypeId').on('change', fetchAvailableLots);
+        });
+
+        function calculateDuration() {
+            const start = new Date($('#Reservation_StartDate').val());
+            const end = new Date($('#Reservation_EndDate').val());
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            $('#Reservation_Duration').val(duration > 0 ? duration : 0);
+            updateTotal();
         }
+
+        function updateTotal() {
+            const duration = parseInt($('#Reservation_Duration').val()) || 0;
+            const rate = parseFloat($('#Reservation_LotTypeId option:selected').data('rate')) || 0;
+            $('#updatedTotalField').val((duration * rate).toFixed(2));
+        }
+
+        function fetchAvailableLots() {
+            const lotTypeId = $('#Reservation_LotTypeId').val();
+            const trailerLength = $('#Rv_Length').val();
+            const startDate = $('#Reservation_StartDate').val();
+            const endDate = $('#Reservation_EndDate').val();
+
+            if (!lotTypeId || !startDate || !endDate || !trailerLength) return;
+
+            $.get('/Admin/Reservations/Upsert?handler=AvailableLots', {
+                lotTypeId,
+                trailerLength,
+                startDate,
+                endDate
+            }, function (response) {
+                const $lotSelect = $('#Reservation_LotId');
+                $lotSelect.empty().prop('disabled', false);
+
+                if (response.length === 0) {
+                    $lotSelect.append('<option disabled selected>No lots available</option>');
+                } else {
+                    $lotSelect.append('<option disabled selected>-- Select Lot --</option>');
+                    response.forEach(lot => {
+                        $lotSelect.append(`<option value="${lot.id}" data-rate="${lot.lotTypeRate}">Lot #${lot.id} - ${lot.location}</option>`);
+                    });
+                }
+
+                updateTotal();
+            });
+        }
+
+        function fetchGuestRV() {
+            const guestId = $('#guestDropdown').val();
+            if (!guestId) return;
+
+            fetch(`/api/guests/${guestId}/rv`)
+                .then(res => res.json())
+                .then(data => {
+                    $('#Rv_Length').val(data.length || '');
+                    $('#rvEditLink').attr('href', `/Admin/RVs/Edit/${data.rvId}?returnUrl=/Admin/Reservations/Upsert`);
+                    $('[name="Reservation.RvId"]').val(data.rvId);
+                    $('[name="Reservation.GuestId"]').val(guestId);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch RV:", err);
+                    $('#Rv_Length').val('');
+                    $('#rvEditLink').attr('href', '#');
+                });
+        }
+
+        if (window.opener && window.location.href.includes("guestId")) {
+            window.opener.location.href = window.location.href;
+            window.close();
+        }
+                function loadManualFees() {
+            fetch('/api/fees/manual')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('manualFeeTableBody');
+                    tbody.innerHTML = '';
+
+                    data.forEach(fee => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${fee.feeTypeName}</td>
+                            <td>$${parseFloat(fee.feeTotal).toFixed(2)}</td>
+                            <td>
+                                <input type="checkbox" name="SelectedManualFees" value="${fee.id}" data-amount="${fee.feeTotal}" />
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => {
+                    console.error("Failed to load manual fees:", err);
+                });
+        }
+
+        document.getElementById('toggleManualFees')?.addEventListener('change', function () {
+            const container = document.getElementById('manualFeeTableContainer');
+            if (this.checked) {
+                loadManualFees();
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        });
     </script>
 }

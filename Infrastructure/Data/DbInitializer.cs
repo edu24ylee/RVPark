@@ -162,6 +162,7 @@ namespace Infrastructure
             _db.RV.Add(rv);
             _db.SaveChanges();
 
+
             var statuses = new[] { SD.StatusPending, SD.StatusConfirmed, SD.StatusActive, SD.StatusCancelled, SD.StatusCompleted };
             var reservations = new List<Reservation>();
             for (int i = 0; i < 12; i++)

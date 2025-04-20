@@ -19,27 +19,17 @@ namespace RVPark.Pages.Admin.Fees
         public Fee FeeObject { get; set; } = new();
 
         public List<SelectListItem> FeeTypeList { get; set; } = new();
-        public List<SelectListItem> PolicyList { get; set; } = new();
-
-        public List<(int FeeTypeId, TriggerType TriggerType)> FeeTypeTriggerTypes { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            var feeTypes = await _unitOfWork.FeeType.GetAllAsync();
-            var policies = await _unitOfWork.Policy.GetAllAsync();
+            var feeTypes = await _unitOfWork.FeeType.GetAllAsync(f => !f.IsArchived);
 
             FeeTypeList = feeTypes
-                .Where(f => !f.IsArchived)
-                .Select(f => new SelectListItem { Text = f.FeeTypeName, Value = f.Id.ToString() })
-                .ToList();
-
-            PolicyList = policies
-                .Select(p => new SelectListItem { Text = p.PolicyName, Value = p.Id.ToString() })
-                .ToList();
-
-            FeeTypeTriggerTypes = feeTypes
-                .Select(f => (f.Id, f.TriggerType))
-                .ToList();
+                .Select(f => new SelectListItem
+                {
+                    Text = f.FeeTypeName,
+                    Value = f.Id.ToString()
+                }).ToList();
 
             if (id == null || id == 0)
             {
@@ -47,8 +37,9 @@ namespace RVPark.Pages.Admin.Fees
             }
             else
             {
-                FeeObject = await _unitOfWork.Fee.GetAsync(f => f.Id == id.Value, includes: "FeeType,TriggeringPolicy");
-                if (FeeObject == null) return NotFound();
+                FeeObject = await _unitOfWork.Fee.GetAsync(f => f.Id == id);
+                if (FeeObject == null)
+                    return NotFound();
             }
 
             return Page();
@@ -56,21 +47,24 @@ namespace RVPark.Pages.Admin.Fees
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
+            var feeType = await _unitOfWork.FeeType.GetAsync(f => f.Id == FeeObject.FeeTypeId);
+            if (feeType == null)
             {
-                await OnGetAsync(FeeObject.Id);
+                ModelState.AddModelError("FeeObject.FeeTypeId", "Invalid fee type.");
                 return Page();
             }
 
-            if (FeeObject.Id == 0)
-            {
-                _unitOfWork.Fee.Add(FeeObject);
-            }
-            else
-            {
-                _unitOfWork.Fee.Update(FeeObject);
-            }
+            FeeObject.TriggerType = feeType.TriggerType;
 
+            if (!ModelState.IsValid)
+                return Page();
+
+            if (FeeObject.Id == 0)
+                _unitOfWork.Fee.Add(FeeObject);
+            else
+                _unitOfWork.Fee.Update(FeeObject);
+
+            await _unitOfWork.CommitAsync();
             return RedirectToPage("Index");
         }
     }

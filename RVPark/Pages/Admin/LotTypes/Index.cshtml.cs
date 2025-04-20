@@ -41,6 +41,5 @@ namespace RVPark.Pages.Admin.LotTypes
                 }
             }
         }
-
     }
 }
