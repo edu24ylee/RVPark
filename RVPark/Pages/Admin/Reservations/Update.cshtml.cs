@@ -98,8 +98,8 @@ namespace RVPark.Pages.Admin.Reservations
 
                 int feePercent = 0;
 
-                if (shouldCharge)
-                {
+               if(shouldCharge && feeType != null)
+{
                     feePercent = overrideChecked && overridePercent.HasValue ? overridePercent.Value : 100;
                     cancellationFee = Math.Round(rate * (feePercent / 100m), 2);
 
@@ -108,7 +108,7 @@ namespace RVPark.Pages.Admin.Reservations
                         f.FeeTypeId == feeType.Id &&
                         f.TriggerType == TriggerType.Triggered);
 
-                    if (existing == null && feeType != null && cancellationFee > 0)
+                    if (existing == null && cancellationFee > 0)
                     {
                         _unitOfWork.Fee.Add(new Fee
                         {
@@ -121,6 +121,7 @@ namespace RVPark.Pages.Admin.Reservations
                         });
                     }
                 }
+
 
                 res.BaseTotal = 0;
                 res.ManualFeeTotal = 0;
