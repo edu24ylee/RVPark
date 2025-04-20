@@ -23,9 +23,7 @@ namespace ApplicationCore.ViewModels
         public int? DodId { get; set; }
 
         public string DodBranch { get; set; } = string.Empty;
-
         public string DodStatus { get; set; } = string.Empty;
-
         public string DodRank { get; set; } = string.Empty;
     }
 }

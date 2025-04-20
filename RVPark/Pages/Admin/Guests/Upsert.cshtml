@@ -56,19 +56,16 @@
 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label asp-for="GuestVM.DodBranch" class="form-label fw-bold">Military Branch</label>
-                        <input asp-for="GuestVM.DodBranch" class="form-control" />
-                        <span asp-validation-for="GuestVM.DodBranch" class="text-danger"></span>
+                        <label class="form-label fw-bold" for="DodBranch">Military Branch</label>
+                        <input name="GuestVM.DodBranch" id="DodBranch" class="form-control" type="text" value="@Model.GuestVM.DodBranch" />
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="GuestVM.DodStatus" class="form-label fw-bold">Status</label>
-                        <input asp-for="GuestVM.DodStatus" class="form-control" />
-                        <span asp-validation-for="GuestVM.DodStatus" class="text-danger"></span>
+                        <label class="form-label fw-bold" for="DodStatus">Status</label>
+                        <input name="GuestVM.DodStatus" id="DodStatus" class="form-control" type="text" value="@Model.GuestVM.DodStatus" />
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="GuestVM.DodRank" class="form-label fw-bold">Rank</label>
-                        <input asp-for="GuestVM.DodRank" class="form-control" />
-                        <span asp-validation-for="GuestVM.DodRank" class="text-danger"></span>
+                        <label class="form-label fw-bold" for="DodRank">Rank</label>
+                        <input name="GuestVM.DodRank" id="DodRank" class="form-control" type="text" value="@Model.GuestVM.DodRank" />
                     </div>
                 </div>
 

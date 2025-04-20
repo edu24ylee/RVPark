@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250419201054_Initial")]
+    [Migration("20250420033221_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -34,23 +34,20 @@ namespace Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DodAffiliationId"));
 
                     b.Property<string>("Branch")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GuestID")
+                    b.Property<int>("GuestId")
                         .HasColumnType("int");
 
                     b.Property<string>("Rank")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DodAffiliationId");
 
-                    b.HasIndex("GuestID")
+                    b.HasIndex("GuestId")
                         .IsUnique();
 
                     b.ToTable("DodAffiliation");
@@ -760,7 +757,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("ApplicationCore.Models.Guest", "Guest")
                         .WithOne("DodAffiliation")
-                        .HasForeignKey("ApplicationCore.Models.DodAffiliation", "GuestID")
+                        .HasForeignKey("ApplicationCore.Models.DodAffiliation", "GuestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

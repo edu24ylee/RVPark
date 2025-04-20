@@ -360,17 +360,17 @@ namespace Infrastructure.Migrations
                 {
                     DodAffiliationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Branch = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Rank = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    GuestID = table.Column<int>(type: "int", nullable: false)
+                    Branch = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Rank = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GuestId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DodAffiliation", x => x.DodAffiliationId);
                     table.ForeignKey(
-                        name: "FK_DodAffiliation_Guest_GuestID",
-                        column: x => x.GuestID,
+                        name: "FK_DodAffiliation_Guest_GuestId",
+                        column: x => x.GuestId,
                         principalTable: "Guest",
                         principalColumn: "GuestId",
                         onDelete: ReferentialAction.Cascade);
@@ -553,9 +553,9 @@ namespace Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DodAffiliation_GuestID",
+                name: "IX_DodAffiliation_GuestId",
                 table: "DodAffiliation",
-                column: "GuestID",
+                column: "GuestId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
