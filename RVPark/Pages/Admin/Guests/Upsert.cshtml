@@ -1,0 +1,90 @@
+﻿@page
+@model RVPark.Pages.Admin.Guests.UpsertModel
+
+@{
+    ViewData["Title"] = Model.GuestVM.GuestId == 0 ? "Add Guest" : "Update Guest";
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">@ViewData["Title"]</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="hidden" asp-for="GuestVM.GuestId" />
+                <input type="hidden" asp-for="GuestVM.UserId" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.FirstName" class="form-label fw-bold">First Name</label>
+                        <input asp-for="GuestVM.FirstName" class="form-control" />
+                        <span asp-validation-for="GuestVM.FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.LastName" class="form-label fw-bold">Last Name</label>
+                        <input asp-for="GuestVM.LastName" class="form-control" />
+                        <span asp-validation-for="GuestVM.LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.Email" class="form-label fw-bold">Email</label>
+                        <input asp-for="GuestVM.Email" class="form-control" />
+                        <span asp-validation-for="GuestVM.Email" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.Phone" class="form-label fw-bold">Phone</label>
+                        <input asp-for="GuestVM.Phone" class="form-control" />
+                        <span asp-validation-for="GuestVM.Phone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="GuestVM.DodId" class="form-label fw-bold">DOD ID</label>
+                        <input asp-for="GuestVM.DodId" class="form-control" />
+                        <span asp-validation-for="GuestVM.DodId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="mb-3 text-primary">DoD Affiliation</h5>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodBranch" class="form-label fw-bold">Military Branch</label>
+                        <input asp-for="GuestVM.DodBranch" class="form-control" />
+                        <span asp-validation-for="GuestVM.DodBranch" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodStatus" class="form-label fw-bold">Status</label>
+                        <input asp-for="GuestVM.DodStatus" class="form-control" />
+                        <span asp-validation-for="GuestVM.DodStatus" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="GuestVM.DodRank" class="form-label fw-bold">Rank</label>
+                        <input asp-for="GuestVM.DodRank" class="form-control" />
+                        <span asp-validation-for="GuestVM.DodRank" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-page="./Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
