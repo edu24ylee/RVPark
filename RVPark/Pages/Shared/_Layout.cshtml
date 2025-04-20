@@ -139,20 +139,35 @@
     <div class="container-fluid p-0">
         @RenderBody()
     </div>
+    <footer class="py-4 border-top bg-light">
+        <div class="container d-flex flex-column align-items-center justify-content-center text-center">
 
-    <footer class="py-3 my-4 border-top">
-        <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between position-relative">
-            <p class="mb-2 mb-md-0 text-body-secondary text-center text-md-start">© 2024 Control Alt Elite, Inc</p>
-            <a href="/" class="position-absolute start-50 translate-middle-x d-flex align-items-center justify-content-center">
-                <img src="/Images/Logo.png" class="bi me-2" width="150" height="150" style="max-width: 100%; height: auto;" />
+            <!-- Logo Centered -->
+            <a href="/" class="mb-2">
+                <img src="/Images/Logo.png" alt="RVPark Logo" width="100" height="100" style="max-width: 100%; height: auto;" />
             </a>
-            <ul class="nav flex-column flex-sm-row text-center text-md-end">
-                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
-                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
-                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
-                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
-                <li class="nav-item"><a href="#" class="nav-link px-2 text-body-secondary">Add here</a></li>
-            </ul>
+
+            <!-- Capstone Project Line -->
+            <p class="mb-1 text-muted small">
+                RVPark — A Weber State CS3750 Capstone Project |
+                <a asp-page="/Admin/About/Index" class="text-decoration-none text-primary">About</a>
+            </p>
+
+            <!-- Bottom Row -->
+            <div class="d-flex w-100 justify-content-between flex-wrap text-muted small mt-3">
+                <!-- Left -->
+                <div class="text-start">
+                    © 2024 Control Alt Elite, Inc
+                </div>
+
+                <!-- Right -->
+                <ul class="nav justify-content-end gap-2">
+                    <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Privacy</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Terms</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Support</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link px-2 text-muted">Contact</a></li>
+                </ul>
+            </div>
         </div>
     </footer>
 

@@ -144,7 +144,12 @@ namespace RVPark.Pages.Customer.Home
                 Duration = Duration,
                 NumberOfAdults = NumberOfAdults,
                 NumberOfPets = NumberOfPets,
-                Status = "Pending"
+                Status = "Confirmed",
+                BaseTotal = subtotal,
+                ManualFeeTotal = 0,
+                TaxTotal = tax,
+                TotalDue = subtotal + tax,
+                AmountPaid = subtotal + tax
             };
             _unitOfWork.Reservation.Add(reservation);
             await _unitOfWork.CommitAsync();
