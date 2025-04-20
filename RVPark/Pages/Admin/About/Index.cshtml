@@ -1,0 +1,38 @@
+﻿@page
+@model RVPark.Pages.Admin.About.IndexModel
+@{
+    ViewData["Title"] = "About";
+}
+
+<div class="container py-5">
+    <div class="card shadow-sm">
+        <div class="card-body px-5 py-4">
+            <h2 class="text-primary text-center mb-4">About This Project</h2>
+
+            <p class="text-muted text-center">
+                This project was developed as part of the CS3750 course in Software Engineering at Weber State University.
+            </p>
+
+            <hr />
+
+            <h4 class="fw-bold">Team Members</h4>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">Cayden Peterson</li>
+                <li class="list-group-item">Christian Martin</li>
+                <li class="list-group-item">Ian Nicholson</li>
+                <li class="list-group-item">Jake Runyan</li>
+                <li class="list-group-item">Lexus Lindeman</li>
+                <li class="list-group-item">Tawny McAleese</li>
+                <li class="list-group-item">Yugene Lee</li>
+            </ul>
+
+            <p class="small text-muted">
+                &copy; @DateTime.Now.Year held at <strong>Weber State University</strong>
+            </p>
+
+            <p class="small fst-italic text-muted">
+                This software is provided "as is".
+            </p>
+        </div>
+    </div>
+</div>
