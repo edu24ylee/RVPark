@@ -26,32 +26,48 @@
     });
 }
 
+let guestTable;
+
 $(document).ready(function () {
-    $('#DT_load').DataTable({
+    guestTable = $('#DT_load').DataTable({
         "ajax": {
             "url": "/api/guest",
             "type": "GET",
             "datatype": "json"
         },
         "columns": [
-            { "data": "fullName", "width": "15%" },
-            { "data": "email", "width": "15%" },
-            { "data": "phone", "width": "10%" },
+            {
+                data: "user",
+                render: data => `${data.firstName} ${data.lastName}`,
+                width: "20%"
+            },
+            { "data": "user.email", "width": "15%" },
+            { "data": "user.phone", "width": "10%" },
             { "data": "dodId", "width": "10%" },
             { "data": "branch", "width": "10%" },
             { "data": "status", "width": "10%" },
             { "data": "rank", "width": "10%" },
             {
                 "data": "guestId",
-                "render": function (data) {
+                "render": function (data, type, row) {
+                    const isArchived = row.user.isArchived;
+                    const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
+
+                    const archiveBtn = isArchived
+                        ? (isSuperAdmin
+                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveGuest(${data})">
+                                   <i class="fas fa-box-open"></i> Unarchive
+                               </button>`
+                            : ``)
+                        : `<button class="btn btn-sm btn-custom-grey" onclick="archiveGuest(${data})">
+                               <i class="fas fa-archive"></i> Archive
+                           </button>`;
                     return `
                         <div class="text-center">
                             <a href="/Admin/Guests/Upsert?id=${data}" class="btn btn-sm btn-primary mx-1">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit"></i> Update
                             </a>
-                            <a onClick="Delete('/api/guest/${data}')" class="btn btn-sm btn-danger mx-1">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
+                            ${archiveBtn}
                         </div>
                     `;
                 },
@@ -65,3 +81,33 @@ $(document).ready(function () {
         "width": "100%"
     });
 });
+
+function archiveGuest(id) {
+    $.ajax({
+        url: `/api/guest/archive/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                guestTable.ajax.reload(null, false);
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}
+
+function unarchiveGuest(id) {
+    $.ajax({
+        url: `/api/guest/unarchive/${id}`,
+        type: "POST",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                guestTable.ajax.reload(null, false);
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
+}

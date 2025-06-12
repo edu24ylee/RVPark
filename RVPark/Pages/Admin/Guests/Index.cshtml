@@ -37,6 +37,11 @@
 </div>
 
 @section Scripts {
+    <script>
+        window.isSuperAdmin = @User.IsInRole(SD.SuperAdminRole).ToString().ToLower();
+        window.isAdmin = @User.IsInRole(SD.AdminRole).ToString().ToLower();
+        window.isCampHost = @User.IsInRole(SD.CampHostRole).ToString().ToLower();
+    </script>
     <script src="~/js/guests.js" asp-append-version="true"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

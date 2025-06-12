@@ -45,20 +45,19 @@ function loadEmployeeList() {
                 render: function (data, type, row) {
                     const isArchived = row.user.isArchived;
                     const isSuperAdmin = window.isSuperAdmin === true || window.isSuperAdmin === "true";
-
                     const archiveBtn = isArchived
                         ? (isSuperAdmin
-                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveEmployee(${row.employeeID})">
+                            ? `<button class="btn btn-sm btn-outline-custom-blue" onclick="unarchiveEmployee(${row.employeeId})">
                                    <i class="fas fa-box-open"></i> Unarchive
                                </button>`
                             : ``)
-                        : `<button class="btn btn-sm btn-custom-grey" onclick="archiveEmployee(${row.employeeID})">
+                        : `<button class="btn btn-sm btn-custom-grey" onclick="archiveEmployee(${row.employeeId})">
                                <i class="fas fa-archive"></i> Archive
                            </button>`;
 
                     return `
                         <div class="text-center d-flex flex-column align-items-center gap-1">
-                            <a href="/Admin/Employees/Upsert?id=${row.employeeID}" class="btn btn-sm btn-custom-blue">
+                            <a href="/Admin/Employees/Upsert?id=${row.employeeId}" class="btn btn-sm btn-custom-blue">
                                 <i class="fas fa-edit"></i> Update
                             </a>
                             ${archiveBtn}
@@ -101,6 +100,10 @@ function archiveEmployee(id) {
             } else {
                 toastr.error(data.message);
             }
+        },
+        error: function (xhr) {
+            toastr.error("An unexpected error occurred.");
+            console.error(xhr.responseText);
         }
     });
 }
@@ -116,6 +119,10 @@ function unarchiveEmployee(id) {
             } else {
                 toastr.error(data.message);
             }
+        },
+        error: function (xhr) {
+            toastr.error("An unexpected error occurred.");
+            console.error(xhr.responseText);
         }
     });
 }

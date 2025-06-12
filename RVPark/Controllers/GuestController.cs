@@ -6,7 +6,7 @@ namespace RVPark.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GuestController : ControllerBase
+    public class GuestController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
 
@@ -23,13 +23,19 @@ namespace RVPark.Controllers
                 .Select(g => new
                 {
                     guestId = g.GuestId,
-                    fullName = g.User.FirstName + " " + g.User.LastName,
-                    email = g.User.Email,
-                    phone = g.User.Phone,
                     dodId = g.DodId,
                     branch = g.DodAffiliation?.Branch ?? "N/A",
                     status = g.DodAffiliation?.Status ?? "N/A",
-                    rank = g.DodAffiliation?.Rank ?? "N/A"
+                    rank = g.DodAffiliation?.Rank ?? "N/A",
+                    user = new
+                    {
+                        g.User.FirstName,
+                        g.User.LastName,
+                        g.User.Email,
+                        g.User.Phone,
+                        g.User.LockOutEnd,
+                        g.User.IsArchived
+                    }
                 });
 
             return Ok(new { data = guests });
@@ -56,6 +62,32 @@ namespace RVPark.Controllers
             _unitOfWork.Commit();
 
             return Ok(new { success = true, message = "Deleted successfully" });
+        }
+
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var guest = await _unitOfWork.Guest.GetAsync(g => g.GuestId == id, includes: "User");
+            if (guest == null || guest.User == null)
+                return NotFound(new { success = false, message = "Guest or user not found." });
+
+            guest.User.IsArchived = true;
+            await _unitOfWork.CommitAsync();
+
+            return Json(new { success = true, message = "Guest archived successfully." });
+        }
+
+        [HttpPost("unarchive/{id}")]
+        public async Task<IActionResult> Unarchive(int id)
+        {
+            var guest = await _unitOfWork.Guest.GetAsync(e => e.GuestId == id, includes: "User");
+            if (guest == null || guest.User == null)
+                return NotFound(new { success = false, message = "Guest or user not found." });
+
+            guest.User.IsArchived = false;
+            await _unitOfWork.CommitAsync();
+
+            return Json(new { success = true, message = "Guest unarchived successfully." });
         }
     }
 }

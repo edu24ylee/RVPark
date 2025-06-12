@@ -20,7 +20,7 @@ namespace ApplicationCore.Models
         public int UserId { get; set; }
  
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public virtual User User { get; set; }
  
         [Required]
         public int? DodId { get; set; }
